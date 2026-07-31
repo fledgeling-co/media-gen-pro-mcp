@@ -24,6 +24,7 @@ const OpenAiImagesSchema = z.object({
   data: z.array(z.object({ b64_json: z.string() })).optional(),
 });
 import type { Config } from './config.js';
+import { generateViaGrokCli, readGrokCliSession } from './grok-cli.js';
 import { type ModelChoice, imageModelFor, languageModelFor } from './models.js';
 
 export class GenerationError extends Error {
@@ -244,7 +245,22 @@ export async function generate(
 
   let result: { images: { uint8Array: Uint8Array; mediaType: string }[]; warnings: unknown[] };
   try {
-    if (choice.api === 'openai-compat') {
+    if (choice.api === 'grok-cli') {
+      const session = readGrokCliSession();
+      if (!session) throw new GenerationError('The Grok CLI session vanished between routing and generating.');
+      // One image per call, so several images is several calls, in parallel.
+      const parts = await Promise.all(
+        Array.from({ length: req.n }, () =>
+          generateViaGrokCli({
+            token: session.token,
+            prompt: req.prompt,
+            aspectRatio: req.aspectRatio,
+            timeoutMs: config.timeoutMs,
+          }),
+        ),
+      );
+      result = { images: parts, warnings: [] };
+    } else if (choice.api === 'openai-compat') {
       result = { images: await viaOpenAiCompat(req.n), warnings: [] };
     } else if (choice.api === 'language') {
       const parts = await Promise.all(Array.from({ length: req.n }, () => viaLanguage()));

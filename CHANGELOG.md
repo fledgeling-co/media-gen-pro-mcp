@@ -6,6 +6,14 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [0.1.9] - 2026-07-31
+
+### Added
+
+- **`style: "grok-cli"` generates on a signed-in Grok CLI subscription instead of any API key.** xAI's CLI signs in with OIDC and leaves its access token in `~/.grok/auth.json`; that token authenticates the ordinary `api.x.ai/v1/images/generations` endpoint, so an image lands on an X Premium or SuperGrok plan rather than on API credit or the gateway. Found by reading pi-grok-cli's `src/imagine/generate.ts`, then confirmed against the live endpoint. It was the fastest route in the server at 4.2 seconds.
+
+  The credential is read and never written. No refresh is attempted, because refreshing writes a new token into a file another program owns, and two writers on one auth file is how a working login gets broken by a tool that was only meant to read it. A stale `expires_at` is reported but not treated as fatal: it was 4.5 hours past on the machine this was built on and the token still worked, so the call is attempted and a 401 is answered with "sign in again" rather than being second-guessed in advance.
+
 ## [0.1.8] - 2026-07-30
 
 ### Added

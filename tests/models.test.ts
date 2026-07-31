@@ -102,9 +102,14 @@ describe('routing to a key', () => {
   });
 
   it('lists only the routes that would actually work', () => {
-    expect(availableRoutes(base)).toEqual([]);
-    expect(availableRoutes(with_({ googleKey: 'k' })).map((r) => r.vendor)).toEqual(['google', 'googlepro']);
-    expect(availableRoutes(with_({ gatewayKey: 'g' })).map((r) => r.vendor)).toEqual([
+    // `xaicli` is stripped throughout: it authenticates from a signed-in Grok
+    // CLI rather than from any key, so whether it appears depends on the machine
+    // the test runs on, and asserting on it would make this pass or fail by
+    // accident of who is logged in.
+    const keyed = (c: Config) => availableRoutes(c).map((r) => r.vendor).filter((v) => v !== 'xaicli');
+    expect(keyed(base)).toEqual([]);
+    expect(keyed(with_({ googleKey: 'k' }))).toEqual(['google', 'googlepro']);
+    expect(keyed(with_({ gatewayKey: 'g' }))).toEqual([
       'openai',
       'google',
       'googlepro',
@@ -113,6 +118,8 @@ describe('routing to a key', () => {
       'xai',
       'quiver',
     ]);
+    // xaicli is absent from every list above: it authenticates from a signed-in
+    // CLI rather than from any key, so no key configuration can enable it.
   });
 });
 

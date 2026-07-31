@@ -18,8 +18,9 @@ import { createGoogle } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
 import type { ImageModel, LanguageModel } from 'ai';
 import type { Config } from './config.js';
+import { GROK_CLI_MODEL, readGrokCliSession } from './grok-cli.js';
 
-export type Vendor = 'openai' | 'google' | 'googlepro' | 'bytedance' | 'quiver' | 'xai' | 'recraft';
+export type Vendor = 'openai' | 'google' | 'googlepro' | 'bytedance' | 'quiver' | 'xai' | 'xaicli' | 'recraft';
 export type Route = 'direct' | 'gateway';
 
 export interface ModelChoice {
@@ -28,7 +29,7 @@ export interface ModelChoice {
   /** False when several images means several calls. */
   readonly batches: boolean;
   /** Which SDK call reaches it. Gemini image models are language models. */
-  readonly api: 'image' | 'language' | 'openai-compat';
+  readonly api: 'image' | 'language' | 'openai-compat' | 'grok-cli';
   /** The id actually sent, which differs between routes. */
   readonly modelId: string;
   readonly label: string;
@@ -61,6 +62,9 @@ const ALIASES: Record<string, Vendor> = {
   grok: 'xai',
   xai: 'xai',
   imagine: 'xai',
+  'grok-cli': 'xaicli',
+  grokcli: 'xaicli',
+  subscription: 'xaicli',
   recraft: 'recraft',
   photo: 'recraft',
   photoreal: 'recraft',
@@ -89,7 +93,13 @@ export const KNOWN_STYLES = Object.keys(ALIASES);
  */
 const CATALOGUE: Record<
   Vendor,
-  { direct?: string; gateway?: string; label: string; batches: boolean; api: 'image' | 'language' | 'openai-compat' }
+  {
+    direct?: string;
+    gateway?: string;
+    label: string;
+    batches: boolean;
+    api: 'image' | 'language' | 'openai-compat' | 'grok-cli';
+  }
 > = {
   openai: {
     direct: 'gpt-image-2',
@@ -139,6 +149,16 @@ const CATALOGUE: Record<
     // fail one way and work the other.
     api: 'openai-compat',
   },
+  // The same vendor as `xai`, paid for differently: it uses the Grok CLI's own
+  // signed-in session, so an image lands on an X Premium or SuperGrok
+  // subscription rather than on gateway credit. No `direct` and no `gateway`
+  // because it authenticates from a file rather than from a key, which is why
+  // `chooseModel` special-cases it.
+  xaicli: {
+    label: 'Grok Imagine (CLI subscription)',
+    batches: false,
+    api: 'grok-cli',
+  },
   // The fast one: ~6s against 8-17s for the others, measured 30 July 2026.
   //
   // An earlier version of this comment claimed it filters content more loosely
@@ -185,6 +205,19 @@ export class RoutingError extends Error {
  */
 export function chooseModel(vendor: Vendor, config: Config): ModelChoice {
   const entry = CATALOGUE[vendor];
+
+  // Authenticated by a signed-in CLI rather than by a key, so the key checks
+  // below do not apply and would reject it for having no key of its own.
+  if (entry.api === 'grok-cli') {
+    if (!readGrokCliSession()) {
+      throw new RoutingError(
+        'Grok Imagine on a CLI subscription needs the Grok CLI signed in: no session found at ~/.grok/auth.json. ' +
+          'Run `grok` and sign in, or use `style: "grok"` to reach the same model through the gateway on credit.',
+      );
+    }
+    return { vendor, route: 'direct', modelId: GROK_CLI_MODEL, label: entry.label, batches: entry.batches, api: entry.api };
+  }
+
   const directKey =
     vendor === 'openai' ? config.openaiKey : vendor === 'google' || vendor === 'googlepro' ? config.googleKey : '';
   const canDirect = entry.direct !== undefined && directKey !== '';
@@ -240,7 +273,7 @@ export function languageModelFor(choice: ModelChoice, config: Config): LanguageM
 /** Every route that is usable right now, for the startup line and the doctor. */
 export function availableRoutes(config: Config): { vendor: Vendor; route: Route; label: string }[] {
   const out: { vendor: Vendor; route: Route; label: string }[] = [];
-  for (const vendor of ['openai', 'google', 'googlepro', 'bytedance', 'recraft', 'xai', 'quiver'] as const) {
+  for (const vendor of ['openai', 'google', 'googlepro', 'bytedance', 'recraft', 'xai', 'xaicli', 'quiver'] as const) {
     try {
       const c = chooseModel(vendor, config);
       out.push({ vendor, route: c.route, label: c.label });

@@ -49,7 +49,8 @@ One tool, six models, because the right one genuinely differs by job.
 | `gemini-pro`, `geminipro` | **Gemini 3 Pro Image** | the same route, slower and more obedient | `GEMINI_API_KEY` or the gateway |
 | `recraft`, `photo`, `photoreal` | **Recraft V4.1 Pro** | photorealism | the gateway |
 | `seedream`, `bytedance` | **Seedream 5.0 Pro** | rich illustration; slow, up to ~100s | the gateway |
-| `grok`, `imagine` | **Grok Imagine** | fastest and cheapest here (~6s) | the gateway |
+| `grok`, `imagine` | **Grok Imagine** | fast (~6s) | the gateway |
+| `grok-cli`, `subscription` | **Grok Imagine**, on your Grok CLI login | fastest here (~4s), and it costs no credit | the Grok CLI, signed in |
 | `svg`, `arrow` | **Arrow 1.1** | real SVG, editable vector source | the gateway |
 
 "nanobanana" is in there because that's what people call Gemini's image model out loud. A server that only accepts the official string makes you look up a name you already know.
@@ -227,6 +228,8 @@ You need at least one. Any one is enough to start.
 
 **Google AI Studio** ([aistudio.google.com/apikey](https://aistudio.google.com/apikey)) gives you Gemini 3.1 Flash Image. Sign in, click **Create API key**, copy it. This is the quickest one to get working.
 
+**Or no key at all**, for one route: if you have xAI's `grok` CLI installed and signed in, `style: "grok-cli"` uses that session and bills your X Premium or SuperGrok subscription rather than any API balance. It reads the token from `~/.grok/auth.json`, never writes to it, and never refreshes it, because two programs writing one auth file is how a working login gets broken.
+
 **Vercel AI Gateway** ([vercel.com/docs/ai-gateway](https://vercel.com/docs/ai-gateway)) gives you everything from one key, and it's the only way to reach Recraft, Seedream, Grok Imagine and Arrow, none of which have a first-party key here. If you only get one key, get this one.
 
 Treat any of them like a password, because that's what they are. Don't paste one into a chat, don't commit one to a repo.
@@ -250,6 +253,7 @@ All optional except having at least one key. Set them alongside the key in the `
 | `OPENAI_API_KEY` | | Your OpenAI key. Reaches GPT Image 2 directly |
 | `GEMINI_API_KEY` | | Your AI Studio key. `GOOGLE_API_KEY` works too, since Google's own tools read that one |
 | `AI_GATEWAY_API_KEY` | | Vercel AI Gateway. Reaches everything, and is the only route to Recraft, Seedream, Grok Imagine and Arrow |
+| _(none)_ | | `style: "grok-cli"` needs no key. It uses the Grok CLI's signed-in session, read from `~/.grok/auth.json` |
 | `IMAGE_GEN_OUTPUT_DIR` | working directory | Where images are written. Point it at your project's image folder and the paths come back ready to use |
 | `IMAGE_GEN_DEFAULT_PROVIDER` | `openai` | Which vendor runs when the assistant names none. Set to `google` if your OpenAI account can't reach GPT Image 2 |
 | `IMAGE_GEN_PREFER_GATEWAY` | `false` | Route through the gateway even when a direct key exists. Turn on to put all the billing in one place |

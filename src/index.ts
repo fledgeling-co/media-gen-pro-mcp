@@ -6,8 +6,8 @@
  * caller describes what it wants, optionally hands over reference images and
  * text context, and gets back file paths it can drop into an `<img src>`.
  *
- * Seven models behind one tool, because the right one differs by job and nobody
- * wants seven tools. GPT Image 2 is the default; Gemini answers to "gemini" or
+ * Eight models behind one tool, because the right one differs by job and nobody
+ * wants eight tools. GPT Image 2 is the default; Gemini answers to "gemini" or
  * "nanobanana", Recraft to "photoreal", and Arrow to "svg", which is the only
  * one here that writes real vector source rather than pixels.
  */
@@ -30,9 +30,11 @@ const server = new FastMCP({
   instructions:
     'Generates images and writes them to disk, returning file paths rather than image bytes. Built for illustrating a ' +
     'site or document: point an `<img src>` at what it returns.\n\n' +
-    'Seven models behind one tool. GPT Image 2 by default; say "gemini"/"nanobanana" (fast), "gemini-pro" (slower, ' +
-    'more obedient), "photoreal" for Recraft, "seedream", or "grok". Set `svg: true` for a REAL SVG from Arrow, which ' +
-    'no raster model can produce. Reference images and extra text context are accepted and change the result.\n\n' +
+    'Eight models behind one tool. GPT Image 2 by default; say "gemini"/"nanobanana" (fast), "gemini-pro" (slower, ' +
+    'more obedient), "photoreal" for Recraft, "seedream", or "grok". Say "grok-cli" to use a signed-in Grok CLI ' +
+    'subscription instead of any API key, which costs no credit and is the fastest route here. Set `svg: true` for a ' +
+    'REAL SVG from Arrow, which no raster model can produce. Reference images and extra text context are accepted and ' +
+    'change the result.\n\n' +
     'Results carry a note when a different model handled the same kind of prompt better in the published comparison. ' +
     'It is advice, not a reroute: relay it to the user when it is relevant to what they asked for.\n\n' +
     'PROMPT CRAFT: front-load the subject, then action or pose, setting, style, composition, lighting, key details. ' +
@@ -52,7 +54,8 @@ server.addTool({
     'Generate one or more images from a description and write them to disk, returning their paths. Optionally takes ' +
     'REFERENCE IMAGES (paths on this machine) and extra text context, both of which steer the result: use them to match ' +
     'an existing style, keep a character or product consistent, or edit an image you already have. Defaults to OpenAI ' +
-    'GPT Image 2; pass `style` as gemini/nanobanana, gemini-pro, photoreal (Recraft), seedream, or grok. For a REAL editable SVG ' +
+    'GPT Image 2; pass `style` as gemini/nanobanana, gemini-pro, photoreal (Recraft), seedream, grok, or grok-cli (a ' +
+    'signed-in Grok CLI subscription, no API key and no credit). For a REAL editable SVG ' +
     'set `svg: true`, which routes to Arrow; the raster models can only imitate one. A billed call per image.',
   annotations: {
     title: 'Generate images',
