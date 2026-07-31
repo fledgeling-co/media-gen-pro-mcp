@@ -1,0 +1,69 @@
+{
+  "name": "image-gen-pro-mcp",
+  "version": "0.1.0",
+  "description": "Image generation as an MCP tool. GPT Image 2, Gemini 3 Pro Image, or Seedream 4.5 behind one call; reference images and context supported; returns file paths, not megabytes of base64.",
+  "type": "module",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "bin": {
+    "image-gen-pro-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsgo -p tsconfig.build.json && chmod +x dist/index.js",
+    "typecheck": "tsgo --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "gate": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@ai-sdk/gateway": "^4.0.33",
+    "@ai-sdk/google": "^4.0.29",
+    "@ai-sdk/openai": "^4.0.25",
+    "ai": "^7.0.44",
+    "fastmcp": "^4.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "@typescript/native-preview": "latest",
+    "eslint": "^9.0.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^4.0.0"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fledgeling-co/image-gen-pro-mcp.git"
+  },
+  "homepage": "https://github.com/fledgeling-co/image-gen-pro-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/fledgeling-co/image-gen-pro-mcp/issues"
+  },
+  "author": "Luke Rhodes <hello@fledgeling.app> (https://www.fledgeling.app)",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "image-generation",
+    "gpt-image",
+    "gemini",
+    "nano-banana",
+    "seedream",
+    "ai-sdk",
+    "vercel-ai-gateway",
+    "claude",
+    "llm-tools"
+  ]
+}

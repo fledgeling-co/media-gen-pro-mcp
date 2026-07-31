@@ -1,0 +1,168 @@
+#!/usr/bin/env node
+/**
+ * Image generation as an MCP tool.
+ *
+ * Built for the job of putting real images on a website an LLM is writing: the
+ * caller describes what it wants, optionally hands over reference images and
+ * text context, and gets back file paths it can drop into an `<img src>`.
+ *
+ * Three vendors behind one tool, because the right one differs by job and
+ * nobody wants three tools. GPT Image 2 is the default, Gemini 3 Pro Image
+ * answers to "gemini" or "nanobanana", and Seedream 4.5 is there through the
+ * gateway.
+ */
+
+import { FastMCP } from 'fastmcp';
+import { z } from 'zod';
+import { loadConfig } from './config.js';
+import { GenerationError, RateLimiter, generate } from './generate.js';
+import { KNOWN_STYLES, RoutingError, availableRoutes, chooseModel, resolveVendor } from './models.js';
+import { VERSION } from './version.js';
+
+const config = loadConfig();
+const limiter = new RateLimiter(config.maxPerHour);
+
+const server = new FastMCP({
+  name: 'image-gen-pro',
+  version: VERSION,
+  instructions:
+    'Generates images and writes them to disk, returning file paths rather than image bytes. Built for illustrating a ' +
+    'site or document: point an `<img src>` at what it returns.\n\n' +
+    'Three models behind one tool. GPT Image 2 by default; say "gemini" or "nanobanana" for Gemini 3 Pro Image, or ' +
+    '"seedream" for Seedream 4.5. Reference images and extra text context are accepted and change the result.\n\n' +
+    'Every image is a billed API call, and image models cost more than text ones. There is an hourly ceiling, because ' +
+    'an agent in a retry loop is the shape that runs up a bill nobody authorised.',
+});
+
+server.addTool({
+  name: 'generate_image',
+  description:
+    'Generate one or more images from a description and write them to disk, returning their paths. Optionally takes ' +
+    'REFERENCE IMAGES (paths on this machine) and extra text context, both of which steer the result: use them to match ' +
+    'an existing style, keep a character or product consistent, or edit an image you already have. Defaults to OpenAI ' +
+    "GPT Image 2; pass `style` as gemini/nanobanana for Google, or seedream for ByteDance. A billed call per image.",
+  annotations: {
+    title: 'Generate images',
+    readOnlyHint: false,
+    destructiveHint: false,
+    openWorldHint: true,
+  },
+  parameters: z.object({
+    prompt: z
+      .string()
+      .min(3)
+      .max(4000)
+      .describe('What to generate. Detail helps: subject, composition, lighting, style, and what to leave out.'),
+    style: z
+      .string()
+      .max(40)
+      .optional()
+      .describe(
+        `Which model. Omit for the default (${config.defaultProvider}). Accepted: ${KNOWN_STYLES.join(', ')}. "seedream" needs the gateway key.`,
+      ),
+    referenceImages: z
+      .array(z.string().min(1).max(1000))
+      .max(4)
+      .optional()
+      .describe(
+        'Paths to images on THIS machine to use as visual context: a style to match, a product to keep consistent, or an image to edit. Read by the server, so absolute paths are safest. Not URLs, and not base64.',
+      ),
+    context: z
+      .string()
+      .max(4000)
+      .optional()
+      .describe(
+        'Extra text context appended to the prompt: brand rules, a palette, what the surrounding page says, things to avoid. Kept separate from `prompt` so the subject stays legible.',
+      ),
+    n: z
+      .number()
+      .int()
+      .min(1)
+      .max(10)
+      .optional()
+      .describe(`How many images. Defaults to 1, capped at ${String(config.maxPerCall)} by this server. Each one is billed.`),
+    size: z
+      .string()
+      .regex(/^\d{2,5}x\d{2,5}$/)
+      .optional()
+      .describe('Exact pixel size, e.g. 1024x1024. Provider support varies; unsupported values come back as a warning.'),
+    aspectRatio: z
+      .string()
+      .regex(/^\d{1,2}:\d{1,2}$/)
+      .optional()
+      .describe('Aspect ratio, e.g. 16:9. Use instead of `size` when the exact pixels do not matter.'),
+    seed: z.number().int().optional().describe('Seed, where the provider supports one, for a repeatable result.'),
+    outputDir: z
+      .string()
+      .max(1000)
+      .optional()
+      .describe('Where to write the images. Defaults to IMAGE_GEN_OUTPUT_DIR, or the current working directory.'),
+    basename: z
+      .string()
+      .max(60)
+      .optional()
+      .describe('Filename stem, e.g. "hero". A short random suffix is always added so a second call cannot overwrite the first.'),
+  }),
+  execute: async (args) => {
+    const vendor = resolveVendor(args.style, config.defaultProvider);
+    if (vendor === undefined) {
+      throw new GenerationError(
+        `Unknown style "${args.style ?? ''}". Accepted: ${KNOWN_STYLES.join(', ')}.`,
+      );
+    }
+
+    let choice;
+    try {
+      choice = chooseModel(vendor, config);
+    } catch (e: unknown) {
+      // A routing failure is a configuration problem with a specific fix, so it
+      // is reported as itself rather than as a generic generation failure.
+      if (e instanceof RoutingError) throw new GenerationError(e.message);
+      throw e;
+    }
+
+    const n = Math.min(args.n ?? 1, config.maxPerCall);
+    limiter.check(n);
+
+    const prompt = args.context ? `${args.prompt}\n\nContext:\n${args.context}` : args.prompt;
+    const outcome = await generate(
+      {
+        prompt,
+        ...(args.referenceImages ? { referenceImages: args.referenceImages } : {}),
+        n,
+        ...(args.size ? { size: args.size as `${number}x${number}` } : {}),
+        ...(args.aspectRatio ? { aspectRatio: args.aspectRatio as `${number}:${number}` } : {}),
+        ...(args.seed !== undefined ? { seed: args.seed } : {}),
+        outputDir: args.outputDir || config.outputDir || process.cwd(),
+        ...(args.basename ? { basename: args.basename } : {}),
+      },
+      choice,
+      config,
+    );
+
+    const left = limiter.remaining();
+    return [
+      `Generated ${String(outcome.images.length)} image(s) with **${choice.label}** via the ${choice.route} route.`,
+      '',
+      ...outcome.images.map((i) => `- \`${i.path}\` (${String(Math.round(i.bytes / 1024))} KB)`),
+      ...(args.referenceImages?.length
+        ? ['', `_Used ${String(args.referenceImages.length)} reference image(s)._`]
+        : []),
+      ...(outcome.warnings.length > 0
+        ? ['', '**The provider ignored something you asked for:**', ...outcome.warnings.map((w) => `- ${w}`)]
+        : []),
+      ...(Number.isFinite(left) ? ['', `_${String(left)} image(s) left this hour._`] : []),
+    ].join('\n');
+  },
+});
+
+const routes = availableRoutes(config);
+process.stderr.write(
+  `image-gen-pro-mcp ${VERSION} · ` +
+    (routes.length === 0
+      ? 'NO KEYS — set OPENAI_API_KEY, GEMINI_API_KEY, or AI_GATEWAY_API_KEY'
+      : routes.map((r) => `${r.label} (${r.route})`).join(' · ')) +
+    ` · cap: ${config.maxPerHour === 0 ? 'none' : `${String(config.maxPerHour)}/hour`}\n`,
+);
+
+await server.start({ transportType: 'stdio' });
