@@ -20,6 +20,7 @@ describe('picking a vendor', () => {
   it('accepts the names people actually say', () => {
     for (const s of ['gemini', 'nanobanana', 'nano-banana', 'nano banana', 'google', 'GEMINI'])
       expect(resolveVendor(s, 'openai')).toBe('google');
+    for (const s of ['gemini-pro', 'geminipro', 'gemini-3-pro']) expect(resolveVendor(s, 'openai')).toBe('googlepro');
     for (const s of ['openai', 'gpt-image-2', 'dalle']) expect(resolveVendor(s, 'google')).toBe('openai');
     for (const s of ['seedream', 'bytedance']) expect(resolveVendor(s, 'openai')).toBe('bytedance');
     for (const s of ['svg', 'arrow', 'quiver', 'quiverai']) expect(resolveVendor(s, 'openai')).toBe('quiver');
@@ -102,10 +103,11 @@ describe('routing to a key', () => {
 
   it('lists only the routes that would actually work', () => {
     expect(availableRoutes(base)).toEqual([]);
-    expect(availableRoutes(with_({ googleKey: 'k' })).map((r) => r.vendor)).toEqual(['google']);
+    expect(availableRoutes(with_({ googleKey: 'k' })).map((r) => r.vendor)).toEqual(['google', 'googlepro']);
     expect(availableRoutes(with_({ gatewayKey: 'g' })).map((r) => r.vendor)).toEqual([
       'openai',
       'google',
+      'googlepro',
       'bytedance',
       'recraft',
       'xai',

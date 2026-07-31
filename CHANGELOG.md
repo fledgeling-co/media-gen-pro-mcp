@@ -6,6 +6,19 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [0.1.6] - 2026-07-30
+
+### Added
+
+- **Gemini 3 Pro Image**, on `gemini-pro` or `geminipro`. Same key and same route as Flash, roughly twice the wait. It is the answer when Flash gets something wrong: on the identical portrait prompt Flash inverted the light direction and Pro did not, and Pro passed the counting test that Flash narrowly failed.
+- **Results now carry a note when a different model handled that kind of prompt better** in the published comparison, naming the model and why. A prompt with an exact count points at GPT Image 2 or Gemini 3 Pro; one that says what must NOT appear points at GPT Image 2; a diagram points at `svg: true`; a photograph points at Recraft. There is also a warning on the model actually used where the run found a specific failure: Flash's light direction, Seedream's watermark and speed, Arrow being unable to photograph anything.
+
+  It is advice and never a reroute. Nothing changes which model runs, because a server that silently substituted one would make the caller's own logs lie. The signals are crude keyword tests on purpose; a model call to classify every prompt would cost money on every generation to produce a suggestion.
+
+### Changed
+
+- The README comparison now covers seven models across six categories.
+
 ## [0.1.4] - 2026-07-30
 
 ### Fixed

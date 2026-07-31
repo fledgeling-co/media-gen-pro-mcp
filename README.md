@@ -46,6 +46,7 @@ One tool, six models, because the right one genuinely differs by job.
 |---|---|---|---|
 | nothing | **GPT Image 2** (OpenAI) | the general default, strong text rendering | `OPENAI_API_KEY` or the gateway |
 | `gemini`, `nanobanana` | **Gemini 3.1 Flash Image** | fast, cheap, good with reference images | `GEMINI_API_KEY` or the gateway |
+| `gemini-pro`, `geminipro` | **Gemini 3 Pro Image** | the same route, slower and more obedient | `GEMINI_API_KEY` or the gateway |
 | `recraft`, `photo`, `photoreal` | **Recraft V4.1 Pro** | photorealism | the gateway |
 | `seedream`, `bytedance` | **Seedream 5.0 Pro** | rich illustration; slow, up to ~100s | the gateway |
 | `grok`, `imagine` | **Grok Imagine** | fastest and cheapest here (~6s) | the gateway |
@@ -59,9 +60,9 @@ Set `svg: true` and you get vector source from Arrow 1.1: actual `<svg>` markup 
 
 After an SVG, the tool suggests offering you a raster version too, in a similar flat style, from one of the picture models. It won't generate that unasked; it's a second billed call.
 
-## Six models, six hard prompts
+## Seven models, six hard prompts
 
-One prompt per category, shown in full below each heading, the same text sent to all six, one generation each, nothing cherry-picked and nothing retried. The prompts are deliberately awkward: each one states a rule you can check by counting or looking, so you can grade the results yourself instead of taking my word for which is prettier.
+One prompt per category, shown in full below each heading, the same text sent to all seven, one generation each, nothing cherry-picked and nothing retried. The prompts are deliberately awkward: each one states a rule you can check by counting or looking, so you can grade the results yourself instead of taking my word for which is prettier.
 
 Run 30 July 2026. These are single samples, not a benchmark. Re-run any of them and you may get a different answer.
 
@@ -69,25 +70,25 @@ Run 30 July 2026. These are single samples, not a benchmark. Re-run any of them 
 
 > Exactly seven identical brass hexagonal bolts on a plain grey surface, arranged as two rows of three with the seventh bolt standing upright on its end at the front centre. No bolt touches another.
 
-| GPT Image 2 | Gemini 3.1 Flash | Recraft V4.1 Pro |
-|---|---|---|
-| ![](docs/examples/counting-openai.jpg) | ![](docs/examples/counting-google.jpg) | ![](docs/examples/counting-recraft.jpg) |
-| **7, correct layout, nothing touching** | 7, correct layout, one bolt touching | 6 |
+| GPT Image 2 | Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
+|---|---|---|---|
+| ![](docs/examples/counting-openai.jpg) | ![](docs/examples/counting-google.jpg) | ![](docs/examples/counting-googlepro.jpg) | ![](docs/examples/counting-recraft.jpg) |
+| **7, correct layout, nothing touching** | 7, correct layout, one bolt touching | **7, correct layout, nothing touching** | 6 |
 
 | Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
 |---|---|---|
 | ![](docs/examples/counting-bytedance.jpg) | ![](docs/examples/counting-xai.jpg) | ![](docs/examples/counting-quiver.svg) |
 | 7, upright one behind not in front, several touching | 5, single row | 7, upright one centred, but a ring rather than rows |
 
-GPT Image 2 is the only clean pass. Recraft produced by far the best photograph of the six and got the count wrong, which is the trade in one image. Arrow counted correctly (it emits seven shapes, so the count is in the source) and ignored the layout.
+GPT Image 2 and Gemini 3 Pro are the clean passes. Recraft produced by far the best photograph of the six and got the count wrong, which is the trade in one image. Arrow counted correctly (it emits seven shapes, so the count is in the source) and ignored the layout.
 
 ### 2. Absence
 
 > An empty hotel corridor at 3am. No people, no reflections in any mirror, no light under any door, nothing on the floor. Bare carpet, closed doors, one ceiling light.
 
-| GPT Image 2 | Gemini 3.1 Flash | Recraft V4.1 Pro |
-|---|---|---|
-| ![](docs/examples/absence-openai.jpg) | ![](docs/examples/absence-google.jpg) | ![](docs/examples/absence-recraft.jpg) |
+| GPT Image 2 | Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
+|---|---|---|---|
+| ![](docs/examples/absence-openai.jpg) | ![](docs/examples/absence-google.jpg) | ![](docs/examples/absence-googlepro.jpg) | ![](docs/examples/absence-recraft.jpg) |
 
 | Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
 |---|---|---|
@@ -99,9 +100,9 @@ Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. GPT
 
 > Five objects in a row on a white studio backdrop: a matte black ceramic banana, a glossy yellow steel wrench, a translucent green wooden mug, a brushed copper cloth apple, a rough concrete glass fish.
 
-| GPT Image 2 | Gemini 3.1 Flash | Recraft V4.1 Pro |
-|---|---|---|
-| ![](docs/examples/binding-openai.jpg) | ![](docs/examples/binding-google.jpg) | ![](docs/examples/binding-recraft.jpg) |
+| GPT Image 2 | Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
+|---|---|---|---|
+| ![](docs/examples/binding-openai.jpg) | ![](docs/examples/binding-google.jpg) | ![](docs/examples/binding-googlepro.jpg) | ![](docs/examples/binding-recraft.jpg) |
 
 | Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
 |---|---|---|
@@ -113,9 +114,9 @@ Every colour is deliberately wrong for its object, so a yellow banana is a visib
 
 > A clean flowchart: three rectangular boxes in a horizontal row connected left to right by two straight arrows. Every line at exactly 0 or 90 degrees, uniform gaps between boxes, no crossing lines, thin uniform stroke weight, flat colour, no shading.
 
-| GPT Image 2 | Gemini 3.1 Flash | Recraft V4.1 Pro |
-|---|---|---|
-| ![](docs/examples/diagram-openai.jpg) | ![](docs/examples/diagram-google.jpg) | ![](docs/examples/diagram-recraft.jpg) |
+| GPT Image 2 | Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
+|---|---|---|---|
+| ![](docs/examples/diagram-openai.jpg) | ![](docs/examples/diagram-google.jpg) | ![](docs/examples/diagram-googlepro.jpg) | ![](docs/examples/diagram-recraft.jpg) |
 
 | Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
 |---|---|---|
@@ -127,9 +128,9 @@ This is the category the vector model exists for, and it wins it: exact geometry
 
 > A chrome kettle on a mirrored tabletop beside a window at 4pm. The reflection in the tabletop shows the underside of the kettle, and its shadow falls away from the window across the table.
 
-| GPT Image 2 | Gemini 3.1 Flash | Recraft V4.1 Pro |
-|---|---|---|
-| ![](docs/examples/physics-openai.jpg) | ![](docs/examples/physics-google.jpg) | ![](docs/examples/physics-recraft.jpg) |
+| GPT Image 2 | Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
+|---|---|---|---|
+| ![](docs/examples/physics-openai.jpg) | ![](docs/examples/physics-google.jpg) | ![](docs/examples/physics-googlepro.jpg) | ![](docs/examples/physics-recraft.jpg) |
 
 | Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
 |---|---|---|
@@ -141,17 +142,17 @@ Reflections are the reliable giveaway of a model compositing plausible patches r
 
 > A woman in her fifties sitting on a wooden stool against a bare plaster wall, three-quarter view facing left, wearing a plain charcoal roll-neck jumper. Her hands rest one on top of the other on her left knee, with exactly five thin silver rings between them. Single hard window light from the right, casting her shadow onto the wall to the left. Sharp focus on the eyes, shallow depth of field, 85mm.
 
-| GPT Image 2 | Gemini 3.1 Flash | Recraft V4.1 Pro |
-|---|---|---|
-| ![](docs/examples/portrait-openai.jpg) | ![](docs/examples/portrait-google.jpg) | ![](docs/examples/portrait-recraft.jpg) |
-| pose right, 2-3 rings | **shadow on the wrong side** | best photo, ~5 rings |
+| GPT Image 2 | Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
+|---|---|---|---|
+| ![](docs/examples/portrait-openai.jpg) | ![](docs/examples/portrait-google.jpg) | ![](docs/examples/portrait-googlepro.jpg) | ![](docs/examples/portrait-recraft.jpg) |
+| pose right, 2-3 rings | **shadow on the wrong side** | shadow correct, hands not stacked | best photo, ~5 rings |
 
 | Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
 |---|---|---|
 | ![](docs/examples/portrait-bytedance.jpg) | ![](docs/examples/portrait-xai.jpg) | ![](docs/examples/portrait-quiver.svg) |
 | facing camera, hands side by side | facing camera, hands side by side | pose right, ~5 rings, flat |
 
-Four checkable things: which way she faces, whether one hand sits on the other, how many rings, and which side the shadow falls. Gemini lit her from the left and threw the shadow right, which is the one unambiguous miss. Recraft produced the photograph you would ship and turned three-quarter into near-profile. Arrow, which cannot photograph anyone, followed the pose most closely of the six.
+Four checkable things: which way she faces, whether one hand sits on the other, how many rings, and which side the shadow falls. Gemini 3.1 Flash lit her from the left and threw the shadow right, which is the one unambiguous miss in the whole run. Gemini 3 Pro, on the identical prompt, got it right, which is the clearest reason to reach for the slower sibling. Recraft produced the photograph you would ship and turned three-quarter into near-profile. Arrow, which cannot photograph anyone, followed the pose most closely of the six.
 
 ### What this suggests
 
@@ -160,11 +161,12 @@ Nothing here is a benchmark, but the shape is consistent enough to route by:
 - **GPT Image 2** for briefs with rules in them. It was the only model to pass the count outright and the only one to honour every "no" in the absence prompt.
 - **Recraft V4.1 Pro** when it has to look like a photograph, and check the details yourself.
 - **Arrow 1.1** for anything diagrammatic, where it is not competing with the others so much as doing a different job.
-- **Gemini 3.1 Flash** as the sensible default: close to GPT Image 2's compliance at half the wait.
+- **Gemini 3.1 Flash** as the cheap default, with the caveat that it is the one model observed to invert a stated light direction.
+- **Gemini 3 Pro Image** when Flash gets something wrong. Same key, same route, roughly twice the wait; it passed the count and fixed Flash's lighting miss.
 - **Grok Imagine** when you want six options in the time another model takes for one.
 - **Seedream 5.0 Pro** last on this evidence: slowest by a wide margin, and it watermarks.
 
-_I inspected 19 of these 36 images closely; the notes above cover those and the rest are here for you to judge. Every file is in [`docs/examples/`](docs/examples/)._
+_I inspected 22 of these 42 images closely; the notes above cover those and the rest are here for you to judge. Every file is in [`docs/examples/`](docs/examples/)._
 
 ## Reference images and context
 

@@ -19,7 +19,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import type { ImageModel, LanguageModel } from 'ai';
 import type { Config } from './config.js';
 
-export type Vendor = 'openai' | 'google' | 'bytedance' | 'quiver' | 'xai' | 'recraft';
+export type Vendor = 'openai' | 'google' | 'googlepro' | 'bytedance' | 'quiver' | 'xai' | 'recraft';
 export type Route = 'direct' | 'gateway';
 
 export interface ModelChoice {
@@ -51,6 +51,9 @@ const ALIASES: Record<string, Vendor> = {
   nanobanana: 'google',
   'nano-banana': 'google',
   'nano banana': 'google',
+  'gemini-pro': 'googlepro',
+  geminipro: 'googlepro',
+  'gemini-3-pro': 'googlepro',
   bytedance: 'bytedance',
   seedream: 'bytedance',
   quiver: 'quiver',
@@ -114,6 +117,14 @@ const CATALOGUE: Record<
   // The odd one out, and the reason it is worth a vendor of its own: Arrow
   // writes SVG source rather than pixels, so its output is editable geometry
   // instead of an approximation of it. Gateway-only, like Seedream.
+  // The slower, stronger sibling of `google`. Same language-model route.
+  googlepro: {
+    direct: 'gemini-3-pro-image-preview',
+    gateway: 'google/gemini-3-pro-image',
+    label: 'Gemini 3 Pro Image',
+    batches: false,
+    api: 'language',
+  },
   // The one to reach for when the brief is a photograph rather than an
   // illustration.
   recraft: {
@@ -171,7 +182,8 @@ export class RoutingError extends Error {
  */
 export function chooseModel(vendor: Vendor, config: Config): ModelChoice {
   const entry = CATALOGUE[vendor];
-  const directKey = vendor === 'openai' ? config.openaiKey : vendor === 'google' ? config.googleKey : '';
+  const directKey =
+    vendor === 'openai' ? config.openaiKey : vendor === 'google' || vendor === 'googlepro' ? config.googleKey : '';
   const canDirect = entry.direct !== undefined && directKey !== '';
   const canGateway = config.gatewayKey !== '';
 
@@ -225,7 +237,7 @@ export function languageModelFor(choice: ModelChoice, config: Config): LanguageM
 /** Every route that is usable right now, for the startup line and the doctor. */
 export function availableRoutes(config: Config): { vendor: Vendor; route: Route; label: string }[] {
   const out: { vendor: Vendor; route: Route; label: string }[] = [];
-  for (const vendor of ['openai', 'google', 'bytedance', 'recraft', 'xai', 'quiver'] as const) {
+  for (const vendor of ['openai', 'google', 'googlepro', 'bytedance', 'recraft', 'xai', 'quiver'] as const) {
     try {
       const c = chooseModel(vendor, config);
       out.push({ vendor, route: c.route, label: c.label });
