@@ -1,6 +1,6 @@
 {
   "name": "image-gen-pro-mcp",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Image generation as an MCP tool. GPT Image 2, Gemini 3 Pro Image, or Seedream 4.5 behind one call; reference images and context supported; returns file paths, not megabytes of base64.",
   "type": "module",
   "engines": {
