@@ -59,6 +59,97 @@ Set `svg: true` and you get vector source from Arrow 1.1: actual `<svg>` markup 
 
 After an SVG, the tool suggests offering you a raster version too, in a similar flat style, from one of the picture models. It won't generate that unasked; it's a second billed call.
 
+## Six models, five hard prompts
+
+One prompt per category, the same text sent to all six, one generation each, nothing cherry-picked and nothing retried. The prompts are deliberately awkward: each one states a rule you can check by counting or looking, so you can grade the results yourself instead of taking my word for which is prettier.
+
+Run 30 July 2026. These are single samples, not a benchmark. Re-run any of them and you may get a different answer.
+
+### 1. Exact count and arrangement
+
+> Exactly seven identical brass hexagonal bolts on a plain grey surface, arranged as two rows of three with the seventh bolt standing upright on its end at the front centre. No bolt touches another.
+
+| GPT Image 2 | Gemini 3.1 Flash | Recraft V4.1 Pro |
+|---|---|---|
+| ![](docs/examples/counting-openai.jpg) | ![](docs/examples/counting-google.jpg) | ![](docs/examples/counting-recraft.jpg) |
+| **7, correct layout, nothing touching** | 7, correct layout, one bolt touching | 6 |
+
+| Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
+|---|---|---|
+| ![](docs/examples/counting-bytedance.jpg) | ![](docs/examples/counting-xai.jpg) | ![](docs/examples/counting-quiver.svg) |
+| 7, upright one behind not in front, several touching | 5, single row | 7, upright one centred, but a ring rather than rows |
+
+GPT Image 2 is the only clean pass. Recraft produced by far the best photograph of the six and got the count wrong, which is the trade in one image. Arrow counted correctly (it emits seven shapes, so the count is in the source) and ignored the layout.
+
+### 2. Absence
+
+> An empty hotel corridor at 3am. No people, no reflections in any mirror, no light under any door, nothing on the floor. Bare carpet, closed doors, one ceiling light.
+
+| GPT Image 2 | Gemini 3.1 Flash | Recraft V4.1 Pro |
+|---|---|---|
+| ![](docs/examples/absence-openai.jpg) | ![](docs/examples/absence-google.jpg) | ![](docs/examples/absence-recraft.jpg) |
+
+| Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
+|---|---|---|
+| ![](docs/examples/absence-bytedance.jpg) | ![](docs/examples/absence-xai.jpg) | ![](docs/examples/absence-quiver.svg) |
+
+Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. GPT Image 2 came back fully compliant: nobody there, nothing on the floor, no light under any door, one fitting. Seedream put two framed mirrors on the walls and two ceiling lights, and stamped "AI generated" across the corner.
+
+### 3. Attribute binding against the obvious pairing
+
+> Five objects in a row on a white studio backdrop: a matte black ceramic banana, a glossy yellow steel wrench, a translucent green wooden mug, a brushed copper cloth apple, a rough concrete glass fish.
+
+| GPT Image 2 | Gemini 3.1 Flash | Recraft V4.1 Pro |
+|---|---|---|
+| ![](docs/examples/binding-openai.jpg) | ![](docs/examples/binding-google.jpg) | ![](docs/examples/binding-recraft.jpg) |
+
+| Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
+|---|---|---|
+| ![](docs/examples/binding-bytedance.jpg) | ![](docs/examples/binding-xai.jpg) | ![](docs/examples/binding-quiver.svg) |
+
+Every colour is deliberately wrong for its object, so a yellow banana is a visible failure rather than a matter of taste. GPT Image 2 bound all five and made a decent fist of the materials. Grok bound all five too, at a third of the time, then melted the wrench and drew the fish as a wireframe.
+
+### 4. Geometric constraint
+
+> A clean flowchart: three rectangular boxes in a horizontal row connected left to right by two straight arrows. Every line at exactly 0 or 90 degrees, uniform gaps between boxes, no crossing lines, thin uniform stroke weight, flat colour, no shading.
+
+| GPT Image 2 | Gemini 3.1 Flash | Recraft V4.1 Pro |
+|---|---|---|
+| ![](docs/examples/diagram-openai.jpg) | ![](docs/examples/diagram-google.jpg) | ![](docs/examples/diagram-recraft.jpg) |
+
+| Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
+|---|---|---|
+| ![](docs/examples/diagram-bytedance.jpg) | ![](docs/examples/diagram-xai.jpg) | ![](docs/examples/diagram-quiver.svg) |
+
+This is the category the vector model exists for, and it wins it: exact geometry, uniform stroke, labelled boxes, and you can open the file and edit any of it. Recraft came second and labelled its boxes too, with uneven widths. GPT Image 2 drew clean unlabelled boxes of three different sizes. Zoom in on any of the raster ones and the "straight" lines wobble, because a sampler is hallucinating straightness pixel by pixel rather than drawing a line.
+
+### 5. Reflection and shadow
+
+> A chrome kettle on a mirrored tabletop beside a window at 4pm. The reflection in the tabletop shows the underside of the kettle, and its shadow falls away from the window across the table.
+
+| GPT Image 2 | Gemini 3.1 Flash | Recraft V4.1 Pro |
+|---|---|---|
+| ![](docs/examples/physics-openai.jpg) | ![](docs/examples/physics-google.jpg) | ![](docs/examples/physics-recraft.jpg) |
+
+| Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
+|---|---|---|
+| ![](docs/examples/physics-bytedance.jpg) | ![](docs/examples/physics-xai.jpg) | ![](docs/examples/physics-quiver.svg) |
+
+Reflections are the reliable giveaway of a model compositing plausible patches rather than simulating a scene. Recraft's is the photograph you would actually ship, and its reflection is a mirror-flip of the kettle's side rather than the underside the brief asked for. Arrow, which cannot photograph anything, got the structure right: reflection present, shadow falling away from the window, light patch on the table.
+
+### What this suggests
+
+Nothing here is a benchmark, but the shape is consistent enough to route by:
+
+- **GPT Image 2** for briefs with rules in them. It was the only model to pass the count outright and the only one to honour every "no" in the absence prompt.
+- **Recraft V4.1 Pro** when it has to look like a photograph, and check the details yourself.
+- **Arrow 1.1** for anything diagrammatic, where it is not competing with the others so much as doing a different job.
+- **Gemini 3.1 Flash** as the sensible default: close to GPT Image 2's compliance at half the wait.
+- **Grok Imagine** when you want six options in the time another model takes for one.
+- **Seedream 5.0 Pro** last on this evidence: slowest by a wide margin, and it watermarks.
+
+_I inspected 13 of these 30 images closely; the notes above cover those and the rest are here for you to judge. Every file is in [`docs/examples/`](docs/examples/)._
+
 ## Reference images and context
 
 Two things beyond the prompt, and both change the result.

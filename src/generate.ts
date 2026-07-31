@@ -215,7 +215,12 @@ export async function generate(
         model: choice.modelId,
         prompt: req.prompt,
         n,
-        ...(req.size ? { size: req.size } : {}),
+        // Recraft rejects most sizes with a bare 400 and an empty message.
+        // 1024x1024, 1024x1707 and 1707x1024 all fail; 2048x2048 and `auto`
+        // work. Checked 30 July 2026. Passing the caller's size straight
+        // through turned a supported request into an unexplained failure, so
+        // anything it has not been shown to accept becomes `auto`.
+        size: req.size === '2048x2048' ? req.size : 'auto',
       }),
       signal: controller.signal,
     });
