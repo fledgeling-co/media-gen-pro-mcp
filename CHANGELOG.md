@@ -6,6 +6,16 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [0.1.4] - 2026-07-30
+
+### Fixed
+
+- Recraft rejected most image sizes with a bare 400 and an empty error message, so any call passing `size` failed for no visible reason. `1024x1024`, `1024x1707` and `1707x1024` all fail; `2048x2048` and `auto` work. Anything not shown to be accepted is now sent as `auto` rather than passed straight through. Found by generating 30 images for the README comparison, where it failed five out of five.
+
+### Added
+
+- A six-model comparison in the README: five prompt categories, one prompt each, the same text sent to all six models, one generation each. Each prompt states a rule you can check by counting or looking, so the results are gradeable rather than a matter of taste. Nothing cherry-picked, nothing retried.
+
 ## [0.1.3] - 2026-07-30
 
 ### Changed
