@@ -6,6 +6,14 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [0.1.8] - 2026-07-30
+
+### Added
+
+- **A refusal now explains what to do instead.** When a provider declines a prompt, the result says so, tells the calling agent not to reword its way past the filter or try another model hoping it is more permissive, and where it can, names the legitimate version of the request. The suggestions only move in one direction: from naming an entity toward describing an aesthetic. "In Pixar style" is usually not a request for that studio, it is a request for stylised 3D animation, and naming the properties (oversized eyes with visible catchlights, soft subsurface scattering, rounded forms, warm key light with cool bounce) gets a better image than naming the studio would have. Where a request has no legitimate version, it says so and offers nothing, which is the distinction the feature rests on.
+- **Two more advisories**, both borrowed from Grok's bundled `imagine` skill and confirmed by the run in the README. Anything needing exact text, real numbers or a correct structure (charts from data, tables, UI mockups, multi-panel grids) is pointed at building it in code and screenshotting it, because image models garble words and invent numbers and re-prompting garbles them again. A prompt about a recurring subject is pointed at `referenceImages`, because nothing here remembers a subject between calls and two generations of "the same" character always drift.
+- Prompt-craft guidance in the tool description: subject first, then action or pose, setting, style, composition, lighting, details. Natural prose over keyword tags, two to five sentences, say what to include rather than what to leave out.
+
 ## [0.1.7] - 2026-07-30
 
 ### Changed

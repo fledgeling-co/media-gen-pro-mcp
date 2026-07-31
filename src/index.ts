@@ -16,6 +16,7 @@ import { FastMCP } from 'fastmcp';
 import { z } from 'zod';
 import { loadConfig } from './config.js';
 import { adviseFor, warnAbout } from './advice.js';
+import { isModerationBlock, renderBlock } from './blocked.js';
 import { GenerationError, RateLimiter, generate } from './generate.js';
 import { KNOWN_STYLES, RoutingError, SVG_VENDOR, availableRoutes, chooseModel, resolveVendor } from './models.js';
 import { VERSION } from './version.js';
@@ -34,6 +35,13 @@ const server = new FastMCP({
     'no raster model can produce. Reference images and extra text context are accepted and change the result.\n\n' +
     'Results carry a note when a different model handled the same kind of prompt better in the published comparison. ' +
     'It is advice, not a reroute: relay it to the user when it is relevant to what they asked for.\n\n' +
+    'PROMPT CRAFT: front-load the subject, then action or pose, setting, style, composition, lighting, key details. ' +
+    'Natural prose, not keyword tags, 2-5 sentences. Say what to INCLUDE rather than what to leave out. One scene per prompt.\n\n' +
+    'If a model declines a prompt, the result explains what to do instead. Do NOT reword it to get past the filter and do ' +
+    'not try another model hoping it is more permissive.\n\n' +
+    'Anything needing exact text, real numbers or a correct structure (charts from data, labelled diagrams, tables, UI, ' +
+    'multi-panel grids) should be built in code and screenshotted, not generated. Image models garble words and invent ' +
+    'numbers, and re-prompting garbles them again.\n\n' +
     'Every image is a billed API call, and image models cost more than text ones. There is an hourly ceiling, because ' +
     'an agent in a retry loop is the shape that runs up a bill nobody authorised.',
 });
@@ -139,7 +147,9 @@ server.addTool({
     limiter.check(n);
 
     const prompt = args.context ? `${args.prompt}\n\nContext:\n${args.context}` : args.prompt;
-    const outcome = await generate(
+    let outcome;
+    try {
+      outcome = await generate(
       {
         prompt,
         ...(args.referenceImages ? { referenceImages: args.referenceImages } : {}),
@@ -150,9 +160,16 @@ server.addTool({
         outputDir: args.outputDir || config.outputDir || process.cwd(),
         ...(args.basename ? { basename: args.basename } : {}),
       },
-      choice,
-      config,
-    );
+        choice,
+        config,
+      );
+    } catch (e: unknown) {
+      // A refusal is not a fault, and it must not be retried with reworded
+      // phrasing. Answered with what the caller can legitimately do instead.
+      const msg = e instanceof Error ? e.message : String(e);
+      if (isModerationBlock(msg)) return renderBlock(prompt, choice.label, msg);
+      throw e;
+    }
 
     const left = limiter.remaining();
     const madeSvg = outcome.images.some((i) => i.mediaType === 'image/svg+xml');
@@ -178,7 +195,7 @@ server.addTool({
       // asked for; this only says what else exists.
       ...(() => {
         const warn = warnAbout(prompt, vendor);
-        const advice = adviseFor(prompt, vendor);
+        const advice = adviseFor(prompt, vendor, args.referenceImages?.length ?? 0);
         if (!warn && !advice) return [];
         return [
           '',

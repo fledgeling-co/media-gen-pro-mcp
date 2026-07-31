@@ -168,6 +168,30 @@ Nothing here is a benchmark, but the shape is consistent enough to route by:
 
 _I inspected 22 of these 42 images closely; the notes above cover those and the rest are here for you to judge. Every file is in [`docs/examples/`](docs/examples/)._
 
+## Writing a prompt that works
+
+Front-load the subject, then action or pose, setting, style, composition, lighting, key details. Natural prose rather than keyword tags, two to five sentences. Say what to include rather than what to leave out. One scene per prompt.
+
+Two things worth knowing before you reach for this at all:
+
+**If it needs exact text, real numbers, or a correct structure, build it in code.** Charts from data, labelled diagrams, tables, UI mockups, multi-panel grids. Image models garble words, invent numbers, and draw bars that match no data, and re-prompting garbles them again. HTML and CSS give you exact values and a layout you control; screenshot that. Use this server for the parts where only the look matters.
+
+**Nothing here remembers a subject between calls.** Two generations of "the same" character always drift. Generate one canonical image, then pass its path in `referenceImages` on every later call and restate the fixed traits each time.
+
+The tool result tells you both of these when the prompt looks like it needs them, along with which model handled that kind of brief best in the comparison above.
+
+## When a model says no
+
+Providers refuse things. When one does, the result explains what to do instead rather than just reporting the error, and it tells the calling agent not to reword its way past the filter or shop the prompt around other models.
+
+The suggestions only move in one direction: from naming an entity toward describing an aesthetic. "In Pixar style" is usually not a request for that studio at all, it is a request for stylised 3D animation, and naming the properties gets a better image than naming the studio would have:
+
+> stylised 3D character animation, oversized eyes with visible catchlights, soft subsurface scattering on the skin, rounded simplified forms, warm key light with cool bounce, shallow depth of field
+
+Same for a borrowed character: describe the build, costume shapes, silhouette and expression you actually want, and the result is reusable as a `referenceImages` anchor, which a trademark never is.
+
+Where a request has no legitimate version, it says so and offers nothing. That distinction is the whole point of the feature.
+
 ## Reference images and context
 
 Two things beyond the prompt, and both change the result.

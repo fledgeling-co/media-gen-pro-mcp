@@ -37,8 +37,45 @@ const has = (p: string, ...needles: string[]): boolean => needles.some((n) => p.
  * behind it is just a preference, and the reader deserves to know which is
  * which.
  */
-export function adviseFor(prompt: string, vendor: Vendor): Advice | undefined {
+export function adviseFor(prompt: string, vendor: Vendor, referenceCount?: number): Advice | undefined {
   const p = prompt.toLowerCase();
+
+  // Exact text, real numbers, or a structure that has to be correct. Borrowed
+  // from Grok's `imagine` skill and confirmed by the README run: every raster
+  // model's "straight" lines wobble, and a model asked for a labelled chart
+  // invents the bars. No image model is the right tool for this, including the
+  // vector one, because Arrow draws what it was told rather than what the data
+  // says.
+  // Note the specificity: "chart" alone would swallow "flowchart", which is a
+  // diagram and belongs to the vector model below. The distinction is whether
+  // the image has to carry DATA or exact copy, not whether it has boxes in it.
+  if (
+    has(p, 'bar chart', 'pie chart', 'line chart', 'graph of', 'table of', 'infographic', 'dashboard', 'screenshot', 'ui mockup', 'user interface', 'comic strip', 'storyboard', 'contact sheet') ||
+    /\b(with|showing|displaying)\b[^.]{0,40}\b(real|actual|exact)\b[^.]{0,20}\b(data|numbers|figures|text|copy)\b/.test(p)
+  ) {
+    return {
+      signal: 'exact text, real data, or a structure that must be correct',
+      better: [],
+      note:
+        'Nothing here is the right tool for this. Image models garble words, invent numbers, and draw bars that match no data, and re-prompting garbles it again. ' +
+        'Build it in code instead: HTML and CSS give exact text, real values and a layout you control, and screenshot it. ' +
+        'Use this server for the parts where only the look matters.',
+    };
+  }
+
+  // A subject that has to survive across several images.
+  if (
+    (referenceCount ?? 0) === 0 &&
+    has(p, 'same character', 'same person', 'consistent', 'again', 'another view', 'from behind', 'second panel', 'series of')
+  ) {
+    return {
+      signal: 'a subject that has to stay the same across images',
+      better: [],
+      note:
+        'Nothing here remembers a subject between calls, so two generations of "the same" character always drift. ' +
+        'Generate one canonical image first, then pass its path in `referenceImages` on every later call, and restate the fixed traits each time.',
+    };
+  }
 
   // Diagrams. The clearest result in the run: the vector model produced exact
   // geometry and editable labelled boxes, and every raster model produced lines
