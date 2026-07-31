@@ -128,7 +128,11 @@ const CATALOGUE: Record<
     // fail one way and work the other.
     api: 'openai-compat',
   },
-  // Fast and cheap, which is the reason to reach for it. Selected by name only.
+  // The fast, cheap one: ~6s against 8-17s for the others, measured 30 July
+  // 2026. It also applies looser content filtering than the rest, which is a
+  // real property worth knowing when picking a model and is NOT a selection
+  // rule here. Nothing routes to it because another model declined; a caller
+  // gets it by asking for it, like every other vendor in this table.
   xai: {
     gateway: 'xai/grok-imagine-image',
     label: 'Grok Imagine',
