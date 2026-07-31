@@ -16,9 +16,15 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { extname, isAbsolute, join, resolve } from 'node:path';
-import { generateImage } from 'ai';
+import { generateImage, generateText } from 'ai';
+import { z } from 'zod';
+
+/** Only the fields read from the gateway's OpenAI-compatible images response. */
+const OpenAiImagesSchema = z.object({
+  data: z.array(z.object({ b64_json: z.string() })).optional(),
+});
 import type { Config } from './config.js';
-import { type ModelChoice, imageModelFor } from './models.js';
+import { type ModelChoice, imageModelFor, languageModelFor } from './models.js';
 
 export class GenerationError extends Error {
   constructor(message: string) {
@@ -91,13 +97,31 @@ async function loadReferences(paths: readonly string[]): Promise<Uint8Array[]> {
  * fixing rather than shrugging at: the lie survives until something that does
  * NOT sniff, an image pipeline or a build step, rejects it far from here.
  */
-function extensionFor(mediaType: string): string {
+function extensionFor(mediaType: string, bytes: Uint8Array): string {
+  // Sniff before trusting the label. Arrow returns SVG source and the SDK
+  // reports it as `image/png`, so a file written from the declared type alone
+  // is an .svg's bytes under a .png name. Verified by calling it on 30 July
+  // 2026: the response body begins `<svg xmlns=...`.
+  const head = new TextDecoder().decode(bytes.slice(0, 200)).trimStart();
+  if (head.startsWith('<svg') || head.startsWith('<?xml')) return '.svg';
+
+  // Magic bytes beat the declared type for the raster formats too. Recraft
+  // returns WebP through an endpoint whose response shape says nothing about
+  // format, and Arrow's SVG arrives labelled `image/png`; a provider's label is
+  // simply not evidence here. Checked 30 July 2026 on both.
+  const b = bytes;
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return '.png';
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return '.jpg';
+  if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 && b[8] === 0x57 && b[9] === 0x45) return '.webp';
+  if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46) return '.gif';
+
   const known: Record<string, string> = {
     'image/png': '.png',
     'image/jpeg': '.jpg',
     'image/jpg': '.jpg',
     'image/webp': '.webp',
     'image/gif': '.gif',
+    'image/svg+xml': '.svg',
   };
   return known[mediaType.toLowerCase()] ?? '.bin';
 }
@@ -140,10 +164,89 @@ export async function generate(
       abortSignal: controller.signal,
     });
 
-  let result: Awaited<ReturnType<typeof generateImage>>;
+  /**
+   * One image out of a multimodal language model.
+   *
+   * Gemini's image models are language models that emit images, which is why the
+   * gateway types them `language` and the image API refuses them. `generateText`
+   * reaches them on both routes; the images arrive as files on the response.
+   */
+  const viaLanguage = async (): Promise<{ uint8Array: Uint8Array; mediaType: string }[]> => {
+    const r = await generateText({
+      model: languageModelFor(choice, config),
+      ...(references.length > 0
+        ? {
+            messages: [
+              {
+                role: 'user' as const,
+                content: [
+                  { type: 'text' as const, text: req.prompt },
+                  ...references.map((image) => ({ type: 'image' as const, image })),
+                ],
+              },
+            ],
+          }
+        : { prompt: req.prompt }),
+      abortSignal: controller.signal,
+    });
+    const files = r.files.filter((f) => f.mediaType.startsWith('image/'));
+    if (files.length === 0) {
+      // It answered in words instead of pictures. Saying so beats writing a
+      // zero-image success, which reads as the model refusing silently.
+      throw new GenerationError(
+        `${choice.label} returned no image, only text: ${r.text.slice(0, 300)}`,
+      );
+    }
+    return files.map((f) => ({ uint8Array: f.uint8Array, mediaType: f.mediaType }));
+  };
+
+  /**
+   * The gateway's OpenAI-compatible images endpoint.
+   *
+   * Used only where the SDK's own gateway image route is broken for a provider,
+   * which is currently every Recraft model. Deliberately narrow: this is a
+   * workaround for a specific upstream defect, not a second general path.
+   */
+  const viaOpenAiCompat = async (n: number): Promise<{ uint8Array: Uint8Array; mediaType: string }[]> => {
+    const res = await fetch('https://ai-gateway.vercel.sh/v1/images/generations', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${config.gatewayKey}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: choice.modelId,
+        prompt: req.prompt,
+        n,
+        ...(req.size ? { size: req.size } : {}),
+      }),
+      signal: controller.signal,
+    });
+    const body: unknown = await res.json();
+    const parsed = OpenAiImagesSchema.safeParse(body);
+    if (!parsed.success || parsed.data.data === undefined) {
+      const msg =
+        typeof body === 'object' && body !== null && 'error' in body
+          ? JSON.stringify((body).error).slice(0, 300)
+          : `unrecognised response (HTTP ${String(res.status)})`;
+      throw new GenerationError(`${choice.label} failed: ${msg}`);
+    }
+    return parsed.data.data.map((d) => ({
+      uint8Array: Uint8Array.from(Buffer.from(d.b64_json, 'base64')),
+      // The endpoint declares no format. Whatever is put here is a guess, and
+      // the magic-byte sniff below overrides it; this is only the fallback for
+      // a format the sniff does not recognise.
+      mediaType: 'application/octet-stream',
+    }));
+  };
+
+  let result: { images: { uint8Array: Uint8Array; mediaType: string }[]; warnings: unknown[] };
   try {
-    if (choice.batches || req.n === 1) {
-      result = await call(req.n);
+    if (choice.api === 'openai-compat') {
+      result = { images: await viaOpenAiCompat(req.n), warnings: [] };
+    } else if (choice.api === 'language') {
+      const parts = await Promise.all(Array.from({ length: req.n }, () => viaLanguage()));
+      result = { images: parts.flat(), warnings: [] };
+    } else if (choice.batches || req.n === 1) {
+      const r = await call(req.n);
+      result = { images: [...r.images], warnings: [...r.warnings] };
     } else {
       // Gemini refuses `n > 1` outright ("Gemini image models do not support
       // generating a set number of images per call"), verified by calling it.
@@ -152,12 +255,9 @@ export async function generate(
       // operation by n. The caller asked for images, not for a lecture about
       // which vendor batches.
       const parts = await Promise.all(Array.from({ length: req.n }, () => call(1)));
-      const first = parts[0];
-      if (!first) throw new GenerationError('No images were returned.');
       result = {
-        ...first,
-        images: parts.flatMap((p) => p.images),
-        warnings: parts.flatMap((p) => p.warnings),
+        images: parts.flatMap((p) => [...p.images]),
+        warnings: parts.flatMap((p) => [...p.warnings]),
       };
     }
   } catch (e: unknown) {
@@ -179,9 +279,20 @@ export async function generate(
   const images: GeneratedImage[] = [];
   for (const [i, image] of result.images.entries()) {
     const bytes = image.uint8Array;
-    const path = join(dir, filenameFor(req.prompt, req.basename, i, extensionFor(image.mediaType)));
+    const ext = extensionFor(image.mediaType, bytes);
+    const path = join(dir, filenameFor(req.prompt, req.basename, i, ext));
     await writeFile(path, bytes);
-    images.push({ path, bytes: bytes.byteLength, mediaType: image.mediaType });
+    // Report what the bytes ARE, not what the provider claimed, so a caller
+    // deciding whether it has a vector does not have to open the file.
+    // Report what the bytes ARE, never what the provider claimed.
+    const sniffed: Record<string, string> = {
+      '.svg': 'image/svg+xml',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.webp': 'image/webp',
+      '.gif': 'image/gif',
+    };
+    images.push({ path, bytes: bytes.byteLength, mediaType: sniffed[ext] ?? image.mediaType });
   }
 
   return {
@@ -191,7 +302,9 @@ export async function generate(
       // The SDK's warnings are the honest record of what a provider ignored:
       // an aspect ratio a model does not support is silently dropped otherwise,
       // and the caller sees a square image and blames the prompt.
-      'message' in w && typeof w.message === 'string' ? w.message : JSON.stringify(w),
+      typeof w === 'object' && w !== null && 'message' in w && typeof w.message === 'string'
+        ? w.message
+        : JSON.stringify(w),
     ),
   };
 }

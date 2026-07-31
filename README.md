@@ -26,10 +26,10 @@ You need at least one API key. Setup takes about five minutes.
 Paths, not pictures.
 
 ```
-Generated 2 image(s) with **Gemini 3 Pro Image** via the direct route.
+Generated 2 image(s) with **Gemini 3.1 Flash Image** via the direct route.
 
-- `/Users/you/site/public/images/hero-4be44f.jpg` (332 KB)
-- `/Users/you/site/public/images/hero-40cab6-2.jpg` (318 KB)
+- `/Users/you/site/public/images/hero-4be44f.jpg` (332 KB, image/jpeg)
+- `/Users/you/site/public/images/hero-40cab6-2.jpg` (318 KB, image/jpeg)
 
 _Used 1 reference image._
 
@@ -38,17 +38,26 @@ _58 image(s) left this hour._
 
 That's deliberate, and it's the main design decision in here. A 1024x1024 image is roughly 1.4 MB once it's base64'd into a chat. Three of those is a chunk of the conversation spent on bytes your assistant can't look at anyway. You wanted a file; here's the file.
 
-## The three models
+## The models
 
-One tool, three vendors, because the right one genuinely differs by job.
+One tool, six models, because the right one genuinely differs by job.
 
-| Say this | You get | Needs |
-|---|---|---|
-| nothing | **GPT Image 2** (OpenAI) | `OPENAI_API_KEY` or the gateway |
-| `gemini`, `nanobanana`, `google` | **Gemini 3 Pro Image** | `GEMINI_API_KEY` or the gateway |
-| `seedream`, `bytedance` | **Seedream 4.5** | the gateway only |
+| Say this | You get | Good for | Needs |
+|---|---|---|---|
+| nothing | **GPT Image 2** (OpenAI) | the general default, strong text rendering | `OPENAI_API_KEY` or the gateway |
+| `gemini`, `nanobanana` | **Gemini 3.1 Flash Image** | fast, cheap, good with reference images | `GEMINI_API_KEY` or the gateway |
+| `recraft`, `photo`, `photoreal` | **Recraft V4.1 Pro** | photorealism | the gateway |
+| `seedream`, `bytedance` | **Seedream 5.0 Pro** | rich illustration; slow, up to ~100s | the gateway |
+| `grok`, `imagine` | **Grok Imagine** | fastest and cheapest here (~6s) | the gateway |
+| `svg`, `arrow` | **Arrow 1.1** | real SVG, editable vector source | the gateway |
 
 "nanobanana" is in there because that's what people call Gemini's image model out loud. A server that only accepts the official string makes you look up a name you already know.
+
+## Real SVGs
+
+Set `svg: true` and you get vector source from Arrow 1.1: actual `<svg>` markup built from shapes and geometry, which you can open, edit and scale. The raster models can't do this. Ask any of them for an SVG and you get a picture that looks like one, which is a different thing and useless if you wanted to change the colour of one path.
+
+After an SVG, the tool suggests offering you a raster version too, in a similar flat style, from one of the picture models. It won't generate that unasked; it's a second billed call.
 
 ## Reference images and context
 
@@ -67,21 +76,25 @@ n:               3
 
 **Note:** reference images are read from disk by this server, so absolute paths are safest, and they must be readable by whatever runs the MCP. They're not URLs and not base64.
 
-## Two rough edges, said plainly
+## Rough edges, said plainly
 
 **GPT Image 2 needs project access your OpenAI account might not have.** Mine doesn't. The error is clear when it happens (`Project ... does not have access to model gpt-image-2`), but it's the default model, so if you hit it on your first try, that's why. Check your project's model permissions in the OpenAI dashboard, or just use `gemini` instead.
 
-**Gemini returns JPEG, and can't do more than one image per call.** So files come out `.jpg` rather than `.png`, and asking for three images means three requests behind the scenes. You don't have to do anything about either; the server names files by what the bytes actually are, and fans out the requests in parallel. It's just worth knowing why three Gemini images take about as long as one and cost three times as much.
+**Gemini can't do more than one image per call.** Asking for three means three requests behind the scenes, fanned out in parallel. Worth knowing why three Gemini images take about as long as one and cost three times as much.
+
+**Nobody agrees what format they're returning.** Gemini returns JPEG, Recraft returns WebP, and Arrow returns SVG source labelled `image/png`. The server sniffs the actual bytes and names the file accordingly rather than trusting the label, so you get `.jpg`, `.webp` and `.svg` where those are what arrived. Nothing for you to do; it's just why extensions vary.
+
+**Recraft goes through a different endpoint.** The gateway's own image-model route answers with an error for every Recraft model, so this uses its OpenAI-compatible endpoint instead, which serves them correctly. Checked 30 July 2026.
 
 ## Getting a key
 
-You need one of these three. Any one is enough to start.
+You need at least one. Any one is enough to start.
 
 **OpenAI** ([platform.openai.com/api-keys](https://platform.openai.com/api-keys)) gives you GPT Image 2, subject to the access caveat above.
 
-**Google AI Studio** ([aistudio.google.com/apikey](https://aistudio.google.com/apikey)) gives you Gemini 3 Pro Image. Sign in, click **Create API key**, copy it. This is the quickest one to get working.
+**Google AI Studio** ([aistudio.google.com/apikey](https://aistudio.google.com/apikey)) gives you Gemini 3.1 Flash Image. Sign in, click **Create API key**, copy it. This is the quickest one to get working.
 
-**Vercel AI Gateway** ([vercel.com/docs/ai-gateway](https://vercel.com/docs/ai-gateway)) gives you all three from one key, and it's the only way to reach Seedream, which has no first-party key here. Handy if you'd rather have one bill than three.
+**Vercel AI Gateway** ([vercel.com/docs/ai-gateway](https://vercel.com/docs/ai-gateway)) gives you everything from one key, and it's the only way to reach Recraft, Seedream, Grok Imagine and Arrow, none of which have a first-party key here. If you only get one key, get this one.
 
 Treat any of them like a password, because that's what they are. Don't paste one into a chat, don't commit one to a repo.
 
@@ -103,7 +116,7 @@ All optional except having at least one key. Set them alongside the key in the `
 |---|---|---|
 | `OPENAI_API_KEY` | | Your OpenAI key. Reaches GPT Image 2 directly |
 | `GEMINI_API_KEY` | | Your AI Studio key. `GOOGLE_API_KEY` works too, since Google's own tools read that one |
-| `AI_GATEWAY_API_KEY` | | Vercel AI Gateway. Reaches all three vendors, and is the only route to Seedream |
+| `AI_GATEWAY_API_KEY` | | Vercel AI Gateway. Reaches everything, and is the only route to Recraft, Seedream, Grok Imagine and Arrow |
 | `IMAGE_GEN_OUTPUT_DIR` | working directory | Where images are written. Point it at your project's image folder and the paths come back ready to use |
 | `IMAGE_GEN_DEFAULT_PROVIDER` | `openai` | Which vendor runs when the assistant names none. Set to `google` if your OpenAI account can't reach GPT Image 2 |
 | `IMAGE_GEN_PREFER_GATEWAY` | `false` | Route through the gateway even when a direct key exists. Turn on to put all the billing in one place |
@@ -111,7 +124,7 @@ All optional except having at least one key. Set them alongside the key in the `
 | `IMAGE_GEN_MAX_PER_CALL` | `4` | Ceiling on one request, whatever the assistant asks for |
 | `IMAGE_GEN_TIMEOUT_MS` | `180000` | How long to wait. Image models are slow; three minutes is not generous |
 
-The same model has different names on different routes, which the server handles for you: Google's own API calls it `gemini-3-pro-image-preview`, the gateway calls it `google/gemini-3-pro-image`. Worth knowing only if you're reading the code and wondering why there are two.
+Two things the server handles that are worth knowing only if you're reading the code. The same model has different ids per route (`gemini-3.1-flash-image` direct, `google/gemini-3.1-flash-image` on the gateway). And Gemini's image models are multimodal *language* models, so they're reached through the text API, not the image one; the gateway types them `language` and refuses them on the image route.
 
 ## What it doesn't do
 

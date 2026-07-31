@@ -21,7 +21,10 @@ describe('picking a vendor', () => {
     for (const s of ['gemini', 'nanobanana', 'nano-banana', 'nano banana', 'google', 'GEMINI'])
       expect(resolveVendor(s, 'openai')).toBe('google');
     for (const s of ['openai', 'gpt-image-2', 'dalle']) expect(resolveVendor(s, 'google')).toBe('openai');
-    for (const s of ['seedream', 'bytedance', 'seedream-4.5']) expect(resolveVendor(s, 'openai')).toBe('bytedance');
+    for (const s of ['seedream', 'bytedance']) expect(resolveVendor(s, 'openai')).toBe('bytedance');
+    for (const s of ['svg', 'arrow', 'quiver', 'quiverai']) expect(resolveVendor(s, 'openai')).toBe('quiver');
+    for (const s of ['grok', 'xai', 'imagine']) expect(resolveVendor(s, 'openai')).toBe('xai');
+    for (const s of ['recraft', 'photo', 'photoreal']) expect(resolveVendor(s, 'openai')).toBe('recraft');
   });
 
   it('falls back when no style is named, and refuses one it does not know', () => {
@@ -46,27 +49,48 @@ describe('routing to a key', () => {
   });
 
   it('uses the gateway when only the gateway key exists', () => {
-    const c = chooseModel('google', with_({ gatewayKey: 'g' }));
+    const c = chooseModel('openai', with_({ gatewayKey: 'g' }));
     expect(c.route).toBe('gateway');
-    expect(c.modelId).toBe('google/gemini-3-pro-image');
+    expect(c.modelId).toBe('openai/gpt-image-2');
+  });
+
+  it('reaches Gemini through the LANGUAGE api, on either route', () => {
+    // Gemini's image models are multimodal language models. The gateway types
+    // them `language` and the image API refuses them outright, so the choice
+    // carries which API to call rather than assuming every image comes from
+    // generateImage.
+    const gw = chooseModel('google', with_({ gatewayKey: 'g' }));
+    expect(gw.route).toBe('gateway');
+    expect(gw.api).toBe('language');
+    expect(gw.modelId).toBe('google/gemini-3.1-flash-image');
+    expect(chooseModel('google', with_({ googleKey: 'k' })).api).toBe('language');
+    expect(chooseModel('openai', with_({ openaiKey: 'k' })).api).toBe('image');
   });
 
   it('sends a DIFFERENT model id on each route for the same model', () => {
     // The one that bites: Google's own API serves it as
     // `gemini-3-pro-image-preview`, the gateway as `google/gemini-3-pro-image`.
     // One id for both routes 404s on whichever was not tested.
-    expect(chooseModel('google', with_({ googleKey: 'k' })).modelId).toBe('gemini-3-pro-image-preview');
-    expect(chooseModel('google', with_({ gatewayKey: 'g' })).modelId).toBe('google/gemini-3-pro-image');
+    expect(chooseModel('google', with_({ googleKey: 'k' })).modelId).toBe('gemini-3.1-flash-image');
+    expect(chooseModel('google', with_({ gatewayKey: 'g' })).modelId).toBe('google/gemini-3.1-flash-image');
   });
 
   it('honours preferGateway even when a direct key is present', () => {
     expect(chooseModel('openai', with_({ openaiKey: 'k', gatewayKey: 'g', preferGateway: true })).route).toBe('gateway');
+    expect(chooseModel('google', with_({ googleKey: 'k', gatewayKey: 'g', preferGateway: true })).route).toBe('gateway');
   });
 
   it('says which key is missing rather than failing at the vendor', () => {
     expect(() => chooseModel('openai', base)).toThrow(RoutingError);
     expect(() => chooseModel('openai', base)).toThrow(/OPENAI_API_KEY/);
     expect(() => chooseModel('google', base)).toThrow(/GEMINI_API_KEY/);
+  });
+
+  it('routes a real SVG to the only model that writes vector source', () => {
+    const c = chooseModel('quiver', with_({ gatewayKey: 'g' }));
+    expect(c.modelId).toBe('quiverai/arrow-1.1');
+    // Gateway-only, like Seedream: there is no first-party key to set.
+    expect(() => chooseModel('quiver', with_({ openaiKey: 'k' }))).toThrow(/only reachable through/);
   });
 
   it('says Seedream has no first-party route at all', () => {
@@ -79,7 +103,14 @@ describe('routing to a key', () => {
   it('lists only the routes that would actually work', () => {
     expect(availableRoutes(base)).toEqual([]);
     expect(availableRoutes(with_({ googleKey: 'k' })).map((r) => r.vendor)).toEqual(['google']);
-    expect(availableRoutes(with_({ gatewayKey: 'g' })).map((r) => r.vendor)).toEqual(['openai', 'google', 'bytedance']);
+    expect(availableRoutes(with_({ gatewayKey: 'g' })).map((r) => r.vendor)).toEqual([
+      'openai',
+      'google',
+      'bytedance',
+      'recraft',
+      'xai',
+      'quiver',
+    ]);
   });
 });
 

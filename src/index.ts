@@ -6,17 +6,17 @@
  * caller describes what it wants, optionally hands over reference images and
  * text context, and gets back file paths it can drop into an `<img src>`.
  *
- * Three vendors behind one tool, because the right one differs by job and
- * nobody wants three tools. GPT Image 2 is the default, Gemini 3 Pro Image
- * answers to "gemini" or "nanobanana", and Seedream 4.5 is there through the
- * gateway.
+ * Six models behind one tool, because the right one differs by job and nobody
+ * wants six tools. GPT Image 2 is the default; Gemini answers to "gemini" or
+ * "nanobanana", Recraft to "photoreal", and Arrow to "svg", which is the only
+ * one here that writes real vector source rather than pixels.
  */
 
 import { FastMCP } from 'fastmcp';
 import { z } from 'zod';
 import { loadConfig } from './config.js';
 import { GenerationError, RateLimiter, generate } from './generate.js';
-import { KNOWN_STYLES, RoutingError, availableRoutes, chooseModel, resolveVendor } from './models.js';
+import { KNOWN_STYLES, RoutingError, SVG_VENDOR, availableRoutes, chooseModel, resolveVendor } from './models.js';
 import { VERSION } from './version.js';
 
 const config = loadConfig();
@@ -28,8 +28,9 @@ const server = new FastMCP({
   instructions:
     'Generates images and writes them to disk, returning file paths rather than image bytes. Built for illustrating a ' +
     'site or document: point an `<img src>` at what it returns.\n\n' +
-    'Three models behind one tool. GPT Image 2 by default; say "gemini" or "nanobanana" for Gemini 3 Pro Image, or ' +
-    '"seedream" for Seedream 4.5. Reference images and extra text context are accepted and change the result.\n\n' +
+    'Six models behind one tool. GPT Image 2 by default; say "gemini"/"nanobanana", "photoreal" for Recraft, ' +
+    '"seedream", or "grok". Set `svg: true` for a REAL SVG from Arrow, which no raster model can produce. ' +
+    'Reference images and extra text context are accepted and change the result.\n\n' +
     'Every image is a billed API call, and image models cost more than text ones. There is an hourly ceiling, because ' +
     'an agent in a retry loop is the shape that runs up a bill nobody authorised.',
 });
@@ -40,7 +41,8 @@ server.addTool({
     'Generate one or more images from a description and write them to disk, returning their paths. Optionally takes ' +
     'REFERENCE IMAGES (paths on this machine) and extra text context, both of which steer the result: use them to match ' +
     'an existing style, keep a character or product consistent, or edit an image you already have. Defaults to OpenAI ' +
-    "GPT Image 2; pass `style` as gemini/nanobanana for Google, or seedream for ByteDance. A billed call per image.",
+    'GPT Image 2; pass `style` as gemini/nanobanana, photoreal (Recraft), seedream, or grok. For a REAL editable SVG ' +
+    'set `svg: true`, which routes to Arrow; the raster models can only imitate one. A billed call per image.',
   annotations: {
     title: 'Generate images',
     readOnlyHint: false,
@@ -58,7 +60,13 @@ server.addTool({
       .max(40)
       .optional()
       .describe(
-        `Which model. Omit for the default (${config.defaultProvider}). Accepted: ${KNOWN_STYLES.join(', ')}. "seedream" needs the gateway key.`,
+        `Which model. Omit for the default (${config.defaultProvider}). Accepted: ${KNOWN_STYLES.join(', ')}. "seedream" and "svg"/"arrow" need the gateway key.`,
+      ),
+    svg: z
+      .boolean()
+      .optional()
+      .describe(
+        'Generate a REAL SVG: vector source you can open, edit and scale, from Arrow 1.1. Set this whenever the user asked for an SVG, a logo, an icon, or a diagram. Overrides `style`. Note that the raster models cannot produce an SVG; they can only produce a picture that looks like one.',
       ),
     referenceImages: z
       .array(z.string().min(1).max(1000))
@@ -104,7 +112,10 @@ server.addTool({
       .describe('Filename stem, e.g. "hero". A short random suffix is always added so a second call cannot overwrite the first.'),
   }),
   execute: async (args) => {
-    const vendor = resolveVendor(args.style, config.defaultProvider);
+    // An explicit SVG request outranks `style`, because the raster models cannot
+    // satisfy it at all: asking gpt-image for an SVG gets a PNG that looks like
+    // one, which is the exact failure this flag exists to prevent.
+    const vendor = args.svg === true ? SVG_VENDOR : resolveVendor(args.style, config.defaultProvider);
     if (vendor === undefined) {
       throw new GenerationError(
         `Unknown style "${args.style ?? ''}". Accepted: ${KNOWN_STYLES.join(', ')}.`,
@@ -141,10 +152,22 @@ server.addTool({
     );
 
     const left = limiter.remaining();
+    const madeSvg = outcome.images.some((i) => i.mediaType === 'image/svg+xml');
     return [
       `Generated ${String(outcome.images.length)} image(s) with **${choice.label}** via the ${choice.route} route.`,
       '',
-      ...outcome.images.map((i) => `- \`${i.path}\` (${String(Math.round(i.bytes / 1024))} KB)`),
+      ...outcome.images.map(
+        (i) => `- \`${i.path}\` (${String(Math.round(i.bytes / 1024))} KB, ${i.mediaType})`,
+      ),
+      ...(madeSvg
+        ? [
+            '',
+            '**Ask the user whether they also want a raster version.** This is real vector source, editable and scalable. ' +
+              'A raster model (openai or gemini) can produce a richer picture in an SVG-ish flat style, but it will be pixels, ' +
+              'not vector, so it cannot be edited as shapes or scaled without loss. Offer it; do not generate one unasked, ' +
+              'because it is a second billed call for something they may not want.',
+          ]
+        : []),
       ...(args.referenceImages?.length
         ? ['', `_Used ${String(args.referenceImages.length)} reference image(s)._`]
         : []),

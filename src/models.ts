@@ -16,10 +16,10 @@
 import { createGateway } from '@ai-sdk/gateway';
 import { createGoogle } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
-import type { ImageModel } from 'ai';
+import type { ImageModel, LanguageModel } from 'ai';
 import type { Config } from './config.js';
 
-export type Vendor = 'openai' | 'google' | 'bytedance';
+export type Vendor = 'openai' | 'google' | 'bytedance' | 'quiver' | 'xai' | 'recraft';
 export type Route = 'direct' | 'gateway';
 
 export interface ModelChoice {
@@ -27,6 +27,8 @@ export interface ModelChoice {
   readonly route: Route;
   /** False when several images means several calls. */
   readonly batches: boolean;
+  /** Which SDK call reaches it. Gemini image models are language models. */
+  readonly api: 'image' | 'language' | 'openai-compat';
   /** The id actually sent, which differs between routes. */
   readonly modelId: string;
   readonly label: string;
@@ -51,7 +53,17 @@ const ALIASES: Record<string, Vendor> = {
   'nano banana': 'google',
   bytedance: 'bytedance',
   seedream: 'bytedance',
-  'seedream-4.5': 'bytedance',
+  quiver: 'quiver',
+  quiverai: 'quiver',
+  grok: 'xai',
+  xai: 'xai',
+  imagine: 'xai',
+  recraft: 'recraft',
+  photo: 'recraft',
+  photoreal: 'recraft',
+  photorealistic: 'recraft',
+  arrow: 'quiver',
+  svg: 'quiver',
 };
 
 export function resolveVendor(style: string | undefined, fallback: Vendor): Vendor | undefined {
@@ -61,31 +73,83 @@ export function resolveVendor(style: string | undefined, fallback: Vendor): Vend
 
 export const KNOWN_STYLES = Object.keys(ALIASES);
 
-/** Per vendor: the id on each route, and whether a direct route exists at all. */
+/**
+ * Per vendor: the id on each route, which API serves it, and whether it batches.
+ *
+ * `api` is the field that matters and the one that is easy to get wrong. Gemini's
+ * image models are multimodal LANGUAGE models that happen to emit images, so the
+ * gateway types them `language` and the image API refuses them outright:
+ * "Model 'google/gemini-3-pro-image' is a language model, not an image model."
+ * Reaching them means `generateText` and pulling the image files out of the
+ * response, which works on both routes. Checked 30 July 2026 against the
+ * gateway's own /v1/models and by calling both.
+ */
 const CATALOGUE: Record<
   Vendor,
-  { direct?: string; gateway: string; label: string; batches: boolean }
+  { direct?: string; gateway?: string; label: string; batches: boolean; api: 'image' | 'language' | 'openai-compat' }
 > = {
-  openai: { direct: 'gpt-image-2', gateway: 'openai/gpt-image-2', label: 'GPT Image 2', batches: true },
+  openai: {
+    direct: 'gpt-image-2',
+    gateway: 'openai/gpt-image-2',
+    label: 'GPT Image 2',
+    batches: true,
+    api: 'image',
+  },
   google: {
-    direct: 'gemini-3-pro-image-preview',
-    gateway: 'google/gemini-3-pro-image',
-    label: 'Gemini 3 Pro Image',
-    // Verified by calling it on 30 July 2026: `n: 2` is refused outright with
-    // "Gemini image models do not support generating a set number of images per
-    // call". So a request for several images becomes several requests, which
-    // the caller should not have to know or care about.
+    direct: 'gemini-3.1-flash-image',
+    gateway: 'google/gemini-3.1-flash-image',
+    label: 'Gemini 3.1 Flash Image',
+    // One image per call either way, so several images is several calls.
     batches: false,
+    api: 'language',
   },
   // No `direct`: ByteDance sells no first-party key that this server can use,
   // so the gateway is not a preference here, it is the only way in.
-  bytedance: { gateway: 'bytedance/seedream-4.5', label: 'Seedream 4.5', batches: true },
+  bytedance: {
+    gateway: 'bytedance/seedream-5.0-pro',
+    label: 'Seedream 5.0 Pro',
+    batches: true,
+    api: 'image',
+  },
+  // The odd one out, and the reason it is worth a vendor of its own: Arrow
+  // writes SVG source rather than pixels, so its output is editable geometry
+  // instead of an approximation of it. Gateway-only, like Seedream.
+  // The one to reach for when the brief is a photograph rather than an
+  // illustration.
+  recraft: {
+    gateway: 'recraft/recraft-v4.1-pro',
+    label: 'Recraft V4.1 Pro',
+    batches: true,
+    // NOT 'image'. The gateway's own `/v4/ai/image-model` route answers 200 with
+    // an error body for every Recraft model ("Invalid JSON response"), so the
+    // SDK adapter cannot reach them. Its OpenAI-compatible
+    // `/v1/images/generations` endpoint serves the same models correctly.
+    // Checked 30 July 2026 on v4-pro, v4.1-pro and v4.1-utility-pro; all three
+    // fail one way and work the other.
+    api: 'openai-compat',
+  },
+  // Fast and cheap, which is the reason to reach for it. Selected by name only.
+  xai: {
+    gateway: 'xai/grok-imagine-image',
+    label: 'Grok Imagine',
+    batches: true,
+    api: 'image',
+  },
+  quiver: {
+    gateway: 'quiverai/arrow-1.1',
+    label: 'Arrow 1.1 (SVG)',
+    batches: true,
+    api: 'image',
+  },
 };
 
 /** Whether one call to this vendor can return more than one image. */
 export function supportsBatch(vendor: Vendor): boolean {
   return CATALOGUE[vendor].batches;
 }
+
+/** The only vendor here that emits real vector source rather than pixels. */
+export const SVG_VENDOR: Vendor = 'quiver';
 
 export class RoutingError extends Error {
   constructor(message: string) {
@@ -114,20 +178,29 @@ export function chooseModel(vendor: Vendor, config: Config): ModelChoice {
     );
   }
 
-  const useGateway = canGateway && (config.preferGateway || !canDirect);
+  const canUseGateway = canGateway && entry.gateway !== undefined;
+  const useGateway = canUseGateway && (config.preferGateway || !canDirect);
   if (!useGateway && !canDirect) {
+
     const wanted = vendor === 'openai' ? 'OPENAI_API_KEY' : 'GEMINI_API_KEY';
     throw new RoutingError(
       `No key for ${entry.label}. Set ${wanted} for the direct route, or AI_GATEWAY_API_KEY to reach it through the gateway.`,
     );
   }
 
-  return useGateway
-    ? { vendor, route: 'gateway', modelId: entry.gateway, label: entry.label, batches: entry.batches }
-    : { vendor, route: 'direct', modelId: entry.direct ?? entry.gateway, label: entry.label, batches: entry.batches };
+  return useGateway && entry.gateway !== undefined
+    ? { vendor, route: 'gateway', modelId: entry.gateway, label: entry.label, batches: entry.batches, api: entry.api }
+    : {
+        vendor,
+        route: 'direct',
+        modelId: entry.direct ?? entry.gateway ?? '',
+        label: entry.label,
+        batches: entry.batches,
+        api: entry.api,
+      };
 }
 
-/** Build the SDK model for a resolved choice. */
+/** Build the SDK image model for a choice the image API can serve. */
 export function imageModelFor(choice: ModelChoice, config: Config): ImageModel {
   if (choice.route === 'gateway') {
     return createGateway({ apiKey: config.gatewayKey }).imageModel(choice.modelId);
@@ -138,10 +211,17 @@ export function imageModelFor(choice: ModelChoice, config: Config): ImageModel {
   return createGoogle({ apiKey: config.googleKey }).image(choice.modelId);
 }
 
+/** Build the SDK language model for a choice served by `generateText`. */
+export function languageModelFor(choice: ModelChoice, config: Config): LanguageModel {
+  return choice.route === 'gateway'
+    ? createGateway({ apiKey: config.gatewayKey })(choice.modelId)
+    : createGoogle({ apiKey: config.googleKey })(choice.modelId);
+}
+
 /** Every route that is usable right now, for the startup line and the doctor. */
 export function availableRoutes(config: Config): { vendor: Vendor; route: Route; label: string }[] {
   const out: { vendor: Vendor; route: Route; label: string }[] = [];
-  for (const vendor of ['openai', 'google', 'bytedance'] as const) {
+  for (const vendor of ['openai', 'google', 'bytedance', 'recraft', 'xai', 'quiver'] as const) {
     try {
       const c = chooseModel(vendor, config);
       out.push({ vendor, route: c.route, label: c.label });
