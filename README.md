@@ -59,9 +59,9 @@ Set `svg: true` and you get vector source from Arrow 1.1: actual `<svg>` markup 
 
 After an SVG, the tool suggests offering you a raster version too, in a similar flat style, from one of the picture models. It won't generate that unasked; it's a second billed call.
 
-## Six models, five hard prompts
+## Six models, six hard prompts
 
-One prompt per category, the same text sent to all six, one generation each, nothing cherry-picked and nothing retried. The prompts are deliberately awkward: each one states a rule you can check by counting or looking, so you can grade the results yourself instead of taking my word for which is prettier.
+One prompt per category, shown in full below each heading, the same text sent to all six, one generation each, nothing cherry-picked and nothing retried. The prompts are deliberately awkward: each one states a rule you can check by counting or looking, so you can grade the results yourself instead of taking my word for which is prettier.
 
 Run 30 July 2026. These are single samples, not a benchmark. Re-run any of them and you may get a different answer.
 
@@ -137,6 +137,22 @@ This is the category the vector model exists for, and it wins it: exact geometry
 
 Reflections are the reliable giveaway of a model compositing plausible patches rather than simulating a scene. Recraft's is the photograph you would actually ship, and its reflection is a mirror-flip of the kettle's side rather than the underside the brief asked for. Arrow, which cannot photograph anything, got the structure right: reflection present, shadow falling away from the window, light patch on the table.
 
+### 6. A person, with the pose specified
+
+> A woman in her fifties sitting on a wooden stool against a bare plaster wall, three-quarter view facing left, wearing a plain charcoal roll-neck jumper. Her hands rest one on top of the other on her left knee, with exactly five thin silver rings between them. Single hard window light from the right, casting her shadow onto the wall to the left. Sharp focus on the eyes, shallow depth of field, 85mm.
+
+| GPT Image 2 | Gemini 3.1 Flash | Recraft V4.1 Pro |
+|---|---|---|
+| ![](docs/examples/portrait-openai.jpg) | ![](docs/examples/portrait-google.jpg) | ![](docs/examples/portrait-recraft.jpg) |
+| pose right, 2-3 rings | **shadow on the wrong side** | best photo, ~5 rings |
+
+| Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
+|---|---|---|
+| ![](docs/examples/portrait-bytedance.jpg) | ![](docs/examples/portrait-xai.jpg) | ![](docs/examples/portrait-quiver.svg) |
+| facing camera, hands side by side | facing camera, hands side by side | pose right, ~5 rings, flat |
+
+Four checkable things: which way she faces, whether one hand sits on the other, how many rings, and which side the shadow falls. Gemini lit her from the left and threw the shadow right, which is the one unambiguous miss. Recraft produced the photograph you would ship and turned three-quarter into near-profile. Arrow, which cannot photograph anyone, followed the pose most closely of the six.
+
 ### What this suggests
 
 Nothing here is a benchmark, but the shape is consistent enough to route by:
@@ -148,7 +164,7 @@ Nothing here is a benchmark, but the shape is consistent enough to route by:
 - **Grok Imagine** when you want six options in the time another model takes for one.
 - **Seedream 5.0 Pro** last on this evidence: slowest by a wide margin, and it watermarks.
 
-_I inspected 13 of these 30 images closely; the notes above cover those and the rest are here for you to judge. Every file is in [`docs/examples/`](docs/examples/)._
+_I inspected 19 of these 36 images closely; the notes above cover those and the rest are here for you to judge. Every file is in [`docs/examples/`](docs/examples/)._
 
 ## Reference images and context
 

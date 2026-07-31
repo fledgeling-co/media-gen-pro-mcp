@@ -14,7 +14,7 @@ This project follows [semantic versioning](https://semver.org/). Until 1.0 the m
 
 ### Added
 
-- A six-model comparison in the README: five prompt categories, one prompt each, the same text sent to all six models, one generation each. Each prompt states a rule you can check by counting or looking, so the results are gradeable rather than a matter of taste. Nothing cherry-picked, nothing retried.
+- A six-model comparison in the README: six prompt categories, one prompt each, the same text sent to all six models, one generation each. Each prompt states a rule you can check by counting or looking, so the results are gradeable rather than a matter of taste. Nothing cherry-picked, nothing retried.
 
 ## [0.1.3] - 2026-07-30
 
