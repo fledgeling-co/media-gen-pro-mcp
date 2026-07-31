@@ -6,6 +6,12 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [0.1.7] - 2026-07-30
+
+### Changed
+
+- Withdrew the claim that Grok Imagine filters content more loosely than the other models. It came from a third-party article about its launch period, not from anything measured in this repo, and the owner reports its moderation has since tightened; it declines the kinds of request the article implied it would allow. Removed rather than softened, because an untested claim about a model's safety behaviour invites routing decisions on made-up grounds. Its measured speed stays.
+
 ## [0.1.6] - 2026-07-30
 
 ### Added
@@ -33,7 +39,7 @@ This project follows [semantic versioning](https://semver.org/). Until 1.0 the m
 
 ### Changed
 
-- The Grok Imagine entry in the model catalogue now records what the model is actually like: roughly 6 seconds against 8 to 17 for the others, measured 30 July 2026, and looser content filtering than the rest. Both are properties worth knowing when you pick a model. Neither is a selection rule, and nothing routes to Grok because another model declined; you get it by asking for it, like every other vendor in the table.
+- The Grok Imagine entry in the model catalogue now records its speed: roughly 6 seconds against 8 to 17 for the others, measured 30 July 2026. It is not a selection rule, and nothing routes to Grok because another model declined; you get it by asking for it, like every other vendor in the table. (This entry also claimed looser content filtering; see 0.1.7, where that claim was withdrawn.)
 
 ### Notes
 

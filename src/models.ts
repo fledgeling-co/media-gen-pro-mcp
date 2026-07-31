@@ -139,11 +139,14 @@ const CATALOGUE: Record<
     // fail one way and work the other.
     api: 'openai-compat',
   },
-  // The fast, cheap one: ~6s against 8-17s for the others, measured 30 July
-  // 2026. It also applies looser content filtering than the rest, which is a
-  // real property worth knowing when picking a model and is NOT a selection
-  // rule here. Nothing routes to it because another model declined; a caller
-  // gets it by asking for it, like every other vendor in this table.
+  // The fast one: ~6s against 8-17s for the others, measured 30 July 2026.
+  //
+  // An earlier version of this comment claimed it filters content more loosely
+  // than the rest. That came from a third-party article about its launch period,
+  // not from anything measured here, and the owner reports its moderation has
+  // since tightened. Removed rather than softened: a claim about a model's
+  // safety behaviour that nobody in this repo has tested is worse than silence,
+  // because it invites routing decisions on made-up grounds.
   xai: {
     gateway: 'xai/grok-imagine-image',
     label: 'Grok Imagine',
