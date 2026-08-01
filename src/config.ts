@@ -79,6 +79,19 @@ const EnvSchema = z.object({
   IMAGE_GEN_MAX_PER_CALL: numeric(4, 1, 10),
 
   IMAGE_GEN_TIMEOUT_MS: numeric(180_000, 5_000, 600_000),
+
+  /**
+   * Ceiling for one video call.
+   *
+   * Far longer than the image one because video models are far slower, and a
+   * timeout that fires mid-generation still bills for the work. 25 minutes,
+   * because Grok Imagine Video exceeded 10 on all three of its first attempts
+   * at a 5-second clip while MiniMax took roughly 4.
+   */
+  IMAGE_GEN_VIDEO_TIMEOUT_MS: numeric(1_500_000, 30_000, 3_600_000),
+
+  /** Videos allowed per rolling hour. 0 disables the cap. */
+  IMAGE_GEN_VIDEO_MAX_PER_HOUR: numeric(20, 0, 10_000),
 });
 
 export interface Config {
@@ -91,6 +104,8 @@ export interface Config {
   readonly maxPerHour: number;
   readonly maxPerCall: number;
   readonly timeoutMs: number;
+  readonly videoTimeoutMs: number;
+  readonly videoMaxPerHour: number;
 }
 
 export const DEFAULT_PROVIDER = 'openai' as const;
@@ -116,5 +131,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     maxPerHour: e.IMAGE_GEN_MAX_PER_HOUR,
     maxPerCall: e.IMAGE_GEN_MAX_PER_CALL,
     timeoutMs: e.IMAGE_GEN_TIMEOUT_MS,
+    videoTimeoutMs: e.IMAGE_GEN_VIDEO_TIMEOUT_MS,
+    videoMaxPerHour: e.IMAGE_GEN_VIDEO_MAX_PER_HOUR,
   };
 }

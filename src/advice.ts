@@ -176,3 +176,45 @@ export function warnAbout(prompt: string, vendor: Vendor): string | undefined {
 
   return undefined;
 }
+
+/**
+ * Video-specific advice, when the caller has not said enough.
+ *
+ * The failure modes are different from images and they are mostly about the
+ * prompt rather than the model. A video model given a static noun phrase has to
+ * invent both the motion and the camera, and it invents badly; given two actions
+ * it teleports between them. Neither is fixable by picking a different vendor,
+ * so this suggests words rather than a model.
+ */
+export function adviseForVideo(prompt: string, hasSourceImage: boolean): string | undefined {
+  const p = prompt.toLowerCase();
+
+  // Nothing in the prompt moves. This is the single most common way a video
+  // prompt disappoints: the model picks a motion at random.
+  const MOTION =
+    /\b(walk|run|turn|spin|rotat|pan|zoom|push|pull|dolly|track|orbit|tilt|fly|drift|fall|rise|open|close|pour|drip|blow|sway|flicker|ripple|steam|smoke|swirl|glid|approach|reced|shake|bounc|wave|slide|lean|reach|nod)/;
+  if (!MOTION.test(p)) {
+    return (
+      'This prompt names no motion and no camera move, so the model will invent both, and it invents badly. ' +
+      'Say what moves and how the camera behaves: "slow push-in", "the steam drifts left", "she turns to face the window". ' +
+      'One subject and one simple movement beats a busy scene at every model here.'
+    );
+  }
+
+  // Two or more actions in sequence. Models collapse these.
+  if (/\b(then|after that|and then|followed by|before)\b/.test(p)) {
+    return (
+      'This asks for more than one action in sequence, which every model here handles poorly: the result teleports between them rather than moving through them. ' +
+      'Split it into separate clips of one beat each, and seed the second from the last frame of the first.'
+    );
+  }
+
+  if (!hasSourceImage) {
+    return (
+      'No `sourceImage`, so the model invents the first frame as well as the motion, and you get no control over the look. ' +
+      'Generating a still first with `generate_image` and passing its path is the strongest lever available here, and the only way to keep a subject consistent across clips.'
+    );
+  }
+
+  return undefined;
+}

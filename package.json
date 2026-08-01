@@ -1,13 +1,13 @@
 {
-  "name": "image-gen-pro-mcp",
+  "name": "media-gen-pro-mcp",
   "version": "0.1.9",
-  "description": "Image generation as an MCP tool. GPT Image 2, Gemini 3 Pro Image, or Seedream 4.5 behind one call; reference images and context supported; returns file paths, not megabytes of base64.",
+  "description": "Image and video generation as an MCP tool. GPT Image 2, Gemini, Recraft, Seedream, Grok, Arrow SVG, plus MiniMax and Seedance video; reference images and context supported; returns file paths, not megabytes of base64.",
   "type": "module",
   "engines": {
     "node": ">=20.11"
   },
   "bin": {
-    "image-gen-pro-mcp": "dist/index.js"
+    "media-gen-pro-mcp": "dist/index.js"
   },
   "main": "dist/index.js",
   "files": [
@@ -48,21 +48,25 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fledgeling-co/image-gen-pro-mcp.git"
+    "url": "git+https://github.com/fledgeling-co/media-gen-pro-mcp.git"
   },
-  "homepage": "https://github.com/fledgeling-co/image-gen-pro-mcp#readme",
+  "homepage": "https://github.com/fledgeling-co/media-gen-pro-mcp#readme",
   "bugs": {
-    "url": "https://github.com/fledgeling-co/image-gen-pro-mcp/issues"
+    "url": "https://github.com/fledgeling-co/media-gen-pro-mcp/issues"
   },
   "author": "Luke Rhodes <hello@fledgeling.app> (https://www.fledgeling.app)",
   "keywords": [
     "mcp",
     "model-context-protocol",
     "image-generation",
+    "video-generation",
     "gpt-image",
     "gemini",
     "nano-banana",
     "seedream",
+    "recraft",
+    "seedance",
+    "minimax",
     "ai-sdk",
     "vercel-ai-gateway",
     "claude",

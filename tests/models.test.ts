@@ -13,6 +13,8 @@ const base: Config = {
   maxPerHour: 60,
   maxPerCall: 4,
   timeoutMs: 180_000,
+  videoTimeoutMs: 600_000,
+  videoMaxPerHour: 20,
 };
 const with_ = (o: Partial<Config>): Config => ({ ...base, ...o });
 

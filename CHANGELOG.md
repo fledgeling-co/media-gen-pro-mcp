@@ -6,6 +6,30 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [0.2.0] - 2026-08-01
+
+Renamed from `image-gen-pro-mcp`, because it generates video now too.
+
+### Added
+
+- **`generate_video`**, a separate tool from `generate_image`. Separate deliberately: a clip takes tens of seconds to minutes, costs far more per output, and the most useful input is usually a still you already have. Behind a flag on the image tool it would be a parameter that multiplies the bill by an order of magnitude.
+
+  Four models: **Seedance 2.0 Fast** (default), **MiniMax H3**, **Grok Imagine Video 1.5**, **Gemini Omni Flash**. Pass `sourceImage` and the still becomes the first frame, which is the strongest lever here and the only way to keep a subject consistent across clips.
+
+- **Video prompt advice.** A prompt naming no motion and no camera move gets told so, because the model then invents both and invents badly. Two actions in sequence gets told to split into separate clips, because every model here teleports between them. No `sourceImage` gets told what it is giving up.
+
+### Fixed
+
+- **Gemini Omni Flash is typed `language` on the gateway, not `video`**, the same trap as Gemini's image models: a multimodal LLM that emits video files rather than a video endpoint. The video API refuses it; `generateText` reaches it and the clip arrives on the response's files.
+- **MiniMax rejects text-to-video with no aspect ratio**: omitting it sends `adaptive`, which returns `ratio is required for t2va (text-only) and cannot be 'adaptive'`. `16:9` is now sent when no ratio is given and there is no source image.
+- **Seedance's refusal of a photographic source frame was read as a fault.** `The request failed because the input image 'content[1]' may contain real person` matches none of the usual moderation words, so the caller was told to check its network. It is now reported as a refusal, with what to do instead: seed from an image you generated rather than a photograph.
+- **Ordering bug in the refusal-rewrite table.** The new person rule matches `woman`, which also appears in every sexual-content prompt, and it sat above the rule for those, so it offered a rewrite for a request that has none. Narrow refusals now sort above broad ones.
+
+### Notes
+
+- **Grok Imagine Video on a CLI subscription is present but disabled.** Its endpoint, poll path and accepted ratios are known, learned from its own error messages: `POST /v1/videos/generations` returns a `request_id`, the result comes from `GET /v1/videos/{id}`, and `auto` is not a valid ratio there even though it is for images. The shape of the `image` field is not known: both a data URL and a bare base64 string are refused with `invalid type: string`, and the account ran out of video credit before the right shape turned up.
+- Grok Imagine Video through the gateway timed out at 600s on all three prompts in one run and completed all three in 19 to 23 seconds in the next, with no change but the timeout ceiling. I cannot account for the difference, and the timings in the README should be read with that in mind.
+
 ## [0.1.9] - 2026-07-31
 
 ### Added

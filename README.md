@@ -1,4 +1,4 @@
-# Image Gen Pro MCP
+# Media Gen Pro MCP
 
 **Give your AI assistant real image generation, and get back files you can actually use.**
 
@@ -9,9 +9,9 @@ You need at least one API key. Setup takes about five minutes.
 ```json
 {
   "mcpServers": {
-    "image-gen-pro": {
+    "media-gen-pro": {
       "command": "npx",
-      "args": ["-y", "image-gen-pro-mcp"],
+      "args": ["-y", "media-gen-pro-mcp"],
       "env": {
         "OPENAI_API_KEY": "paste-your-key-here",
         "IMAGE_GEN_OUTPUT_DIR": "/absolute/path/to/your/project/public/images"
@@ -168,6 +168,45 @@ Nothing here is a benchmark, but the shape is consistent enough to route by:
 - **Seedream 5.0 Pro** last on this evidence: slowest by a wide margin, and it watermarks.
 
 _I inspected 22 of these 42 images closely; the notes above cover those and the rest are here for you to judge. Every file is in [`docs/examples/`](docs/examples/)._
+
+## Video
+
+```json
+"env": { "AI_GATEWAY_API_KEY": "...", "IMAGE_GEN_OUTPUT_DIR": "/abs/path/public/media" }
+```
+
+`generate_video` is a separate tool from `generate_image`, deliberately. A clip takes tens of seconds to minutes, costs far more per output, and the most useful input is usually a still you already have. Putting that behind a flag on the image tool would be a parameter that multiplies your bill by an order of magnitude.
+
+| Say this | You get | Needs |
+|---|---|---|
+| nothing, or `seedance` | **Seedance 2.0 Fast** | the gateway |
+| `minimax`, `h3` | **MiniMax H3** | the gateway |
+| `grok`, `imagine` | **Grok Imagine Video 1.5** | the gateway |
+| `gemini`, `google`, `omni` | **Gemini Omni Flash** | the gateway |
+
+Pass `sourceImage` and the still becomes the first frame. That is the strongest lever here and the only way to keep a subject consistent across clips: generate a still with `generate_image`, then animate it.
+
+### The same three prompts, four models
+
+Two clips seeded from the stills in the comparison above, one from text alone. 5 seconds each, one generation, nothing retried.
+
+| | Seedance 2.0 Fast | MiniMax H3 | Grok Imagine Video 1.5 | Gemini Omni Flash |
+|---|---|---|---|---|
+| **kettle** (from a still) | [mp4](docs/examples/video/kettle-seedance.mp4), 110s | [mp4](docs/examples/video/kettle-minimax.mp4), 229s | [mp4](docs/examples/video/kettle-grok.mp4), 19s | [mp4](docs/examples/video/kettle-gemini.mp4), 34s |
+| **portrait** (from a still) | refused | [mp4](docs/examples/video/portrait-minimax.mp4), 246s | [mp4](docs/examples/video/portrait-grok.mp4), 19s | [mp4](docs/examples/video/portrait-gemini.mp4), 37s |
+| **text only** | [mp4](docs/examples/video/text-seedance.mp4), 109s | [mp4](docs/examples/video/text-minimax.mp4), 221s | [mp4](docs/examples/video/text-grok.mp4), 23s | [mp4](docs/examples/video/text-gemini.mp4), 32s |
+
+Grok was an order of magnitude faster on every one. Treat that with suspicion rather than as a benchmark: an earlier run of the identical three prompts timed out at 600 seconds on all three, and I cannot account for the difference.
+
+Seedance refuses a photographic face as a source frame ("may contain real person"). That is its own moderation, not a bug here, and the tool reports it as a refusal with what to do instead: seed from an image you generated rather than a photograph.
+
+### Rough edges
+
+**Gemini Omni Flash is not a video model on the gateway.** It is typed `language`, the same trap as Gemini's image models: a multimodal LLM that emits video files rather than a video endpoint. The video API refuses it; `generateText` reaches it and the clip arrives on the response's files.
+
+**MiniMax needs an explicit aspect ratio for text-to-video.** Omitting it sends `adaptive`, which it rejects outright. The server passes `16:9` when you give no ratio and there is no source image.
+
+**Grok Imagine Video on a CLI subscription is present but disabled.** The endpoint, the poll path and the accepted ratios are all known, learned from its own error messages: `POST /v1/videos/generations` returns a `request_id`, the result comes from `GET /v1/videos/{id}`, and `auto` is not a valid ratio there even though it is for images. What is not known is the shape of the `image` field: both a data URL and a bare base64 string are refused with `invalid type: string`, and the account ran out of video credit before the right shape turned up. Shipping it as working would mean a route that fails on two of its three uses.
 
 ## Writing a prompt that works
 

@@ -38,6 +38,18 @@ describe('what to suggest after a refusal', () => {
     expect(g?.instead).toMatch(/no rewrite for this one/);
   });
 
+  it('keeps the narrow refusals above the broad person rule', () => {
+    // "a topless woman" contains "woman". With the person rule first it offered
+    // a rewrite for a request that has none.
+    expect(guidanceForBlock('a topless woman')?.instead).toMatch(/no rewrite for this one/);
+    expect(guidanceForBlock('a woman turning to the window')?.instead).toMatch(/obviously synthetic/);
+  });
+
+  it('reads a real-person refusal as a refusal, not a fault', () => {
+    // Seedance's wording matches none of the usual moderation words.
+    expect(isModerationBlock("The request failed because the input image 'content[1]' may contain real person")).toBe(true);
+  });
+
   it('admits when it cannot tell what was wrong', () => {
     const out = renderBlock('a quiet harbour at dusk', 'GPT Image 2', 'blocked by safety system');
     expect(out).toMatch(/may be about a detail rather than the whole idea/);

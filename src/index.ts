@@ -15,17 +15,24 @@
 import { FastMCP } from 'fastmcp';
 import { z } from 'zod';
 import { loadConfig } from './config.js';
-import { adviseFor, warnAbout } from './advice.js';
+import { adviseFor, adviseForVideo, warnAbout } from './advice.js';
 import { isModerationBlock, renderBlock } from './blocked.js';
 import { GenerationError, RateLimiter, generate } from './generate.js';
 import { KNOWN_STYLES, RoutingError, SVG_VENDOR, availableRoutes, chooseModel, resolveVendor } from './models.js';
+import {
+  KNOWN_VIDEO_STYLES,
+  chooseVideoModel,
+  generateVideoFile,
+  resolveVideoVendor,
+} from './video.js';
 import { VERSION } from './version.js';
 
 const config = loadConfig();
 const limiter = new RateLimiter(config.maxPerHour);
+const videoLimiter = new RateLimiter(config.videoMaxPerHour);
 
 const server = new FastMCP({
-  name: 'image-gen-pro',
+  name: 'media-gen-pro',
   version: VERSION,
   instructions:
     'Generates images and writes them to disk, returning file paths rather than image bytes. Built for illustrating a ' +
@@ -214,9 +221,106 @@ server.addTool({
   },
 });
 
+
+server.addTool({
+  name: 'generate_video',
+  description:
+    'Generate a short video from a description, optionally starting from an image you already have, and write it to disk. ' +
+    'Image-to-video is the stronger path: pass `sourceImage` and the still becomes the first frame, which is how you keep a ' +
+    'character or product consistent. Models: seedance (default), minimax, grok, or gemini. A billed call per video, and MUCH more expensive and slower than an image; expect tens of seconds to minutes.',
+  annotations: {
+    title: 'Generate video',
+    readOnlyHint: false,
+    destructiveHint: false,
+    openWorldHint: true,
+  },
+  parameters: z.object({
+    prompt: z
+      .string()
+      .min(3)
+      .max(4000)
+      .describe(
+        'One short vivid moment in present tense, with a clear camera movement. One subject, one simple motion. ' +
+        'Complex multi-action animation is handled poorly by every model; make it interesting through composition and light, not busy movement.',
+      ),
+    sourceImage: z
+      .string()
+      .max(1000)
+      .optional()
+      .describe(
+        'Path to an image on THIS machine to use as the first frame. The strongest way to control the result, and the only way to keep a subject consistent across clips. Not a URL, not base64, and not an SVG.',
+      ),
+    style: z
+      .string()
+      .max(40)
+      .optional()
+      .describe(`Which model. Defaults to seedance. Accepted: ${KNOWN_VIDEO_STYLES.join(', ')}.`),
+    durationSeconds: z
+      .number()
+      .int()
+      .min(1)
+      .max(20)
+      .optional()
+      .describe('Clip length. Defaults to 5. Short clips are what these models are good at; prefer several short ones over one long one.'),
+    n: z.number().int().min(1).max(4).optional().describe('How many videos. Defaults to 1. Each one is billed.'),
+    aspectRatio: z
+      .string()
+      .regex(/^\d{1,2}:\d{1,2}$/)
+      .optional()
+      .describe('Aspect ratio, e.g. 16:9 or 9:16. Ignored when `sourceImage` is given, since the still sets the frame.'),
+    outputDir: z.string().max(1000).optional().describe('Where to write. Defaults to IMAGE_GEN_OUTPUT_DIR, or the working directory.'),
+    basename: z.string().max(60).optional().describe('Filename stem. A short random suffix is always added.'),
+  }),
+  execute: async (args) => {
+    const vendor = resolveVideoVendor(args.style);
+    if (vendor === undefined) {
+      throw new GenerationError(`Unknown video style "${args.style ?? ''}". Accepted: ${KNOWN_VIDEO_STYLES.join(', ')}.`);
+    }
+    const choice = chooseVideoModel(vendor, config);
+    const n = args.n ?? 1;
+    videoLimiter.check(n);
+
+    let out;
+    try {
+      out = await generateVideoFile(
+        {
+          prompt: args.prompt,
+          ...(args.sourceImage ? { sourceImage: args.sourceImage } : {}),
+          n,
+          durationSeconds: args.durationSeconds ?? 5,
+          ...(args.aspectRatio ? { aspectRatio: args.aspectRatio as `${number}:${number}` } : {}),
+          outputDir: args.outputDir || config.outputDir || process.cwd(),
+          ...(args.basename ? { basename: args.basename } : {}),
+        },
+        choice,
+        config,
+      );
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (isModerationBlock(msg)) return renderBlock(args.prompt, choice.label, msg);
+      throw e;
+    }
+
+    const left = videoLimiter.remaining();
+    return [
+      `Generated ${String(out.videos.length)} video(s) with **${choice.label}**${args.sourceImage ? ', starting from your image' : ''}.`,
+      '',
+      ...out.videos.map((v) => `- \`${v.path}\` (${String(Math.round(v.bytes / 1024))} KB, ${v.mediaType})`),
+      ...(out.warnings.length > 0
+        ? ['', '**The provider ignored something you asked for:**', ...out.warnings.map((w) => `- ${w}`)]
+        : []),
+      ...(() => {
+        const a = adviseForVideo(args.prompt, Boolean(args.sourceImage));
+        return a ? ['', '> [!TIP]', `> **Tell the user this if it is relevant.** ${a}`] : [];
+      })(),
+      ...(Number.isFinite(left) ? ['', `_${String(left)} video(s) left this hour._`] : []),
+    ].join('\n');
+  },
+});
+
 const routes = availableRoutes(config);
 process.stderr.write(
-  `image-gen-pro-mcp ${VERSION} · ` +
+  `media-gen-pro-mcp ${VERSION} · ` +
     (routes.length === 0
       ? 'NO KEYS — set OPENAI_API_KEY, GEMINI_API_KEY, or AI_GATEWAY_API_KEY'
       : routes.map((r) => `${r.label} (${r.route})`).join(' · ')) +

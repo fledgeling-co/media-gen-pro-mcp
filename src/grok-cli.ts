@@ -166,3 +166,105 @@ export async function generateViaGrokCli(opts: {
     mediaType: 'application/octet-stream',
   };
 }
+
+/** The video model xAI's own CLI asks for. */
+export const GROK_CLI_VIDEO_MODEL = 'grok-imagine-video';
+
+/**
+ * Aspect ratios the video endpoint accepts.
+ *
+ * `auto` is NOT among them, unlike the image endpoint, which does accept it.
+ * Sending it returns a 422 naming the whole allowed set, which is how this list
+ * was obtained: "unknown variant `auto`, expected one of `1:1`, `16:9`, `9:16`,
+ * `4:3`, `3:4`, `3:2`, `2:3`". Checked 31 July 2026.
+ */
+const VIDEO_RATIOS = new Set(['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3']);
+
+/**
+ * One video from Imagine, on the CLI's subscription.
+ *
+ * Asynchronous, unlike the image endpoint: the POST returns a `request_id` and
+ * nothing else, and the result is collected from `GET /v1/videos/{id}` once its
+ * status reads `done`. The first version of this function assumed the image
+ * endpoint's synchronous `b64_json` shape and got a 422 every time.
+ *
+ * The poll path is `/v1/videos/{id}`, not `/v1/videos/generations/{id}`, which
+ * 404s. Established by trying both.
+ */
+export async function generateVideoViaGrokCli(opts: {
+  readonly token: string;
+  readonly prompt: string;
+  readonly image?: Uint8Array | undefined;
+  readonly durationSeconds: number;
+  readonly aspectRatio?: string | undefined;
+  readonly timeoutMs: number;
+  readonly fetchImpl?: typeof fetch;
+}): Promise<{ uint8Array: Uint8Array; mediaType: string }> {
+  const fetchImpl = opts.fetchImpl ?? fetch;
+  const deadline = Date.now() + opts.timeoutMs;
+  const headers = {
+    authorization: `Bearer ${opts.token}`,
+    'content-type': 'application/json',
+    accept: 'application/json',
+    'x-grok-client-version': GROK_CLI_VERSION,
+  };
+
+  const ratio = opts.aspectRatio && VIDEO_RATIOS.has(opts.aspectRatio) ? opts.aspectRatio : '16:9';
+
+  const submit = await fetchImpl('https://api.x.ai/v1/videos/generations', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: GROK_CLI_VIDEO_MODEL,
+      prompt: opts.prompt,
+      duration: opts.durationSeconds,
+      aspect_ratio: ratio,
+      ...(opts.image ? { image: `data:image/jpeg;base64,${Buffer.from(opts.image).toString('base64')}` } : {}),
+    }),
+  });
+
+  if (submit.status === 401 || submit.status === 403) {
+    throw new GrokCliError(
+      `Imagine rejected the Grok CLI session (HTTP ${String(submit.status)}). Run \`grok\` and sign in again, or drop \`style: "grok-cli"\`.`,
+    );
+  }
+  if (!submit.ok) {
+    throw new GrokCliError(`Imagine video returned HTTP ${String(submit.status)}: ${(await submit.text()).slice(0, 300)}`);
+  }
+
+  const submitted = z
+    .object({ request_id: z.string().min(1) })
+    .safeParse(await submit.json());
+  if (!submitted.success) throw new GrokCliError('Imagine video did not return a request id.');
+
+  const StatusSchema = z.object({
+    status: z.string(),
+    video: z.object({ url: z.url() }).optional(),
+    error: z.string().optional(),
+  });
+
+  for (;;) {
+    if (Date.now() > deadline) {
+      throw new GrokCliError(
+        `Imagine video did not finish within ${String(Math.round(opts.timeoutMs / 1000))}s. The job may still complete; raise IMAGE_GEN_VIDEO_TIMEOUT_MS.`,
+      );
+    }
+    await new Promise((r) => setTimeout(r, 5_000));
+
+    const poll = await fetchImpl(`https://api.x.ai/v1/videos/${submitted.data.request_id}`, { headers });
+    if (!poll.ok) {
+      throw new GrokCliError(`Imagine video status returned HTTP ${String(poll.status)}.`);
+    }
+    const state = StatusSchema.safeParse(await poll.json());
+    if (!state.success) throw new GrokCliError('Imagine video returned a status this server does not recognise.');
+
+    if (state.data.status === 'done' && state.data.video) {
+      const file = await fetchImpl(state.data.video.url);
+      if (!file.ok) throw new GrokCliError(`Could not download the finished video (HTTP ${String(file.status)}).`);
+      return { uint8Array: new Uint8Array(await file.arrayBuffer()), mediaType: 'video/mp4' };
+    }
+    if (/fail|error|reject/i.test(state.data.status)) {
+      throw new GrokCliError(`Imagine video ${state.data.status}${state.data.error ? `: ${state.data.error}` : ''}`);
+    }
+  }
+}

@@ -23,7 +23,10 @@
 export function isModerationBlock(message: string): boolean {
   const m = message.toLowerCase();
   return (
-    /\b(moderation|content[_ ]policy|safety[_ ]system|blocked|rejected|violat|not allowed|disallowed|prohibited|refus)/.test(
+    // `may contain real person` is Seedance's refusal for an image-to-video
+    // seed, observed 31 July 2026. It matches none of the usual words, so a
+    // refusal read as a fault and the caller was told to check its network.
+    /\b(moderation|content[_ ]policy|safety[_ ]system|blocked|rejected|violat|not allowed|disallowed|prohibited|refus|may contain real person|real person)/.test(
       m,
     ) && !/\b(rate limit|timeout|unauthor|not found|invalid[_ ]api|quota)\b/.test(m)
   );
@@ -41,6 +44,10 @@ interface Rewrite {
  * request they meant, and it usually produces a better image because a model
  * given attributes has more to work with than a model given a trademark.
  */
+// ORDER MATTERS. Rules are tried top to bottom and the first match wins, so the
+// narrow refusals come before the broad ones. The person rule below matches
+// "woman", which also appears in every sexual-content prompt; above the nude
+// rule it offered a rewrite for a request that has none.
 const REWRITES: Rewrite[] = [
   {
     trigger: /\b(pixar|disney|dreamworks|studio ghibli|ghibli|illumination|aardman)\b/i,
@@ -68,6 +75,15 @@ const REWRITES: Rewrite[] = [
     why: 'it asks for sexual content, which every model here declines',
     instead:
       'There is no rewrite for this one. If the underlying brief is a clothed figure study, life-drawing reference, or anatomy for illustration, ask for that directly and say what the figure is wearing.',
+  },
+  {
+    // Not a rewrite toward a different subject: the same subject, generated
+    // rather than photographed, is what the model will actually accept.
+    trigger: /\b(person|woman|man|face|portrait|she|he|her|his)\b/i,
+    why: 'a video model refused the source image for showing what it took to be a real person, which several apply to any photographic face',
+    instead:
+      'Seed the clip from an image you generated rather than a photograph, and say so in the prompt ("illustrated character", "stylised figure"). ' +
+      'The same shot usually passes when the first frame is obviously synthetic. If the subject must be a real person, that is a consent question rather than a prompt problem, and no rewording fixes it.',
   },
 ];
 
