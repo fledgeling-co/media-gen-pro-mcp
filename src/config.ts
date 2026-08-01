@@ -110,6 +110,29 @@ export interface Config {
 
 export const DEFAULT_PROVIDER = 'openai' as const;
 
+/**
+ * The vendor used when the caller names none and the router cannot run.
+ *
+ * Whichever key the operator actually supplied, rather than a constant. A server
+ * holding only a Gemini key was defaulting to OpenAI and failing every unstyled
+ * request on a missing key, which reads as a broken install rather than as a
+ * default nobody chose.
+ *
+ * The tie is broken toward OpenAI: with a gateway key everything is reachable,
+ * and with both first-party keys either would work, so the one that was best at
+ * following instructions in the published comparison wins.
+ */
+export function inferDefaultProvider(
+  openaiKey: string,
+  googleKey: string,
+  gatewayKey: string,
+): 'openai' | 'google' | 'bytedance' {
+  if (gatewayKey !== '') return 'openai';
+  if (openaiKey !== '') return 'openai';
+  if (googleKey !== '') return 'google';
+  return DEFAULT_PROVIDER;
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const parsed = EnvSchema.safeParse(env);
   if (!parsed.success) {
@@ -119,14 +142,17 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new Error(`Invalid environment configuration: ${detail}`);
   }
   const e = parsed.data;
+  // `||` rather than `??`: a key present but empty is the common shape in a
+  // committed .env file, and it must fall through to the alias.
+  const openaiKey = e.OPENAI_API_KEY || '';
+  const googleKey = e.GEMINI_API_KEY || e.GOOGLE_API_KEY || '';
+  const gatewayKey = e.AI_GATEWAY_API_KEY || '';
   return {
-    // `||` rather than `??`: a key present but empty is the common shape in a
-    // committed .env file, and it must fall through to the alias.
-    openaiKey: e.OPENAI_API_KEY || '',
-    googleKey: e.GEMINI_API_KEY || e.GOOGLE_API_KEY || '',
-    gatewayKey: e.AI_GATEWAY_API_KEY || '',
+    openaiKey,
+    googleKey,
+    gatewayKey,
     outputDir: e.IMAGE_GEN_OUTPUT_DIR || '',
-    defaultProvider: e.IMAGE_GEN_DEFAULT_PROVIDER || DEFAULT_PROVIDER,
+    defaultProvider: e.IMAGE_GEN_DEFAULT_PROVIDER || inferDefaultProvider(openaiKey, googleKey, gatewayKey),
     preferGateway: e.IMAGE_GEN_PREFER_GATEWAY,
     maxPerHour: e.IMAGE_GEN_MAX_PER_HOUR,
     maxPerCall: e.IMAGE_GEN_MAX_PER_CALL,

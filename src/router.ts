@@ -1,0 +1,128 @@
+/**
+ * Choosing the model from the prompt, with a model.
+ *
+ * This reverses the position the advisory layer took. That one deliberately
+ * never routed: it generated with whatever it was asked for and printed a note
+ * saying what else existed, on the grounds that silent substitution makes a
+ * caller's own logs lie. The owner overruled it for the no-style case, which is
+ * the case where there is nothing to substitute FOR: with no `style` the server
+ * was picking `openai` from a constant, which is not a decision about the prompt
+ * at all, merely a default that happened to be right sometimes.
+ *
+ * So the rule is narrow. An explicit `style` is still obeyed exactly and never
+ * second-guessed. Only an absent one triggers inference, and the answer is
+ * always reported, so the caller can see which model ran and why.
+ *
+ * **The cost.** One extra call on a flash-lite model per generation, hundreds of
+ * output tokens at most. Against an image model's price that is close to noise,
+ * which is what makes this affordable for routing where it was not affordable
+ * for advice: advice is worth less than the call, a wrong model is worth more.
+ */
+
+import { createGateway } from '@ai-sdk/gateway';
+import { Output, generateText } from 'ai';
+import { z } from 'zod';
+import type { Config } from './config.js';
+import { type Vendor, resolveVendor } from './models.js';
+
+/**
+ * The classifier.
+ *
+ * The cheapest capable thing on the gateway, because this is a labelling job and
+ * paying frontier prices for it would cost more than the mistake it prevents.
+ */
+export const ROUTER_MODEL = 'google/gemini-3.1-flash-lite';
+
+/** What the classifier is allowed to answer. */
+const CHOICES = ['openai', 'gemini-pro', 'gemini', 'photoreal', 'seedream', 'grok', 'svg'] as const;
+
+const DecisionSchema = z.object({
+  choice: z.enum(CHOICES),
+  reason: z.string().max(200),
+});
+
+export interface RoutingDecision {
+  readonly vendor: Vendor;
+  /** True when the caller asked for an SVG without saying so. */
+  readonly svg: boolean;
+  readonly reason: string;
+  /** Present when inference failed and the fallback was used. */
+  readonly fallback?: string;
+}
+
+/**
+ * The guidance the classifier routes on.
+ *
+ * Every line is an observation from the run published in the README rather than
+ * a vendor's marketing, which is the only reason to trust it over the model's
+ * own priors about these names.
+ */
+const SYSTEM = `You route an image-generation request to one model. Answer with a choice and a one-sentence reason.
+
+The models, and what a single controlled comparison actually showed about each:
+
+- openai (GPT Image 2): the best at obeying rules stated in the prompt. The only model to get an exact count AND the arrangement right, and the only one to honour every "no X" exclusion. Pick it when the prompt states a number, an exclusion, or a precise arrangement.
+- gemini-pro (Gemini 3 Pro Image): also passed the exact-count test, and got a stated light direction right that the flash model inverted. Pick it when the prompt specifies lighting direction, or when it needs care but not the absolute rule-following of openai.
+- gemini (Gemini 3.1 Flash Image): fast and cheap, good with reference images. The sensible pick for an ordinary illustration with no hard constraints. It inverted a stated light direction once, so avoid it when the light direction is load-bearing.
+- photoreal (Recraft V4.1 Pro): by a clear margin the most convincing photographs. Pick it whenever the brief is a photograph, a product shot, or anything that must not look illustrated. It miscounted, so avoid it when an exact number matters.
+- seedream (Seedream 5.0 Pro): rich illustration, but the slowest by a wide margin and it watermarks its output with "AI generated". Pick it only when the prompt asks for elaborate illustration and nothing else fits.
+- grok (Grok Imagine): the fastest. Pick it when the prompt asks for speed, a draft, or several quick options, and nothing else in the prompt is precise.
+- svg (Arrow 1.1): emits real vector source, not pixels. Pick it for a diagram, flowchart, icon, logo, chart layout, or anything that must be editable or scale losslessly. It cannot produce a photograph.
+
+Rules:
+- Prefer openai when the prompt contains an exact count, an explicit exclusion, or a precise spatial arrangement.
+- Prefer photoreal when the prompt asks for a photograph and states no exact count.
+- Prefer svg for anything diagrammatic, even if the prompt does not say "SVG".
+- When nothing in the prompt is precise, prefer gemini for cost.
+- Do not pick seedream unless the prompt genuinely calls for elaborate illustration.`;
+
+/**
+ * Which model the prompt calls for.
+ *
+ * Never throws. A classifier that is down, rate limited or confused must not
+ * take the whole generation with it, so any failure falls back to the
+ * configured default and says so in the returned reason.
+ */
+export async function route(
+  prompt: string,
+  config: Config,
+  timeoutMs = 15_000,
+): Promise<RoutingDecision> {
+  const fallback = (why: string): RoutingDecision => ({
+    vendor: config.defaultProvider,
+    svg: false,
+    reason: `fell back to the default (${config.defaultProvider})`,
+    fallback: why,
+  });
+
+  if (config.gatewayKey === '') return fallback('no gateway key, so the classifier cannot run');
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  try {
+    const { output } = await generateText({
+      model: createGateway({ apiKey: config.gatewayKey })(ROUTER_MODEL),
+      system: SYSTEM,
+      prompt: `Route this request:\n\n${prompt.slice(0, 2000)}`,
+      output: Output.object({ schema: DecisionSchema }),
+      abortSignal: controller.signal,
+    });
+
+    if (output.choice === 'svg') {
+      return { vendor: 'quiver', svg: true, reason: output.reason };
+    }
+    const vendor = resolveVendor(output.choice, config.defaultProvider);
+    // The enum and the alias table are maintained separately, so a choice that
+    // resolves to nothing is a drift between them rather than a model error.
+    if (!vendor) return fallback(`the classifier answered "${output.choice}", which is not a known style`);
+    return { vendor, svg: false, reason: output.reason };
+  } catch (e: unknown) {
+    if (e instanceof Error && e.name === 'AbortError') return fallback(`the classifier did not answer within ${String(timeoutMs)}ms`);
+    return fallback(`the classifier failed: ${e instanceof Error ? e.message.slice(0, 120) : String(e)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+}

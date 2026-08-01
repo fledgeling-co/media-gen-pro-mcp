@@ -6,6 +6,21 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [0.3.0] - 2026-08-01
+
+### Added
+
+- **The server picks the model from your prompt when you do not name one.** A flash-lite classifier reads the request and routes it, and the choice plus its reason come back with the result. Naming a `style` still overrides it exactly and is never second-guessed.
+
+  This reverses the advisory layer's position, which deliberately never routed on the grounds that silent substitution makes a caller's own logs lie. That argument does not apply to the case with no `style`, where the server was picking from a constant rather than making any decision at all. The choice is always reported, so it is never silent.
+
+  Routed on the comparison in the README rather than on vendor marketing. Seven test prompts, seven correct picks: an exact count to GPT Image 2, a photograph to Recraft, a flowchart to Arrow, an exclusion to GPT Image 2, an ordinary illustration to Gemini Flash, a quick draft to Grok, and a stated light direction to Gemini 3 Pro, which got that right where Flash inverted it. About a second per call.
+
+### Fixed
+
+- **The default vendor now follows the keys you supplied** instead of being the constant `openai`. A server holding only a Gemini key was defaulting to OpenAI and failing every unstyled request on a missing key, which reads as a broken install rather than as a default nobody chose. A tie breaks toward OpenAI, since with a gateway key everything is reachable and with both first-party keys either would work.
+- A classifier that is down, rate limited or slow falls back to that default and says which, rather than taking the generation with it.
+
 ## [0.2.0] - 2026-08-01
 
 Renamed from `image-gen-pro-mcp`, because it generates video now too.

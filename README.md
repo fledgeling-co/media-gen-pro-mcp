@@ -40,7 +40,20 @@ That's deliberate, and it's the main design decision in here. A 1024x1024 image 
 
 ## The models
 
-One tool, six models, because the right one genuinely differs by job.
+One tool, several models, because the right one genuinely differs by job. **Name one with `style` and it is used exactly; leave it out and the server reads your prompt and picks.**
+
+Routing costs one call on a flash-lite model, about a second, and the choice and its reason come back with the result:
+
+```
+Generated 1 image(s) with **GPT Image 2** via the direct route.
+
+_Model chosen from your prompt: the prompt requires an exact count of seven items
+in a specific spatial arrangement. Pass `style` to override._
+```
+
+It routes on the comparison further down rather than on vendor marketing. Seven test prompts, seven correct picks: an exact count went to GPT Image 2, a photograph to Recraft, a flowchart to Arrow, an exclusion to GPT Image 2, an ordinary illustration to Gemini Flash, a quick draft to Grok, and a stated light direction to Gemini 3 Pro, which is the one that got that right when Flash inverted it.
+
+Without a gateway key the classifier cannot run, and the request falls back to whichever key you did supply, saying so.
 
 | Say this | You get | Good for | Needs |
 |---|---|---|---|
@@ -294,7 +307,7 @@ All optional except having at least one key. Set them alongside the key in the `
 | `AI_GATEWAY_API_KEY` | | Vercel AI Gateway. Reaches everything, and is the only route to Recraft, Seedream, Grok Imagine and Arrow |
 | _(none)_ | | `style: "grok-cli"` needs no key. It uses the Grok CLI's signed-in session, read from `~/.grok/auth.json` |
 | `IMAGE_GEN_OUTPUT_DIR` | working directory | Where images are written. Point it at your project's image folder and the paths come back ready to use |
-| `IMAGE_GEN_DEFAULT_PROVIDER` | `openai` | Which vendor runs when the assistant names none. Set to `google` if your OpenAI account can't reach GPT Image 2 |
+| `IMAGE_GEN_DEFAULT_PROVIDER` | whichever key you set | Pins the fallback used when routing cannot run. Defaults to OpenAI when you have a gateway or OpenAI key, Google when Gemini is all you have |
 | `IMAGE_GEN_PREFER_GATEWAY` | `false` | Route through the gateway even when a direct key exists. Turn on to put all the billing in one place |
 | `IMAGE_GEN_MAX_PER_HOUR` | `60` | Images per rolling hour. `0` removes the cap, knowing what that means for your bill |
 | `IMAGE_GEN_MAX_PER_CALL` | `4` | Ceiling on one request, whatever the assistant asks for |

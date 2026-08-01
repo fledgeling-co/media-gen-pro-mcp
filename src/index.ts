@@ -17,6 +17,7 @@ import { z } from 'zod';
 import { loadConfig } from './config.js';
 import { adviseFor, adviseForVideo, warnAbout } from './advice.js';
 import { isModerationBlock, renderBlock } from './blocked.js';
+import { route } from './router.js';
 import { GenerationError, RateLimiter, generate } from './generate.js';
 import { KNOWN_STYLES, RoutingError, SVG_VENDOR, availableRoutes, chooseModel, resolveVendor } from './models.js';
 import {
@@ -42,8 +43,9 @@ const server = new FastMCP({
     'subscription instead of any API key, which costs no credit and is the fastest route here. Set `svg: true` for a ' +
     'REAL SVG from Arrow, which no raster model can produce. Reference images and extra text context are accepted and ' +
     'change the result.\n\n' +
-    'Results carry a note when a different model handled the same kind of prompt better in the published comparison. ' +
-    'It is advice, not a reroute: relay it to the user when it is relevant to what they asked for.\n\n' +
+    'Leave `style` out and the server reads the prompt and picks the model, reporting the choice and why. Name one and it ' +
+    'is obeyed exactly. Results also carry a note when a different model handled that kind of prompt better in the ' +
+    'published comparison; relay it to the user when it is relevant.\n\n' +
     'PROMPT CRAFT: front-load the subject, then action or pose, setting, style, composition, lighting, key details. ' +
     'Natural prose, not keyword tags, 2-5 sentences. Say what to INCLUDE rather than what to leave out. One scene per prompt.\n\n' +
     'If a model declines a prompt, the result explains what to do instead. Do NOT reword it to get past the filter and do ' +
@@ -81,7 +83,7 @@ server.addTool({
       .max(40)
       .optional()
       .describe(
-        `Which model. Omit for the default (${config.defaultProvider}). Accepted: ${KNOWN_STYLES.join(', ')}. "seedream" and "svg"/"arrow" need the gateway key.`,
+        `Which model. OMIT IT unless the user named one: the server reads the prompt and picks, and reports what it chose. Naming one here overrides that and is obeyed exactly. Accepted: ${KNOWN_STYLES.join(', ')}. "seedream" and "svg"/"arrow" need the gateway key.`,
       ),
     svg: z
       .boolean()
@@ -136,11 +138,24 @@ server.addTool({
     // An explicit SVG request outranks `style`, because the raster models cannot
     // satisfy it at all: asking gpt-image for an SVG gets a PNG that looks like
     // one, which is the exact failure this flag exists to prevent.
-    const vendor = args.svg === true ? SVG_VENDOR : resolveVendor(args.style, config.defaultProvider);
-    if (vendor === undefined) {
-      throw new GenerationError(
-        `Unknown style "${args.style ?? ''}". Accepted: ${KNOWN_STYLES.join(', ')}.`,
-      );
+    //
+    // Inference only fills the gap where the caller named nothing. An explicit
+    // `style` is obeyed exactly and never second-guessed, because silent
+    // substitution makes a caller's own logs lie about what it asked for.
+    let vendor;
+    let routed;
+    if (args.svg === true) {
+      vendor = SVG_VENDOR;
+    } else if (args.style === undefined || args.style.trim() === '') {
+      routed = await route(args.prompt, config);
+      vendor = routed.vendor;
+    } else {
+      vendor = resolveVendor(args.style, config.defaultProvider);
+      if (vendor === undefined) {
+        throw new GenerationError(
+          `Unknown style "${args.style}". Accepted: ${KNOWN_STYLES.join(', ')}.`,
+        );
+      }
     }
 
     let choice;
@@ -185,6 +200,17 @@ server.addTool({
     const madeSvg = outcome.images.some((i) => i.mediaType === 'image/svg+xml');
     return [
       `Generated ${String(outcome.images.length)} image(s) with **${choice.label}** via the ${choice.route} route.`,
+      // Always said out loud. A model the caller did not name must never be a
+      // silent choice, or nobody can tell why two identical-looking requests
+      // produced different results.
+      ...(routed
+        ? [
+            '',
+            routed.fallback === undefined
+              ? `_Model chosen from your prompt: ${routed.reason} Pass \`style\` to override._`
+              : `_No model named and routing did not run (${routed.fallback}), so this ${routed.reason}._`,
+          ]
+        : []),
       '',
       ...outcome.images.map(
         (i) => `- \`${i.path}\` (${String(Math.round(i.bytes / 1024))} KB, ${i.mediaType})`,
