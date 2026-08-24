@@ -187,6 +187,39 @@ export function supportsBatch(vendor: Vendor): boolean {
 }
 
 /** The only vendor here that emits real vector source rather than pixels. */
+/**
+ * The reachable vendor that best stands in for one this deployment cannot serve.
+ *
+ * Substitution is by TIER, not by taking the first allowed name. The tiers are a CAREFUL one — the
+ * models that hold an exact count, an exclusion or a stated light direction, and make the most
+ * convincing photographs — and a FAST one for an ordinary illustration. So a request routed to the
+ * photorealism vendor substitutes to the best Google model rather than the cheapest, and a request
+ * routed to a cheap vendor stays cheap: the caller's intent survives the substitution.
+ *
+ * A vendor the table does not know degrades to the first allowed one rather than throwing, so a
+ * vendor added later is reachable-or-substituted instead of fatal.
+ */
+const NEAREST_REACHABLE: Readonly<Partial<Record<Vendor, readonly Vendor[]>>> = {
+  openai: ['googlepro', 'google'],
+  recraft: ['googlepro', 'google'],
+  bytedance: ['googlepro', 'google'],
+  googlepro: ['googlepro', 'google'],
+  google: ['google', 'googlepro'],
+  quiver: ['quiver'],
+  xai: ['google', 'googlepro'],
+  xaicli: ['google', 'googlepro'],
+};
+
+export function nearestReachableVendor(
+  chosen: Vendor,
+  allowed: readonly Vendor[],
+): Vendor {
+  const first = allowed[0];
+  if (first === undefined || allowed.includes(chosen)) return chosen;
+  const nearest = NEAREST_REACHABLE[chosen] ?? [];
+  return nearest.find((candidate) => allowed.includes(candidate)) ?? first;
+}
+
 export const SVG_VENDOR: Vendor = 'quiver';
 
 export class RoutingError extends Error {

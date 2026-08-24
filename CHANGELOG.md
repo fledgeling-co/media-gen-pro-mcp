@@ -6,6 +6,21 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [0.3.1] - 2026-08-24
+
+### Added
+
+- `IMAGE_GEN_ALLOWED_STYLES` — the style aliases a deployment can actually reach, comma-separated. The classifier chooses within that set, and a request it routes to an unreachable vendor is substituted rather than refused. Written as aliases (`gemini-pro,gemini`) rather than internal vendor keys, because aliases are the vocabulary callers already use in `style`.
+- Substitution is by TIER, not by taking the first allowed name: a photograph request moves to the best reachable model and a cheap illustration request stays cheap, so the caller's intent survives. Every substitution is reported in the tool's response, because a caller who named a style and received another one should be able to see that the deployment made that choice.
+
+### Why
+
+Measured on 2026-08-24, not read in a doc. A caller on a Zero-Data-Retention gateway asked for a documentary photograph. The classifier correctly chose the photorealism vendor; the gateway refused it with `no_zdr_providers_available`, having no ZDR-attested credential for that provider. The caller retried four times, got the identical refusal each time, and a finished ten-slide deck was discarded for want of two pictures.
+
+`IMAGE_GEN_DEFAULT_PROVIDER` could not prevent it and was already set correctly. It is consulted only when the classifier cannot run — the classifier is a model call whose answer is used directly — so a deployment had no way to say which vendors it could reach. That is the gap this closes.
+
+Unset, behaviour is unchanged.
+
 ## [0.3.0] - 2026-08-01
 
 ### Added

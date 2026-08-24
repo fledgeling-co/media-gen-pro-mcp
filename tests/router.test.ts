@@ -4,7 +4,8 @@ import { route } from '../src/router.js';
 
 const base: Config = {
   openaiKey: '', googleKey: '', gatewayKey: '', outputDir: '',
-  defaultProvider: 'openai', preferGateway: false,
+  defaultProvider: 'openai',
+  allowedVendors: [], preferGateway: false,
   maxPerHour: 60, maxPerCall: 4, timeoutMs: 180_000,
   videoTimeoutMs: 1_500_000, videoMaxPerHour: 20,
 };

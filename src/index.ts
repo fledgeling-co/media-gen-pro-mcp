@@ -19,7 +19,7 @@ import { adviseFor, adviseForVideo, warnAbout } from './advice.js';
 import { isModerationBlock, renderBlock } from './blocked.js';
 import { route } from './router.js';
 import { GenerationError, RateLimiter, generate } from './generate.js';
-import { KNOWN_STYLES, RoutingError, SVG_VENDOR, availableRoutes, chooseModel, resolveVendor } from './models.js';
+import { KNOWN_STYLES, RoutingError, SVG_VENDOR, availableRoutes, chooseModel, nearestReachableVendor, resolveVendor, type Vendor } from './models.js';
 import {
   KNOWN_VIDEO_STYLES,
   chooseVideoModel,
@@ -144,17 +144,28 @@ server.addTool({
     // substitution makes a caller's own logs lie about what it asked for.
     let vendor;
     let routed;
+    let substitutedFrom: Vendor | undefined;
     if (args.svg === true) {
       vendor = SVG_VENDOR;
     } else if (args.style === undefined || args.style.trim() === '') {
       routed = await route(args.prompt, config);
       vendor = routed.vendor;
+      if (routed.substituted) substitutedFrom = routed.substituted.from;
     } else {
       vendor = resolveVendor(args.style, config.defaultProvider);
       if (vendor === undefined) {
         throw new GenerationError(
           `Unknown style "${args.style}". Accepted: ${KNOWN_STYLES.join(', ')}.`,
         );
+      }
+      // An explicitly named style is obeyed exactly WHERE IT CAN BE. A deployment that cannot reach
+      // the named vendor has two options and refusing is the worse one -- the caller wanted a
+      // picture, and a substitution they can see beats an error they cannot act on. The swap is
+      // reported in the response so "obeyed exactly" stays true or is visibly not.
+      const reachable = nearestReachableVendor(vendor, config.allowedVendors);
+      if (reachable !== vendor) {
+        substitutedFrom = vendor;
+        vendor = reachable;
       }
     }
 
@@ -200,6 +211,16 @@ server.addTool({
     const madeSvg = outcome.images.some((i) => i.mediaType === 'image/svg+xml');
     return [
       `Generated ${String(outcome.images.length)} image(s) with **${choice.label}** via the ${choice.route} route.`,
+      // A substitution is said out loud for the same reason a routed choice is, and more urgently:
+      // the caller may have named a style and received a different one, and the reason is the
+      // deployment rather than anything about their request.
+      ...(substitutedFrom
+        ? [
+            '',
+            `_This deployment cannot reach \`${substitutedFrom}\`, so the nearest reachable model was ` +
+              `used instead. Set \`IMAGE_GEN_ALLOWED_STYLES\` to change what is reachable._`,
+          ]
+        : []),
       // Always said out loud. A model the caller did not name must never be a
       // silent choice, or nobody can tell why two identical-looking requests
       // produced different results.

@@ -23,7 +23,7 @@ import { createGateway } from '@ai-sdk/gateway';
 import { Output, generateText } from 'ai';
 import { z } from 'zod';
 import type { Config } from './config.js';
-import { type Vendor, resolveVendor } from './models.js';
+import { type Vendor, nearestReachableVendor, resolveVendor } from './models.js';
 
 /**
  * The classifier.
@@ -48,6 +48,12 @@ export interface RoutingDecision {
   readonly reason: string;
   /** Present when inference failed and the fallback was used. */
   readonly fallback?: string;
+  /**
+   * Present when the classifier's choice was not reachable and a substitute was used. Reported
+   * rather than silent: a caller who asked for a photograph and received an illustration should be
+   * able to see that the deployment, not the classifier, made that decision.
+   */
+  readonly substituted?: { readonly from: Vendor; readonly why: string };
 }
 
 /**
@@ -118,6 +124,18 @@ export async function route(
     // The enum and the alias table are maintained separately, so a choice that
     // resolves to nothing is a drift between them rather than a model error.
     if (!vendor) return fallback(`the classifier answered "${output.choice}", which is not a known style`);
+    // The classifier answers with the best vendor for the request; this deployment may not be able
+    // to reach it. Substitute rather than let the call fail: a photograph request on a gateway with
+    // no photorealism credential used to be four identical refusals, not a picture.
+    const reachable = nearestReachableVendor(vendor, config.allowedVendors);
+    if (reachable !== vendor) {
+      return {
+        vendor: reachable,
+        svg: false,
+        reason: output.reason,
+        substituted: { from: vendor, why: 'not in IMAGE_GEN_ALLOWED_STYLES' },
+      };
+    }
     return { vendor, svg: false, reason: output.reason };
   } catch (e: unknown) {
     if (e instanceof Error && e.name === 'AbortError') return fallback(`the classifier did not answer within ${String(timeoutMs)}ms`);

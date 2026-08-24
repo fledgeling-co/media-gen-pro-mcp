@@ -308,6 +308,7 @@ All optional except having at least one key. Set them alongside the key in the `
 | _(none)_ | | `style: "grok-cli"` needs no key. It uses the Grok CLI's signed-in session, read from `~/.grok/auth.json` |
 | `IMAGE_GEN_OUTPUT_DIR` | working directory | Where images are written. Point it at your project's image folder and the paths come back ready to use |
 | `IMAGE_GEN_DEFAULT_PROVIDER` | whichever key you set | Pins the fallback used when routing cannot run. Defaults to OpenAI when you have a gateway or OpenAI key, Google when Gemini is all you have |
+| `IMAGE_GEN_ALLOWED_STYLES` | unset (no restriction) | Style aliases this deployment can actually reach, comma-separated, e.g. `gemini-pro,gemini`. The classifier then chooses within the set, and a request it routes elsewhere is substituted by tier rather than refused. Set this wherever some vendors are unreachable — a Zero-Data-Retention gateway, a missing BYOK credential, a provider you have not enabled |
 | `IMAGE_GEN_PREFER_GATEWAY` | `false` | Route through the gateway even when a direct key exists. Turn on to put all the billing in one place |
 | `IMAGE_GEN_MAX_PER_HOUR` | `60` | Images per rolling hour. `0` removes the cap, knowing what that means for your bill |
 | `IMAGE_GEN_MAX_PER_CALL` | `4` | Ceiling on one request, whatever the assistant asks for |

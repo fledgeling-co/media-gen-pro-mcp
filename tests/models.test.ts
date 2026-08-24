@@ -9,6 +9,7 @@ const base: Config = {
   gatewayKey: '',
   outputDir: '',
   defaultProvider: 'openai',
+  allowedVendors: [],
   preferGateway: false,
   maxPerHour: 60,
   maxPerCall: 4,

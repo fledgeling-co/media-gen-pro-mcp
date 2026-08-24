@@ -7,6 +7,7 @@
  */
 
 import { z } from 'zod';
+import { resolveVendor, type Vendor } from './models.js';
 
 const numeric = (fallback: number, min: number, max: number) =>
   z
@@ -65,6 +66,22 @@ const EnvSchema = z.object({
   IMAGE_GEN_DEFAULT_PROVIDER: z.enum(['openai', 'google', 'bytedance']).optional(),
 
   /**
+   * Style aliases this deployment may actually reach, comma-separated. Empty means no restriction.
+   *
+   * A deployment's reachable set and the classifier's opinion are independent facts, and when they
+   * disagree the classifier wins: it is an LLM call whose answer is used directly, while
+   * `IMAGE_GEN_DEFAULT_PROVIDER` is only consulted when it cannot run. Measured 2026-08-24, a caller
+   * on a Zero-Data-Retention gateway asked for a photograph, the classifier correctly chose the
+   * photorealism vendor, and every attempt was refused because that vendor has no ZDR-attested
+   * credential — four identical retries, and a finished deck thrown away for want of two pictures.
+   *
+   * So name the reachable set here and the classifier chooses within it. Written as STYLE ALIASES
+   * (`gemini-pro,gemini`) rather than internal vendor keys, because aliases are the vocabulary
+   * callers already use in `style`.
+   */
+  IMAGE_GEN_ALLOWED_STYLES: z.string().trim().max(400).optional(),
+
+  /**
    * Force everything through the gateway even when a first-party key exists.
    *
    * Off by default: a first-party key is the cheaper path and the one most
@@ -100,6 +117,8 @@ export interface Config {
   readonly gatewayKey: string;
   readonly outputDir: string;
   readonly defaultProvider: 'openai' | 'google' | 'bytedance';
+  /** Vendors this deployment may reach. Empty array means "no restriction configured". */
+  readonly allowedVendors: readonly Vendor[];
   readonly preferGateway: boolean;
   readonly maxPerHour: number;
   readonly maxPerCall: number;
@@ -133,6 +152,27 @@ export function inferDefaultProvider(
   return DEFAULT_PROVIDER;
 }
 
+/**
+ * Resolve a comma-separated list of style aliases to vendors, dropping names the alias table does
+ * not know so a typo narrows the set rather than emptying it silently. An unparseable or empty
+ * value means no restriction, which is the historical behaviour.
+ */
+function parseAllowedVendors(raw: string | undefined): readonly Vendor[] {
+  const names = (raw ?? '')
+    .split(',')
+    .map((name) => name.trim())
+    .filter((name) => name.length > 0);
+  const vendors: Vendor[] = [];
+  for (const name of names) {
+    // A second argument is required, and an unknown alias must not silently become it:
+    // resolveVendor returns the fallback only for an EMPTY style, and undefined for an
+    // unknown one, so passing a real vendor here is safe.
+    const vendor = resolveVendor(name, 'google');
+    if (vendor && !vendors.includes(vendor)) vendors.push(vendor);
+  }
+  return vendors;
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const parsed = EnvSchema.safeParse(env);
   if (!parsed.success) {
@@ -153,6 +193,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     gatewayKey,
     outputDir: e.IMAGE_GEN_OUTPUT_DIR || '',
     defaultProvider: e.IMAGE_GEN_DEFAULT_PROVIDER || inferDefaultProvider(openaiKey, googleKey, gatewayKey),
+    allowedVendors: parseAllowedVendors(e.IMAGE_GEN_ALLOWED_STYLES),
     preferGateway: e.IMAGE_GEN_PREFER_GATEWAY,
     maxPerHour: e.IMAGE_GEN_MAX_PER_HOUR,
     maxPerCall: e.IMAGE_GEN_MAX_PER_CALL,

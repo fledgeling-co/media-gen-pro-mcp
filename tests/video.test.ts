@@ -5,7 +5,8 @@ import type { Config } from '../src/config.js';
 
 const base: Config = {
   openaiKey: '', googleKey: '', gatewayKey: '', outputDir: '',
-  defaultProvider: 'openai', preferGateway: false,
+  defaultProvider: 'openai',
+  allowedVendors: [], preferGateway: false,
   maxPerHour: 60, maxPerCall: 4, timeoutMs: 180_000,
   videoTimeoutMs: 600_000, videoMaxPerHour: 20,
 };
