@@ -210,15 +210,19 @@ server.addTool({
     const left = limiter.remaining();
     const madeSvg = outcome.images.some((i) => i.mediaType === 'image/svg+xml');
     return [
-      `Generated ${String(outcome.images.length)} image(s) with **${choice.label}** via the ${choice.route} route.`,
-      // A substitution is said out loud for the same reason a routed choice is, and more urgently:
-      // the caller may have named a style and received a different one, and the reason is the
-      // deployment rather than anything about their request.
+      // The substitution rides the FIRST line, not a note below it. Consumers log this text and
+      // truncate: the caller that prompted this feature stores 200 characters of it, which is
+      // enough for the sentence below and not enough for anything after a blank line. A
+      // substitution recorded nowhere turns a loud failure into a silent change of vendor, which
+      // is the worse of the two, so the fact that explains the image cannot be the first thing cut.
+      `Generated ${String(outcome.images.length)} image(s) with **${choice.label}** via the ${choice.route} route` +
+        (substitutedFrom
+          ? ` — substituted for \`${substitutedFrom}\`, which this deployment cannot reach.`
+          : '.'),
       ...(substitutedFrom
         ? [
             '',
-            `_This deployment cannot reach \`${substitutedFrom}\`, so the nearest reachable model was ` +
-              `used instead. Set \`IMAGE_GEN_ALLOWED_STYLES\` to change what is reachable._`,
+            `_Set \`IMAGE_GEN_ALLOWED_STYLES\` to change which models are reachable here._`,
           ]
         : []),
       // Always said out loud. A model the caller did not name must never be a

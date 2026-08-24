@@ -6,6 +6,12 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [0.3.2] - 2026-08-24
+
+### Changed
+
+- A substitution is now named on the FIRST line of the response rather than in a note below it. Consumers log this text and truncate — the deployment that prompted the feature stores 200 characters, which holds the first sentence and nothing after a blank line. An unrecorded substitution turns a loud failure into a silent change of vendor, which is the worse of the two, so the fact that explains the image must not be the first thing cut.
+
 ## [0.3.1] - 2026-08-24
 
 ### Added
