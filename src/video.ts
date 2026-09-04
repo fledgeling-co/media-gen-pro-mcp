@@ -22,7 +22,18 @@ import type { Config } from './config.js';
 import { GenerationError } from './generate.js';
 import { generateVideoViaGrokCli, readGrokCliSession } from './grok-cli.js';
 
-export type VideoVendor = 'minimax' | 'seedance' | 'grok' | 'grokcli' | 'gemini';
+export type VideoVendor =
+  | 'seedance'
+  | 'seedance-mini'
+  | 'minimax'
+  | 'minimax-max'
+  | 'wan'
+  | 'wan-prime'
+  | 'flux'
+  | 'grok'
+  | 'grokcli'
+  | 'gemini'
+  | 'veo';
 
 export interface VideoChoice {
   readonly vendor: VideoVendor;
@@ -32,15 +43,29 @@ export interface VideoChoice {
   readonly viaCli: boolean;
   /** True when the model is reached through generateText rather than the video API. */
   readonly viaLanguage: boolean;
+  /** Supported durations if constrained by the provider (e.g. Veo [4, 6, 8]). */
+  readonly supportedDurations?: readonly number[];
 }
 
 const CATALOGUE: Record<
   VideoVendor,
-  { modelId: string; label: string; viaCli: boolean; disabled?: boolean; viaLanguage?: boolean }
+  {
+    modelId: string;
+    label: string;
+    viaCli: boolean;
+    disabled?: boolean;
+    viaLanguage?: boolean;
+    supportedDurations?: readonly number[];
+  }
 > = {
+  seedance: { modelId: 'bytedance/seedance-2.0', label: 'Seedance 2.0', viaCli: false },
+  'seedance-mini': { modelId: 'bytedance/seedance-2.0-mini', label: 'Seedance 2.0 Mini', viaCli: false },
   minimax: { modelId: 'minimax/minimax-h3', label: 'MiniMax H3', viaCli: false },
-  seedance: { modelId: 'bytedance/seedance-2.0-fast', label: 'Seedance 2.0 Fast', viaCli: false },
-  grok: { modelId: 'xai/grok-imagine-video-1.5', label: 'Grok Imagine Video 1.5', viaCli: false },
+  'minimax-max': { modelId: 'minimax/minimax-h3-max', label: 'MiniMax H3 Max', viaCli: false },
+  wan: { modelId: 'alibaba/wan-v3.0-video', label: 'Wan 3.0 Video', viaCli: false },
+  'wan-prime': { modelId: 'alibaba/wan-v3.0-video-prime', label: 'Wan 3.0 Video Prime', viaCli: false },
+  flux: { modelId: 'bfl/flux-3-video', label: 'FLUX.3 Video', viaCli: false },
+  grok: { modelId: 'spacexai/grok-imagine-video-1.5', label: 'Grok Imagine Video 1.5', viaCli: false },
   // Typed `language` on the gateway, not `video`, exactly like Gemini's image
   // models: it is a multimodal LLM that emits video files rather than a video
   // endpoint. `generateText` reaches it and the clip arrives on `files`.
@@ -51,31 +76,67 @@ const CATALOGUE: Record<
     viaCli: false,
     viaLanguage: true,
   },
-  // DISABLED. The endpoint, poll path and ratio set are all correct, learned
-  // from real 422s: POST /v1/videos/generations returns a request_id, the result
-  // is collected from GET /v1/videos/{id}, and `auto` is not a valid ratio here
-  // even though it is on the image endpoint. What is NOT known is the shape of
-  // the `image` field for image-to-video: a data URL and a bare base64 string
-  // are both refused with "invalid type: string", and the account ran out of
-  // video credit before the right shape could be found. Shipping it as working
-  // would mean a route that fails on two of its three uses.
+  veo: {
+    modelId: 'google/veo-3.1-lite-generate-001',
+    label: 'Veo 3.1 Lite',
+    viaCli: false,
+    supportedDurations: [4, 6, 8],
+  },
   grokcli: { modelId: 'grok-imagine-video', label: 'Grok Imagine Video (CLI subscription)', viaCli: true, disabled: true },
 };
 
 const ALIASES: Record<string, VideoVendor> = {
+  // Seedance
+  seedance: 'seedance',
+  'seedance-2.0': 'seedance',
+  bytedance: 'seedance',
+  'seedance-mini': 'seedance-mini',
+  'seedance-2.0-mini': 'seedance-mini',
+  'seedance-fast': 'seedance-mini',
+
+  // MiniMax
   minimax: 'minimax',
   h3: 'minimax',
-  seedance: 'seedance',
-  bytedance: 'seedance',
+  'minimax-h3': 'minimax',
+  'minimax-max': 'minimax-max',
+  'minimax-h3-max': 'minimax-max',
+  'h3-max': 'minimax-max',
+
+  // Wan
+  wan: 'wan',
+  'wan-3.0': 'wan',
+  'wan-video': 'wan',
+  'wan-prime': 'wan-prime',
+  'wan-3.0-prime': 'wan-prime',
+  'wan-video-prime': 'wan-prime',
+
+  // Flux
+  flux: 'flux',
+  'flux-video': 'flux',
+  'flux-3-video': 'flux',
+
+  // Grok
   grok: 'grok',
   xai: 'grok',
   imagine: 'grok',
-  gemini: 'gemini',
-  google: 'gemini',
-  omni: 'gemini',
+  'grok-video': 'grok',
+  'grok-imagine-video': 'grok',
+  'grok-imagine-video-1.5': 'grok',
   'grok-cli': 'grokcli',
   grokcli: 'grokcli',
   subscription: 'grokcli',
+
+  // Gemini Omni Flash
+  gemini: 'gemini',
+  google: 'gemini',
+  omni: 'gemini',
+  'gemini-omni': 'gemini',
+
+  // Google Veo
+  veo: 'veo',
+  'veo-3.1': 'veo',
+  'veo-lite': 'veo',
+  'veo-3.1-lite': 'veo',
 };
 
 export const KNOWN_VIDEO_STYLES = Object.keys(ALIASES);
@@ -108,7 +169,14 @@ export function chooseVideoModel(vendor: VideoVendor, config: Config): VideoChoi
         'Every video model here is gateway-only, except `style: "grok-cli"`, which uses a signed-in Grok CLI instead.',
     );
   }
-  return { vendor, modelId: e.modelId, label: e.label, viaCli: false, viaLanguage: e.viaLanguage === true };
+  return {
+    vendor,
+    modelId: e.modelId,
+    label: e.label,
+    viaCli: false,
+    viaLanguage: e.viaLanguage === true,
+    ...(e.supportedDurations ? { supportedDurations: e.supportedDurations } : {}),
+  };
 }
 
 const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif']);
@@ -163,6 +231,14 @@ export async function generateVideoFile(
 ): Promise<{ videos: GeneratedVideo[]; warnings: string[] }> {
   const frame = req.sourceImage ? await loadFrame(req.sourceImage) : undefined;
 
+  const duration = choice.supportedDurations
+    ? choice.supportedDurations.includes(req.durationSeconds)
+      ? req.durationSeconds
+      : choice.supportedDurations.reduce((prev, curr) =>
+          Math.abs(curr - req.durationSeconds) < Math.abs(prev - req.durationSeconds) ? curr : prev,
+        )
+    : req.durationSeconds;
+
   const controller = new AbortController();
   const timer = setTimeout(() => {
     controller.abort();
@@ -180,7 +256,7 @@ export async function generateVideoFile(
             token: session.token,
             prompt: req.prompt,
             ...(frame ? { image: frame } : {}),
-            durationSeconds: req.durationSeconds,
+            durationSeconds: duration,
             ...(req.aspectRatio ? { aspectRatio: req.aspectRatio } : {}),
             timeoutMs: config.videoTimeoutMs,
           }),
@@ -200,13 +276,13 @@ export async function generateVideoFile(
                     {
                       role: 'user' as const,
                       content: [
-                        { type: 'text' as const, text: `${req.prompt}\n\nAnimate this image as a ${String(req.durationSeconds)} second video.` },
+                        { type: 'text' as const, text: `${req.prompt}\n\nAnimate this image as a ${String(duration)} second video.` },
                         { type: 'image' as const, image: frame },
                       ],
                     },
                   ],
                 }
-              : { prompt: `${req.prompt}\n\nGenerate a ${String(req.durationSeconds)} second video.` }),
+              : { prompt: `${req.prompt}\n\nGenerate a ${String(duration)} second video.` }),
             abortSignal: controller.signal,
           });
           const files = r.files.filter((f) => f.mediaType.startsWith('video/'));
@@ -227,7 +303,7 @@ export async function generateVideoFile(
         // The object form is image-to-video; the string form is text-to-video.
         prompt: frame ? { image: frame, text: req.prompt } : req.prompt,
         n: req.n,
-        duration: req.durationSeconds,
+        duration,
         // Text-to-video needs an explicit ratio. Omitting it sends MiniMax
         // `adaptive`, which it rejects outright: "ratio is required for t2va
         // (text-only) and cannot be 'adaptive'". With a source image the still

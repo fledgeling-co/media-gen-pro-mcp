@@ -19,7 +19,14 @@ describe('picking a video model', () => {
 
   it('accepts the names for each vendor', () => {
     expect(resolveVideoVendor('minimax')).toBe('minimax');
+    expect(resolveVideoVendor('minimax-max')).toBe('minimax-max');
+    expect(resolveVideoVendor('wan')).toBe('wan');
+    expect(resolveVideoVendor('wan-prime')).toBe('wan-prime');
+    expect(resolveVideoVendor('flux')).toBe('flux');
     expect(resolveVideoVendor('grok')).toBe('grok');
+    expect(resolveVideoVendor('gemini')).toBe('gemini');
+    expect(resolveVideoVendor('veo')).toBe('veo');
+    expect(resolveVideoVendor('seedance-mini')).toBe('seedance-mini');
     expect(resolveVideoVendor('grok-cli')).toBe('grokcli');
     expect(resolveVideoVendor('midjourney')).toBeUndefined();
   });
@@ -32,6 +39,34 @@ describe('picking a video model', () => {
     expect(() => chooseVideoModel('minimax', base)).toThrow(/AI_GATEWAY_API_KEY/);
     expect(() => chooseVideoModel('minimax', base)).toThrow(/grok-cli/);
     expect(chooseVideoModel('minimax', { ...base, gatewayKey: 'g' }).modelId).toBe('minimax/minimax-h3');
+  });
+
+  it('sends the current model id for each vendor', () => {
+    const g = { ...base, gatewayKey: 'g' };
+    expect(chooseVideoModel('seedance', g).modelId).toBe('bytedance/seedance-2.0');
+    expect(chooseVideoModel('seedance-mini', g).modelId).toBe('bytedance/seedance-2.0-mini');
+    expect(chooseVideoModel('minimax-max', g).modelId).toBe('minimax/minimax-h3-max');
+    expect(chooseVideoModel('wan', g).modelId).toBe('alibaba/wan-v3.0-video');
+    expect(chooseVideoModel('wan-prime', g).modelId).toBe('alibaba/wan-v3.0-video-prime');
+    expect(chooseVideoModel('flux', g).modelId).toBe('bfl/flux-3-video');
+    // xAI moved namespace: `xai/...` 404s, `spacexai/...` is the live id.
+    expect(chooseVideoModel('grok', g).modelId).toBe('spacexai/grok-imagine-video-1.5');
+    expect(chooseVideoModel('veo', g).modelId).toBe('google/veo-3.1-lite-generate-001');
+  });
+
+  it('carries the duration set for a model that only accepts certain lengths', () => {
+    // Veo refuses anything outside [4, 6, 8] with "Unsupported output video
+    // duration", so the choice has to carry the set for the caller's 5 to be
+    // snapped rather than sent and rejected. Measured 4 September 2026.
+    const g = { ...base, gatewayKey: 'g' };
+    expect(chooseVideoModel('veo', g).supportedDurations).toEqual([4, 6, 8]);
+    // Everything else takes the duration as given.
+    expect(chooseVideoModel('minimax', g).supportedDurations).toBeUndefined();
+  });
+
+  it('reaches Gemini Omni through the LANGUAGE route, not the video api', () => {
+    expect(chooseVideoModel('gemini', { ...base, gatewayKey: 'g' }).viaLanguage).toBe(true);
+    expect(chooseVideoModel('veo', { ...base, gatewayKey: 'g' }).viaLanguage).toBe(false);
   });
 });
 
