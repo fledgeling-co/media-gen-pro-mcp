@@ -14,9 +14,9 @@ describe('suggesting a better model', () => {
     expect(adviseFor('a photorealistic portrait', 'recraft')).toBeUndefined();
   });
 
-  it('names both models that passed the counting test, not just one', () => {
+  it('names every model that passed the counting test, not just one', () => {
     const a = adviseFor('exactly seven brass bolts in a row', 'xai');
-    expect(a?.better).toEqual(['openai', 'googlepro']);
+    expect(a?.better).toEqual(['openai', 'googlepro', 'muse']);
   });
 
   it('needs a number as well as the word, so "exactly right" is not a count', () => {
@@ -24,8 +24,12 @@ describe('suggesting a better model', () => {
   });
 
   it('catches exclusions, which are the instruction most often ignored', () => {
-    expect(adviseFor('an empty room with no people', 'xai')?.better).toContain('openai');
+    // `xai` is excluded from the advice now: Grok Imagine 2.0 honoured every
+    // exclusion in the run, so advising it to switch would be advice to leave a
+    // model that passed.
+    expect(adviseFor('an empty room with no people', 'bytedance')?.better).toContain('openai');
     expect(adviseFor('a street scene without cars', 'google')?.better).toContain('openai');
+    expect(adviseFor('an empty room with no people', 'xai')).toBeUndefined();
   });
 
   it('points a photograph at the photorealism model', () => {

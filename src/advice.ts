@@ -98,15 +98,16 @@ export function adviseFor(prompt: string, vendor: Vendor, referenceCount?: numbe
   if (
     vendor !== 'openai' &&
     vendor !== 'googlepro' &&
+    vendor !== 'muse' &&
     /\b(exactly|precisely)\b/.test(p) &&
     /\b(two|three|four|five|six|seven|eight|nine|ten|\d+)\b/.test(p)
   ) {
     return {
       signal: 'an exact count',
-      better: ['openai', 'googlepro'],
+      better: ['openai', 'googlepro', 'muse'],
       note:
-        'This prompt states an exact number. On the counting test in the README, only GPT Image 2 and Gemini 3 Pro Image got the count AND the arrangement right; Recraft drew six when asked for seven and Grok drew five. ' +
-        'Try `style: "openai"` or `style: "gemini-pro"` if the number matters.',
+        'This prompt states an exact number. On the counting test in the README, GPT Image 2, Gemini 3 Pro Image and Muse Image 1.0 got the count AND the arrangement right with nothing touching; Recraft drew six when asked for seven. ' +
+        'Try `style: "openai"`, `style: "gemini-pro"` or `style: "muse"` if the number matters.',
     };
   }
 
@@ -114,14 +115,15 @@ export function adviseFor(prompt: string, vendor: Vendor, referenceCount?: numbe
   // summon itself.
   if (
     vendor !== 'openai' &&
+    vendor !== 'xai' &&
     has(p, ' no ', 'without', 'empty', 'nothing', 'none of', 'do not include', 'exclude')
   ) {
     return {
       signal: 'things that must NOT appear',
-      better: ['openai'],
+      better: ['openai', 'xai'],
       note:
         'This prompt says what must NOT be in the image, which is the instruction models most often ignore: a forbidden object tends to summon itself. ' +
-        'GPT Image 2 was the only model to honour every exclusion in the README test, so `style: "openai"` is the safer choice here.',
+        'GPT Image 2 and Grok Imagine 2.0 were the two models to honour every exclusion in the README test, so `style: "openai"` or `style: "grok"` is the safer choice here.',
     };
   }
 

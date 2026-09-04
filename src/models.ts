@@ -20,7 +20,20 @@ import type { ImageModel, LanguageModel } from 'ai';
 import type { Config } from './config.js';
 import { GROK_CLI_MODEL, readGrokCliSession } from './grok-cli.js';
 
-export type Vendor = 'openai' | 'google' | 'googlepro' | 'bytedance' | 'quiver' | 'xai' | 'xaicli' | 'recraft';
+export type Vendor =
+  | 'openai'
+  | 'google'
+  | 'googlelite'
+  | 'googlepro'
+  | 'bytedance'
+  | 'quiver'
+  | 'xai'
+  | 'xaicli'
+  | 'recraft'
+  | 'recraft-utility'
+  | 'recraft-utility-pro'
+  | 'recraft-v4.1'
+  | 'muse';
 export type Route = 'direct' | 'gateway';
 
 export interface ModelChoice {
@@ -47,28 +60,72 @@ const ALIASES: Record<string, Vendor> = {
   'gpt-image': 'openai',
   'gpt-image-2': 'openai',
   dalle: 'openai',
+
   google: 'google',
   gemini: 'google',
   nanobanana: 'google',
   'nano-banana': 'google',
   'nano banana': 'google',
+  'gemini-flash': 'google',
+  'gemini-3.1-flash': 'google',
+  'gemini-3.1-flash-image': 'google',
+
+  googlelite: 'googlelite',
+  'google-lite': 'googlelite',
+  'gemini-lite': 'googlelite',
+  geminilite: 'googlelite',
+  'flash-lite': 'googlelite',
+  flashlite: 'googlelite',
+  'gemini-3.1-flash-lite': 'googlelite',
+  'gemini-3.1-flash-lite-image': 'googlelite',
+
   'gemini-pro': 'googlepro',
   geminipro: 'googlepro',
   'gemini-3-pro': 'googlepro',
+  googlepro: 'googlepro',
+
   bytedance: 'bytedance',
   seedream: 'bytedance',
-  quiver: 'quiver',
-  quiverai: 'quiver',
+  'seedream-5.0-pro': 'bytedance',
+
+  meta: 'muse',
+  muse: 'muse',
+  'muse-image': 'muse',
+  'muse-image-1.0': 'muse',
+  'muse-1.0': 'muse',
+
   grok: 'xai',
   xai: 'xai',
   imagine: 'xai',
+  'grok-2': 'xai',
+  'grok-2.0': 'xai',
+  'grok-imagine-2.0': 'xai',
+  'grok-imagine-image-2.0': 'xai',
   'grok-cli': 'xaicli',
   grokcli: 'xaicli',
   subscription: 'xaicli',
+
   recraft: 'recraft',
   photo: 'recraft',
   photoreal: 'recraft',
   photorealistic: 'recraft',
+  'recraft-pro': 'recraft',
+  'recraft-v4.1-pro': 'recraft',
+
+  'recraft-utility': 'recraft-utility',
+  utility: 'recraft-utility',
+  'recraft-v4.1-utility': 'recraft-utility',
+
+  'recraft-utility-pro': 'recraft-utility-pro',
+  'utility-pro': 'recraft-utility-pro',
+  'recraft-v4.1-utility-pro': 'recraft-utility-pro',
+
+  'recraft-v4.1': 'recraft-v4.1',
+  'recraft-standard': 'recraft-v4.1',
+  'recraft-base': 'recraft-v4.1',
+
+  quiver: 'quiver',
+  quiverai: 'quiver',
   arrow: 'quiver',
   svg: 'quiver',
 };
@@ -116,6 +173,13 @@ const CATALOGUE: Record<
     batches: false,
     api: 'language',
   },
+  googlelite: {
+    direct: 'gemini-3.1-flash-lite-image',
+    gateway: 'google/gemini-3.1-flash-lite-image',
+    label: 'Gemini 3.1 Flash Lite Image',
+    batches: false,
+    api: 'language',
+  },
   // No `direct`: ByteDance sells no first-party key that this server can use,
   // so the gateway is not a preference here, it is the only way in.
   bytedance: {
@@ -141,13 +205,31 @@ const CATALOGUE: Record<
     gateway: 'recraft/recraft-v4.1-pro',
     label: 'Recraft V4.1 Pro',
     batches: true,
-    // NOT 'image'. The gateway's own `/v4/ai/image-model` route answers 200 with
-    // an error body for every Recraft model ("Invalid JSON response"), so the
-    // SDK adapter cannot reach them. Its OpenAI-compatible
-    // `/v1/images/generations` endpoint serves the same models correctly.
-    // Checked 30 July 2026 on v4-pro, v4.1-pro and v4.1-utility-pro; all three
-    // fail one way and work the other.
-    api: 'openai-compat',
+    api: 'image',
+  },
+  'recraft-utility': {
+    gateway: 'recraft/recraft-v4.1-utility',
+    label: 'Recraft V4.1 Utility',
+    batches: true,
+    api: 'image',
+  },
+  'recraft-utility-pro': {
+    gateway: 'recraft/recraft-v4.1-utility-pro',
+    label: 'Recraft V4.1 Utility Pro',
+    batches: true,
+    api: 'image',
+  },
+  'recraft-v4.1': {
+    gateway: 'recraft/recraft-v4.1',
+    label: 'Recraft V4.1',
+    batches: true,
+    api: 'image',
+  },
+  muse: {
+    gateway: 'meta/muse-image-1.0',
+    label: 'Muse Image 1.0',
+    batches: true,
+    api: 'image',
   },
   // The same vendor as `xai`, paid for differently: it uses the Grok CLI's own
   // signed-in session, so an image lands on an X Premium or SuperGrok
@@ -159,17 +241,10 @@ const CATALOGUE: Record<
     batches: false,
     api: 'grok-cli',
   },
-  // The fast one: ~6s against 8-17s for the others, measured 30 July 2026.
-  //
-  // An earlier version of this comment claimed it filters content more loosely
-  // than the rest. That came from a third-party article about its launch period,
-  // not from anything measured here, and the owner reports its moderation has
-  // since tightened. Removed rather than softened: a claim about a model's
-  // safety behaviour that nobody in this repo has tested is worse than silence,
-  // because it invites routing decisions on made-up grounds.
+  // Updated to Grok Imagine 2.0 (spacexai/grok-imagine-image-2.0)
   xai: {
-    gateway: 'xai/grok-imagine-image',
-    label: 'Grok Imagine',
+    gateway: 'spacexai/grok-imagine-image-2.0',
+    label: 'Grok Imagine 2.0',
     batches: true,
     api: 'image',
   },
@@ -200,14 +275,19 @@ export function supportsBatch(vendor: Vendor): boolean {
  * vendor added later is reachable-or-substituted instead of fatal.
  */
 const NEAREST_REACHABLE: Readonly<Partial<Record<Vendor, readonly Vendor[]>>> = {
-  openai: ['googlepro', 'google'],
-  recraft: ['googlepro', 'google'],
-  bytedance: ['googlepro', 'google'],
-  googlepro: ['googlepro', 'google'],
-  google: ['google', 'googlepro'],
+  openai: ['googlepro', 'google', 'googlelite'],
+  recraft: ['googlepro', 'google', 'googlelite'],
+  'recraft-utility': ['recraft', 'googlepro', 'google'],
+  'recraft-utility-pro': ['recraft', 'googlepro', 'google'],
+  'recraft-v4.1': ['recraft', 'googlepro', 'google'],
+  bytedance: ['googlepro', 'google', 'googlelite'],
+  googlepro: ['googlepro', 'google', 'googlelite'],
+  google: ['google', 'googlepro', 'googlelite'],
+  googlelite: ['google', 'googlepro', 'openai'],
+  muse: ['google', 'openai'],
   quiver: ['quiver'],
-  xai: ['google', 'googlepro'],
-  xaicli: ['google', 'googlepro'],
+  xai: ['google', 'googlepro', 'googlelite'],
+  xaicli: ['google', 'googlepro', 'googlelite'],
 };
 
 export function nearestReachableVendor(
@@ -252,7 +332,11 @@ export function chooseModel(vendor: Vendor, config: Config): ModelChoice {
   }
 
   const directKey =
-    vendor === 'openai' ? config.openaiKey : vendor === 'google' || vendor === 'googlepro' ? config.googleKey : '';
+    vendor === 'openai'
+      ? config.openaiKey
+      : vendor === 'google' || vendor === 'googlelite' || vendor === 'googlepro'
+        ? config.googleKey
+        : '';
   const canDirect = entry.direct !== undefined && directKey !== '';
   const canGateway = config.gatewayKey !== '';
 
@@ -266,7 +350,6 @@ export function chooseModel(vendor: Vendor, config: Config): ModelChoice {
   const canUseGateway = canGateway && entry.gateway !== undefined;
   const useGateway = canUseGateway && (config.preferGateway || !canDirect);
   if (!useGateway && !canDirect) {
-
     const wanted = vendor === 'openai' ? 'OPENAI_API_KEY' : 'GEMINI_API_KEY';
     throw new RoutingError(
       `No key for ${entry.label}. Set ${wanted} for the direct route, or AI_GATEWAY_API_KEY to reach it through the gateway.`,
@@ -306,7 +389,21 @@ export function languageModelFor(choice: ModelChoice, config: Config): LanguageM
 /** Every route that is usable right now, for the startup line and the doctor. */
 export function availableRoutes(config: Config): { vendor: Vendor; route: Route; label: string }[] {
   const out: { vendor: Vendor; route: Route; label: string }[] = [];
-  for (const vendor of ['openai', 'google', 'googlepro', 'bytedance', 'recraft', 'xai', 'xaicli', 'quiver'] as const) {
+  for (const vendor of [
+    'openai',
+    'google',
+    'googlelite',
+    'googlepro',
+    'bytedance',
+    'recraft',
+    'recraft-utility',
+    'recraft-utility-pro',
+    'recraft-v4.1',
+    'muse',
+    'xai',
+    'xaicli',
+    'quiver',
+  ] as const) {
     try {
       const c = chooseModel(vendor, config);
       out.push({ vendor, route: c.route, label: c.label });

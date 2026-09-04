@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { type Config, inferDefaultProvider, loadConfig } from '../src/config.js';
-import { route } from '../src/router.js';
+import { CHOICES, route } from '../src/router.js';
+import { SVG_VENDOR, resolveVendor } from '../src/models.js';
 
 const base: Config = {
   openaiKey: '', googleKey: '', gatewayKey: '', outputDir: '',
@@ -9,6 +10,28 @@ const base: Config = {
   maxPerHour: 60, maxPerCall: 4, timeoutMs: 180_000,
   videoTimeoutMs: 1_500_000, videoMaxPerHour: 20,
 };
+
+describe('every answer the classifier may give reaches a real vendor', () => {
+  it('resolves each choice, so the enum cannot drift from the alias table', () => {
+    // `route` maps the classifier's answer through resolveVendor. A choice the
+    // alias table does not know returns undefined and silently demotes every
+    // request in that category to the configured default, which looks like the
+    // classifier being wrong rather than a name having drifted. "svg" is the one
+    // choice handled before the lookup, so it is checked against its own vendor.
+    for (const choice of CHOICES) {
+      if (choice === 'svg') {
+        expect(SVG_VENDOR).toBe('quiver');
+        continue;
+      }
+      expect(resolveVendor(choice, 'google'), `classifier choice "${choice}"`).toBeDefined();
+    }
+  });
+
+  it('covers the models the README compares, not a subset of them', () => {
+    for (const choice of ['openai', 'gemini', 'gemini-lite', 'gemini-pro', 'photoreal', 'seedream', 'grok', 'muse', 'svg'])
+      expect(CHOICES).toContain(choice);
+  });
+});
 
 describe('the default vendor follows the keys that exist', () => {
   it('picks the one the operator actually supplied', () => {

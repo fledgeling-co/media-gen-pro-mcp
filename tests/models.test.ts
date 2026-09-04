@@ -29,6 +29,36 @@ describe('picking a vendor', () => {
     for (const s of ['svg', 'arrow', 'quiver', 'quiverai']) expect(resolveVendor(s, 'openai')).toBe('quiver');
     for (const s of ['grok', 'xai', 'imagine']) expect(resolveVendor(s, 'openai')).toBe('xai');
     for (const s of ['recraft', 'photo', 'photoreal']) expect(resolveVendor(s, 'openai')).toBe('recraft');
+    for (const s of ['gemini-lite', 'flash-lite', 'geminilite']) expect(resolveVendor(s, 'openai')).toBe('googlelite');
+    for (const s of ['muse', 'meta', 'muse-image']) expect(resolveVendor(s, 'openai')).toBe('muse');
+    for (const s of ['utility', 'recraft-utility']) expect(resolveVendor(s, 'openai')).toBe('recraft-utility');
+    for (const s of ['utility-pro', 'recraft-utility-pro']) expect(resolveVendor(s, 'openai')).toBe('recraft-utility-pro');
+    expect(resolveVendor('recraft-v4.1', 'openai')).toBe('recraft-v4.1');
+  });
+
+  it('sends the current model id for each vendor', () => {
+    // The ids that moved when the models were updated. `xai/grok-imagine-image`
+    // and `bytedance/seedance-2.0-fast` are gone from the gateway's catalogue;
+    // an id left behind here 404s at the vendor rather than failing here.
+    const g = with_({ gatewayKey: 'g' });
+    expect(chooseModel('xai', g).modelId).toBe('spacexai/grok-imagine-image-2.0');
+    expect(chooseModel('googlelite', g).modelId).toBe('google/gemini-3.1-flash-lite-image');
+    expect(chooseModel('muse', g).modelId).toBe('meta/muse-image-1.0');
+    expect(chooseModel('recraft', g).modelId).toBe('recraft/recraft-v4.1-pro');
+    expect(chooseModel('recraft-utility', g).modelId).toBe('recraft/recraft-v4.1-utility');
+    expect(chooseModel('recraft-utility-pro', g).modelId).toBe('recraft/recraft-v4.1-utility-pro');
+    expect(chooseModel('recraft-v4.1', g).modelId).toBe('recraft/recraft-v4.1');
+    expect(chooseModel('bytedance', g).modelId).toBe('bytedance/seedream-5.0-pro');
+  });
+
+  it('reaches Recraft through the image api, the workaround having been retired', () => {
+    // Every Recraft model used to answer 200-with-an-error-body on the gateway's
+    // image-model route, so they went through the OpenAI-compatible endpoint
+    // instead. Re-checked 4 September 2026: all four V4.1 variants generate
+    // correctly through the standard route, so the special case is gone.
+    for (const v of ['recraft', 'recraft-utility', 'recraft-utility-pro', 'recraft-v4.1'] as const) {
+      expect(chooseModel(v, with_({ gatewayKey: 'g' })).api).toBe('image');
+    }
   });
 
   it('falls back when no style is named, and refuses one it does not know', () => {
@@ -111,13 +141,18 @@ describe('routing to a key', () => {
     // accident of who is logged in.
     const keyed = (c: Config) => availableRoutes(c).map((r) => r.vendor).filter((v) => v !== 'xaicli');
     expect(keyed(base)).toEqual([]);
-    expect(keyed(with_({ googleKey: 'k' }))).toEqual(['google', 'googlepro']);
+    expect(keyed(with_({ googleKey: 'k' }))).toEqual(['google', 'googlelite', 'googlepro']);
     expect(keyed(with_({ gatewayKey: 'g' }))).toEqual([
       'openai',
       'google',
+      'googlelite',
       'googlepro',
       'bytedance',
       'recraft',
+      'recraft-utility',
+      'recraft-utility-pro',
+      'recraft-v4.1',
+      'muse',
       'xai',
       'quiver',
     ]);
