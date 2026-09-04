@@ -83,6 +83,13 @@ After an SVG, the tool suggests offering you a raster version too, in a similar 
 
 One prompt per category, shown in full below each heading, the same text sent to every model, one generation each, nothing cherry-picked and nothing retried. The prompts are deliberately awkward: each one states a rule you can check by counting or looking, so you can grade the results yourself instead of taking my word for which is prettier.
 
+> **The tables below are thumbnails, and you cannot count seven bolts in a thumbnail.**
+> Open **[`docs/model-bench.html`](docs/model-bench.html)** for the same run at a size you can
+> actually judge: one prompt at a time with its rule pinned beside the picture, arrow keys to
+> flick between models *in the same frame*, a split view to put two finalists at identical scale,
+> and zoom to check the claim about wobbling lines yourself. Clips play inline instead of
+> downloading. It is a plain file — clone the repo and open it, no server needed.
+
 The four-model rows were run 30 July 2026. Grok Imagine 2.0, Muse Image 1.0 and Gemini 3.1 Flash Lite were run on the same six prompts on 4 September 2026, when those models were added. These are single samples, not a benchmark. Re-run any of them and you may get a different answer.
 
 ### 1. Exact count and arrangement
@@ -214,7 +221,7 @@ Pass `sourceImage` and the still becomes the first frame. That is the strongest 
 
 ### The same three prompts, models compared
 
-Clips seeded from the stills in the comparison above, and one from text alone. 4–5 seconds each, one generation, nothing retried.
+Clips seeded from the stills in the comparison above, and one from text alone. 4–5 seconds each, one generation, nothing retried. **The clips below are links; [`docs/model-bench.html`](docs/model-bench.html) plays them inline, side by side, with the cost and the elapsed time on each.**
 
 | | Veo 3.1 Lite | MiniMax H3 Max | FLUX.3 Video | Grok Imagine Video 1.5 | Gemini Omni Flash | MiniMax H3 | Seedance 2.0 Fast |
 |---|---|---|---|---|---|---|---|
@@ -227,6 +234,27 @@ MiniMax H3 Max returned in 14s on all three prompts, the fastest and most consis
 Treat all of these as one sample rather than a benchmark. The Grok clips here are a second run of the identical three prompts, and text-to-video came back in 44s where the first run took 28s — the same model, the same prompt, the same afternoon. The older Seedance, MiniMax H3 and Gemini rows are from 31 July and 1 August 2026, and their clips were generated with `seedance-2.0-fast`, which the `seedance` alias no longer points at.
 
 I have not graded the motion quality of any of these clips — the times are measured, the picks are yours.
+
+### What a clip costs
+
+List rates from the gateway's own `/v1/models` catalogue, read 4 September 2026, cheapest first. **The five-second column is arithmetic on those rates, not a measured bill** — the output resolution of each clip above was never recorded, and the token-priced models cannot be converted to a per-second figure at all.
+
+| Model | List rate | A 5-second clip |
+|---|---|---|
+| **MiniMax H3 Max** | $0.025/s at 480p, $0.04/s at 768p | **$0.13 – $0.20** |
+| **Veo 3.1 Lite** | $0.03/s at 720p silent, $0.08/s at 1080p with audio | **$0.15 – $0.40** |
+| **MiniMax H3** | $0.04/s at 768p, $0.065/s at 2K | **$0.20 – $0.33** |
+| **Wan 3.0 Video** | $0.05/s at 480p, $0.10/s at 720p, $0.20/s at 1080p | **$0.25 – $1.00** |
+| **Wan 3.0 Video Prime** | $0.068/s at 480p, $0.14/s at 720p, $0.28/s at 1080p | **$0.34 – $1.40** |
+| **Grok Imagine Video 1.5** | $0.08/s at 480p, $0.14/s at 720p, $0.25/s at 1080p | **$0.40 – $1.25** |
+| **Seedance 2.0 Mini** | token-priced — $3.50 per million tokens at 480p/720p | depends on tokens |
+| **Seedance 2.0** | token-priced — $7.00 per million tokens, no video input | depends on tokens |
+| **Gemini Omni Flash** | token-priced — $9.00 per million output tokens | depends on tokens |
+| **FLUX.3 Video** | not published in the gateway catalogue | unknown |
+
+The cheapest and the fastest are the same model here: MiniMax H3 Max returned every clip in 14 seconds at roughly a sixth of what Grok Imagine Video costs at 1080p. That is the one place in this comparison where speed and price point the same way, so it is worth knowing before you reach for something dearer.
+
+Prices move. Check the vendor's current pricing rather than trusting a number written here.
 
 Seedance refuses a photographic face as a source frame ("may contain real person"). That is its own moderation, not a bug here, and the tool reports it as a refusal with what to do instead: seed from an image you generated rather than a photograph.
 
