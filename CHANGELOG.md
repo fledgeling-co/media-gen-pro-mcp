@@ -6,6 +6,31 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [0.4.0] - 2026-09-04
+
+### Added
+
+- **Four new image models.** `gemini-lite` (`google/gemini-3.1-flash-lite-image`), `muse` (`meta/muse-image-1.0`), and three Recraft V4.1 siblings alongside the Pro one: `recraft-utility`, `recraft-utility-pro` and `recraft-v4.1`. `muse` at $0.01 an image and `gemini-lite` at roughly half Flash's price are now the two cheapest routes here.
+- **Six new video models.** `seedance-mini`, `minimax-max` (H3 Max), `wan` and `wan-prime` (Alibaba Wan 3.0), `flux` (FLUX.3 Video) and `veo` (Veo 3.1 Lite).
+- Veo's duration constraint is carried on the model choice and the requested length is snapped to the nearest value it accepts. Learned by calling it: anything outside `[4, 6, 8]` comes back as `Unsupported output video duration 5 seconds, supported durations are [8,4,6] for feature text_to_video`, so a caller's ordinary `5` failed outright rather than being rounded.
+
+### Changed
+
+- **`grok` now reaches Grok Imagine 2.0.** The id moved namespace as well as version: `xai/grok-imagine-image` is gone from the gateway and `spacexai/grok-imagine-image-2.0` replaces it. The same move applies to video, where `xai/grok-imagine-video-1.5` is now `spacexai/grok-imagine-video-1.5`.
+- **`seedance` now reaches Seedance 2.0** rather than `seedance-2.0-fast`.
+- The README comparison has been re-run for the added and changed models on the same six prompts, and the video table re-timed across seven models.
+- The classifier's model list and the advice rules were updated to match what the new run showed, rather than left describing models that are no longer reachable.
+
+### Fixed
+
+- **Recraft goes through the normal image route again.** Every Recraft model used to answer 200-with-an-error-body on the gateway's own image-model route, so this server used the OpenAI-compatible endpoint instead. Re-checked by calling all four V4.1 variants on 2026-09-04: the standard route serves them correctly, so the workaround is retired. Note that the old path clamped unsupported sizes to `auto` and the standard path does not; which sizes Recraft accepts has not been re-tested.
+
+### Measured, not read
+
+One generation per model per prompt on 2026-09-04, single samples rather than a benchmark. Of the newly added models, Muse Image 1.0 was the only one in the whole run to stack the hands as the portrait prompt asked, and one of three clean passes on the counting prompt. Grok Imagine 2.0 passed the count, the exclusion prompt and the attribute-binding prompt, all three of which Grok Imagine 1.0 failed. On video, MiniMax H3 Max returned in 14s on all three prompts and Veo 3.1 Lite was the only newly added model to complete all three including the photographic portrait that Seedance refuses.
+
+Timings move between runs by more than the gap between some models: the Grok video clips were generated twice on the same afternoon and text-to-video took 28s then 44s. The published table carries the second run's numbers, because those are the clips in the repo.
+
 ## [0.3.2] - 2026-08-24
 
 ### Changed
