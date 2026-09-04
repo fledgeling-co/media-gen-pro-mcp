@@ -6,8 +6,8 @@
  * caller describes what it wants, optionally hands over reference images and
  * text context, and gets back file paths it can drop into an `<img src>`.
  *
- * Eight models behind one tool, because the right one differs by job and nobody
- * wants eight tools. GPT Image 2 is the default; Gemini answers to "gemini" or
+ * Thirteen models behind one tool, because the right one differs by job and nobody
+ * wants thirteen tools. GPT Image 2 is the default; Gemini answers to "gemini" or
  * "nanobanana", Recraft to "photoreal", and Arrow to "svg", which is the only
  * one here that writes real vector source rather than pixels.
  */
@@ -38,9 +38,10 @@ const server = new FastMCP({
   instructions:
     'Generates images and writes them to disk, returning file paths rather than image bytes. Built for illustrating a ' +
     'site or document: point an `<img src>` at what it returns.\n\n' +
-    'Eight models behind one tool. GPT Image 2 by default; say "gemini"/"nanobanana" (fast), "gemini-pro" (slower, ' +
-    'more obedient), "photoreal" for Recraft, "seedream", or "grok". Say "grok-cli" to use a signed-in Grok CLI ' +
-    'subscription instead of any API key, which costs no credit and is the fastest route here. Set `svg: true` for a ' +
+    'State-of-the-art models behind one tool. GPT Image 2 by default; say "gemini"/"nanobanana" (Gemini 3.1 Flash Image), ' +
+    '"gemini-lite" (Gemini 3.1 Flash Lite Image), "photoreal" for Recraft V4.1 Pro (also "utility", "utility-pro", "recraft-v4.1"), ' +
+    '"seedream" (Seedream 5.0 Pro), "grok" (Grok Imagine 2.0), "muse" (Muse Image 1.0). Say "grok-cli" to use a signed-in Grok CLI ' +
+    'subscription instead of any API key, which costs no credit. Set `svg: true` for a ' +
     'REAL SVG from Arrow, which no raster model can produce. Reference images and extra text context are accepted and ' +
     'change the result.\n\n' +
     'Leave `style` out and the server reads the prompt and picks the model, reporting the choice and why. Name one and it ' +
@@ -63,7 +64,9 @@ server.addTool({
     'Generate one or more images from a description and write them to disk, returning their paths. Optionally takes ' +
     'REFERENCE IMAGES (paths on this machine) and extra text context, both of which steer the result: use them to match ' +
     'an existing style, keep a character or product consistent, or edit an image you already have. Defaults to OpenAI ' +
-    'GPT Image 2; pass `style` as gemini/nanobanana, gemini-pro, photoreal (Recraft), seedream, grok, or grok-cli (a ' +
+    'GPT Image 2; pass `style` as gemini/nanobanana (Gemini 3.1 Flash Image), gemini-lite (Gemini 3.1 Flash Lite Image), ' +
+    'photoreal (Recraft V4.1 Pro), utility (Recraft V4.1 Utility), utility-pro (Recraft V4.1 Utility Pro), recraft-v4.1, ' +
+    'seedream (Seedream 5.0 Pro), grok (Grok Imagine 2.0), muse (Muse Image 1.0), or grok-cli (a ' +
     'signed-in Grok CLI subscription, no API key and no credit). For a REAL editable SVG ' +
     'set `svg: true`, which routes to Arrow; the raster models can only imitate one. A billed call per image.',
   annotations: {
@@ -278,7 +281,7 @@ server.addTool({
   description:
     'Generate a short video from a description, optionally starting from an image you already have, and write it to disk. ' +
     'Image-to-video is the stronger path: pass `sourceImage` and the still becomes the first frame, which is how you keep a ' +
-    'character or product consistent. Models: seedance (default), minimax, grok, or gemini. A billed call per video, and MUCH more expensive and slower than an image; expect tens of seconds to minutes.',
+    'character or product consistent. Models: seedance (Seedance 2.0, default), seedance-mini, minimax (H3), minimax-max (H3 Max), wan (Wan 3.0), wan-prime (Wan 3.0 Prime), flux (FLUX.3 Video), grok (Grok Imagine Video 1.5), gemini (Gemini Omni Flash), or veo (Veo 3.1 Lite). A billed call per video, and MUCH more expensive and slower than an image; expect tens of seconds to minutes.',
   annotations: {
     title: 'Generate video',
     readOnlyHint: false,
