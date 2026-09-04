@@ -51,19 +51,24 @@ _Model chosen from your prompt: the prompt requires an exact count of seven item
 in a specific spatial arrangement. Pass `style` to override._
 ```
 
-It routes on the comparison further down rather than on vendor marketing. Seven test prompts, seven correct picks: an exact count went to GPT Image 2, a photograph to Recraft, a flowchart to Arrow, an exclusion to GPT Image 2, an ordinary illustration to Gemini Flash, a quick draft to Grok, and a stated light direction to Gemini 3 Pro, which is the one that got that right when Flash inverted it.
+It routes on the comparison further down rather than on vendor marketing. On the seven routing prompts tested against the earlier model set, it picked correctly seven times out of seven: an exact count went to GPT Image 2, a photograph to Recraft, a flowchart to Arrow, an exclusion to GPT Image 2, an ordinary illustration to Gemini Flash, a quick draft to Grok, and a stated light direction to Gemini 3 Pro, which is the one that got that right when Flash inverted it. The classifier's model list has since grown; that run has not been repeated against it.
 
 Without a gateway key the classifier cannot run, and the request falls back to whichever key you did supply, saying so.
 
 | Say this | You get | Good for | Needs |
 |---|---|---|---|
-| nothing | **GPT Image 2** (OpenAI) | the general default, strong text rendering | `OPENAI_API_KEY` or the gateway |
+| nothing | **GPT Image 2** (OpenAI) | the general default, strong text rendering and rule-following | `OPENAI_API_KEY` or the gateway |
 | `gemini`, `nanobanana` | **Gemini 3.1 Flash Image** | fast, cheap, good with reference images | `GEMINI_API_KEY` or the gateway |
+| `gemini-lite`, `flash-lite` | **Gemini 3.1 Flash Lite Image** | lowest cost, ultra-fast generation | `GEMINI_API_KEY` or the gateway |
 | `gemini-pro`, `geminipro` | **Gemini 3 Pro Image** | the same route, slower and more obedient | `GEMINI_API_KEY` or the gateway |
-| `recraft`, `photo`, `photoreal` | **Recraft V4.1 Pro** | photorealism | the gateway |
+| `recraft`, `photo`, `photoreal` | **Recraft V4.1 Pro** | premier photorealism | the gateway |
+| `recraft-utility`, `utility` | **Recraft V4.1 Utility** | vector illustrations and design elements | the gateway |
+| `recraft-utility-pro` | **Recraft V4.1 Utility Pro** | premium design utilities | the gateway |
+| `recraft-v4.1` | **Recraft V4.1** | standard balanced generation | the gateway |
 | `seedream`, `bytedance` | **Seedream 5.0 Pro** | rich illustration; slow, up to ~100s | the gateway |
-| `grok`, `imagine` | **Grok Imagine** | fast (~6s) | the gateway |
+| `grok`, `imagine` | **Grok Imagine 2.0** (`spacexai/grok-imagine-image-2.0`) | held the count, the exclusion and the attribute binding | the gateway |
 | `grok-cli`, `subscription` | **Grok Imagine**, on your Grok CLI login | fastest here (~4s), and it costs no credit | the Grok CLI, signed in |
+| `muse`, `meta` | **Muse Image 1.0** (`meta/muse-image-1.0`) | fast Meta image generator | the gateway |
 | `svg`, `arrow` | **Arrow 1.1** | real SVG, editable vector source | the gateway |
 
 "nanobanana" is in there because that's what people call Gemini's image model out loud. A server that only accepts the official string makes you look up a name you already know.
@@ -74,11 +79,11 @@ Set `svg: true` and you get vector source from Arrow 1.1: actual `<svg>` markup 
 
 After an SVG, the tool suggests offering you a raster version too, in a similar flat style, from one of the picture models. It won't generate that unasked; it's a second billed call.
 
-## Seven models, six hard prompts
+## Nine models, six hard prompts
 
-One prompt per category, shown in full below each heading, the same text sent to all seven, one generation each, nothing cherry-picked and nothing retried. The prompts are deliberately awkward: each one states a rule you can check by counting or looking, so you can grade the results yourself instead of taking my word for which is prettier.
+One prompt per category, shown in full below each heading, the same text sent to every model, one generation each, nothing cherry-picked and nothing retried. The prompts are deliberately awkward: each one states a rule you can check by counting or looking, so you can grade the results yourself instead of taking my word for which is prettier.
 
-Run 30 July 2026. These are single samples, not a benchmark. Re-run any of them and you may get a different answer.
+The four-model rows were run 30 July 2026. Grok Imagine 2.0, Muse Image 1.0 and Gemini 3.1 Flash Lite were run on the same six prompts on 4 September 2026, when those models were added. These are single samples, not a benchmark. Re-run any of them and you may get a different answer.
 
 ### 1. Exact count and arrangement
 
@@ -89,12 +94,12 @@ Run 30 July 2026. These are single samples, not a benchmark. Re-run any of them 
 | ![](docs/examples/counting-openai.jpg) | ![](docs/examples/counting-google.jpg) | ![](docs/examples/counting-googlepro.jpg) | ![](docs/examples/counting-recraft.jpg) |
 | **7, correct layout, nothing touching** | 7, correct layout, one bolt touching | **7, correct layout, nothing touching** | 6 |
 
-| Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
-|---|---|---|
-| ![](docs/examples/counting-bytedance.jpg) | ![](docs/examples/counting-xai.jpg) | ![](docs/examples/counting-quiver.svg) |
-| 7, upright one behind not in front, several touching | 5, single row | 7, upright one centred, but a ring rather than rows |
+| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
+|---|---|---|---|---|
+| ![](docs/examples/counting-bytedance.jpg) | ![](docs/examples/counting-grok2.jpg) | ![](docs/examples/counting-muse.jpg) | ![](docs/examples/counting-googlelite.jpg) | ![](docs/examples/counting-quiver.svg) |
+| 7, upright one behind not in front, several touching | 7, correct layout, upright one overlapping the bolt behind | **7, correct layout, nothing touching** | 7, correct layout, upright one overlapping | 7, upright one centred, but a ring rather than rows |
 
-GPT Image 2 and Gemini 3 Pro are the clean passes. Recraft produced by far the best photograph of the six and got the count wrong, which is the trade in one image. Arrow counted correctly (it emits seven shapes, so the count is in the source) and ignored the layout.
+GPT Image 2, Gemini 3 Pro and Muse Image 1.0 are the clean passes; Muse placed all seven with the upright bolt at the front centre and nothing touching. Recraft produced by far the best photograph and got the count wrong, which is the trade in one image. Arrow counted correctly (it emits seven shapes, so the count is in the source) and ignored the layout. Grok Imagine 2.0 is a clear improvement on 1.0, whose result on this prompt — five bolts in a single row — is still in `docs/examples/counting-xai.jpg`.
 
 ### 2. Absence
 
@@ -104,11 +109,11 @@ GPT Image 2 and Gemini 3 Pro are the clean passes. Recraft produced by far the b
 |---|---|---|---|
 | ![](docs/examples/absence-openai.jpg) | ![](docs/examples/absence-google.jpg) | ![](docs/examples/absence-googlepro.jpg) | ![](docs/examples/absence-recraft.jpg) |
 
-| Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
-|---|---|---|
-| ![](docs/examples/absence-bytedance.jpg) | ![](docs/examples/absence-xai.jpg) | ![](docs/examples/absence-quiver.svg) |
+| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
+|---|---|---|---|---|
+| ![](docs/examples/absence-bytedance.jpg) | ![](docs/examples/absence-grok2.jpg) | ![](docs/examples/absence-muse.jpg) | ![](docs/examples/absence-googlelite.jpg) | ![](docs/examples/absence-quiver.svg) |
 
-Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. GPT Image 2 came back fully compliant: nobody there, nothing on the floor, no light under any door, one fitting. Seedream put two framed mirrors on the walls and two ceiling lights, and stamped "AI generated" across the corner.
+Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. GPT Image 2 came back fully compliant: nobody there, nothing on the floor, no light under any door, one fitting. Seedream put two framed mirrors on the walls and two ceiling lights, and stamped "AI generated" across the corner. Grok Imagine 2.0 also came back fully compliant — empty carpet, closed doors, a single ceiling fitting and no light under any door.
 
 ### 3. Attribute binding against the obvious pairing
 
@@ -118,11 +123,11 @@ Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. GPT
 |---|---|---|---|
 | ![](docs/examples/binding-openai.jpg) | ![](docs/examples/binding-google.jpg) | ![](docs/examples/binding-googlepro.jpg) | ![](docs/examples/binding-recraft.jpg) |
 
-| Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
-|---|---|---|
-| ![](docs/examples/binding-bytedance.jpg) | ![](docs/examples/binding-xai.jpg) | ![](docs/examples/binding-quiver.svg) |
+| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
+|---|---|---|---|---|
+| ![](docs/examples/binding-bytedance.jpg) | ![](docs/examples/binding-grok2.jpg) | ![](docs/examples/binding-muse.jpg) | ![](docs/examples/binding-googlelite.jpg) | ![](docs/examples/binding-quiver.svg) |
 
-Every colour is deliberately wrong for its object, so a yellow banana is a visible failure rather than a matter of taste. GPT Image 2 bound all five and made a decent fist of the materials. Grok bound all five too, at a third of the time, then melted the wrench and drew the fish as a wireframe.
+Every colour is deliberately wrong for its object, so a yellow banana is a visible failure rather than a matter of taste. GPT Image 2 bound all five and made a decent fist of the materials. Grok Imagine 2.0 bound all five too and got the materials as well: a matte black banana, a glossy yellow wrench, a translucent green mug, a brushed copper apple and a speckled concrete fish, all separated cleanly on the backdrop.
 
 ### 4. Geometric constraint
 
@@ -132,9 +137,9 @@ Every colour is deliberately wrong for its object, so a yellow banana is a visib
 |---|---|---|---|
 | ![](docs/examples/diagram-openai.jpg) | ![](docs/examples/diagram-google.jpg) | ![](docs/examples/diagram-googlepro.jpg) | ![](docs/examples/diagram-recraft.jpg) |
 
-| Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
-|---|---|---|
-| ![](docs/examples/diagram-bytedance.jpg) | ![](docs/examples/diagram-xai.jpg) | ![](docs/examples/diagram-quiver.svg) |
+| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
+|---|---|---|---|---|
+| ![](docs/examples/diagram-bytedance.jpg) | ![](docs/examples/diagram-grok2.jpg) | ![](docs/examples/diagram-muse.jpg) | ![](docs/examples/diagram-googlelite.jpg) | ![](docs/examples/diagram-quiver.svg) |
 
 This is the category the vector model exists for, and it wins it: exact geometry, uniform stroke, labelled boxes, and you can open the file and edit any of it. Recraft came second and labelled its boxes too, with uneven widths. GPT Image 2 drew clean unlabelled boxes of three different sizes. Zoom in on any of the raster ones and the "straight" lines wobble, because a sampler is hallucinating straightness pixel by pixel rather than drawing a line.
 
@@ -146,9 +151,9 @@ This is the category the vector model exists for, and it wins it: exact geometry
 |---|---|---|---|
 | ![](docs/examples/physics-openai.jpg) | ![](docs/examples/physics-google.jpg) | ![](docs/examples/physics-googlepro.jpg) | ![](docs/examples/physics-recraft.jpg) |
 
-| Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
-|---|---|---|
-| ![](docs/examples/physics-bytedance.jpg) | ![](docs/examples/physics-xai.jpg) | ![](docs/examples/physics-quiver.svg) |
+| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
+|---|---|---|---|---|
+| ![](docs/examples/physics-bytedance.jpg) | ![](docs/examples/physics-grok2.jpg) | ![](docs/examples/physics-muse.jpg) | ![](docs/examples/physics-googlelite.jpg) | ![](docs/examples/physics-quiver.svg) |
 
 Reflections are the reliable giveaway of a model compositing plausible patches rather than simulating a scene. Recraft's is the photograph you would actually ship, and its reflection is a mirror-flip of the kettle's side rather than the underside the brief asked for. Arrow, which cannot photograph anything, got the structure right: reflection present, shadow falling away from the window, light patch on the table.
 
@@ -161,26 +166,28 @@ Reflections are the reliable giveaway of a model compositing plausible patches r
 | ![](docs/examples/portrait-openai.jpg) | ![](docs/examples/portrait-google.jpg) | ![](docs/examples/portrait-googlepro.jpg) | ![](docs/examples/portrait-recraft.jpg) |
 | pose right, 2-3 rings | **shadow on the wrong side** | shadow correct, hands not stacked | best photo, ~5 rings |
 
-| Seedream 5.0 Pro | Grok Imagine | Arrow 1.1 (SVG) |
-|---|---|---|
-| ![](docs/examples/portrait-bytedance.jpg) | ![](docs/examples/portrait-xai.jpg) | ![](docs/examples/portrait-quiver.svg) |
-| facing camera, hands side by side | facing camera, hands side by side | pose right, ~5 rings, flat |
+| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
+|---|---|---|---|---|
+| ![](docs/examples/portrait-bytedance.jpg) | ![](docs/examples/portrait-grok2.jpg) | ![](docs/examples/portrait-muse.jpg) | ![](docs/examples/portrait-googlelite.jpg) | ![](docs/examples/portrait-quiver.svg) |
+| facing camera, hands side by side | faces left, shadow correct, hands side by side | **hands stacked, shadow correct**, near-profile | faces left, shadow correct, hands side by side | pose right, ~5 rings, flat |
 
-Four checkable things: which way she faces, whether one hand sits on the other, how many rings, and which side the shadow falls. Gemini 3.1 Flash lit her from the left and threw the shadow right, which is the one unambiguous miss in the whole run. Gemini 3 Pro, on the identical prompt, got it right, which is the clearest reason to reach for the slower sibling. Recraft produced the photograph you would ship and turned three-quarter into near-profile. Arrow, which cannot photograph anyone, followed the pose most closely of the six.
+Four checkable things: which way she faces, whether one hand sits on the other, how many rings, and which side the shadow falls. Gemini 3.1 Flash lit her from the left and threw the shadow right, which is the one unambiguous miss in the whole run. Gemini 3 Pro, on the identical prompt, got it right, which is the clearest reason to reach for the slower sibling. Recraft produced the photograph you would ship and turned three-quarter into near-profile. Arrow, which cannot photograph anyone, followed the pose most closely of the six. Of the newer models, Muse Image 1.0 is the only one in the whole run to stack one hand on the other as the brief asked; it also lit and shadowed her correctly, but pushed three-quarter to near-profile. Grok Imagine 2.0 and Flash Lite both got the facing and the shadow right and left the hands side by side.
 
 ### What this suggests
 
 Nothing here is a benchmark, but the shape is consistent enough to route by:
 
-- **GPT Image 2** for briefs with rules in them. It was the only model to pass the count outright and the only one to honour every "no" in the absence prompt.
-- **Recraft V4.1 Pro** when it has to look like a photograph, and check the details yourself.
+- **GPT Image 2** for briefs with rules in them. It was one of the models to pass the count outright and the only one to honour every "no" in the absence prompt.
+- **Recraft V4.1 Pro** when it has to look like a photograph, and check the details yourself. `recraft-utility` and `recraft-v4.1` are the cheaper siblings at a sixth of the price; `recraft-utility-pro` matches Pro's price.
 - **Arrow 1.1** for anything diagrammatic, where it is not competing with the others so much as doing a different job.
 - **Gemini 3.1 Flash** as the cheap default, with the caveat that it is the one model observed to invert a stated light direction.
 - **Gemini 3 Pro Image** when Flash gets something wrong. Same key, same route, roughly twice the wait; it passed the count and fixed Flash's lighting miss.
-- **Grok Imagine** when you want six options in the time another model takes for one.
+- **Gemini 3.1 Flash Lite Image** as the cheapest route here (about half Flash's per-image price). On these six prompts it held the count and got the portrait's lighting right, which Flash did not.
+- **Grok Imagine 2.0** is the biggest change since the last run: it passed the count, the absence prompt and the attribute-binding prompt. The Grok Imagine 1.0 results on the same three prompts are still in [`docs/examples/`](docs/examples/) under `*-xai.jpg` — five bolts in a single row, and a melted wrench.
+- **Muse Image 1.0** the cheapest model in the table at $0.01 an image, and the only one that stacked the hands as the portrait brief asked. It was also a clean pass on the count.
 - **Seedream 5.0 Pro** last on this evidence: slowest by a wide margin, and it watermarks.
 
-_I inspected 22 of these 42 images closely; the notes above cover those and the rest are here for you to judge. Every file is in [`docs/examples/`](docs/examples/)._
+_These are single generations, and I inspected the newer models' counting, absence, binding and portrait results directly; the diagram and reflection rows are published unjudged for you to grade. Every file is in [`docs/examples/`](docs/examples/)._
 
 ## Video
 
@@ -192,28 +199,40 @@ _I inspected 22 of these 42 images closely; the notes above cover those and the 
 
 | Say this | You get | Needs |
 |---|---|---|
-| nothing, or `seedance` | **Seedance 2.0 Fast** | the gateway |
-| `minimax`, `h3` | **MiniMax H3** | the gateway |
-| `grok`, `imagine` | **Grok Imagine Video 1.5** | the gateway |
-| `gemini`, `google`, `omni` | **Gemini Omni Flash** | the gateway |
+| nothing, or `seedance` | **Seedance 2.0** (`bytedance/seedance-2.0`) | the gateway |
+| `seedance-mini` | **Seedance 2.0 Mini** (`bytedance/seedance-2.0-mini`) | the gateway |
+| `minimax`, `h3` | **MiniMax H3** (`minimax/minimax-h3`) | the gateway |
+| `minimax-max`, `h3-max` | **MiniMax H3 Max** (`minimax/minimax-h3-max`) | the gateway |
+| `wan`, `wan-video` | **Wan 3.0 Video** (`alibaba/wan-v3.0-video`) | the gateway |
+| `wan-prime` | **Wan 3.0 Video Prime** (`alibaba/wan-v3.0-video-prime`) | the gateway |
+| `flux`, `flux-video` | **FLUX.3 Video** (`bfl/flux-3-video`) | the gateway |
+| `grok`, `imagine` | **Grok Imagine Video 1.5** (`spacexai/grok-imagine-video-1.5`) | the gateway |
+| `gemini`, `google`, `omni` | **Gemini Omni Flash** (`google/gemini-omni-flash-preview`) | the gateway |
+| `veo`, `veo-lite` | **Veo 3.1 Lite** (`google/veo-3.1-lite-generate-001`) | the gateway |
 
 Pass `sourceImage` and the still becomes the first frame. That is the strongest lever here and the only way to keep a subject consistent across clips: generate a still with `generate_image`, then animate it.
 
-### The same three prompts, four models
+### The same three prompts, models compared
 
-Two clips seeded from the stills in the comparison above, one from text alone. 5 seconds each, one generation, nothing retried.
+Clips seeded from the stills in the comparison above, and one from text alone. 4–5 seconds each, one generation, nothing retried.
 
-| | Seedance 2.0 Fast | MiniMax H3 | Grok Imagine Video 1.5 | Gemini Omni Flash |
-|---|---|---|---|---|
-| **kettle** (from a still) | [mp4](docs/examples/video/kettle-seedance.mp4), 110s | [mp4](docs/examples/video/kettle-minimax.mp4), 229s | [mp4](docs/examples/video/kettle-grok.mp4), 19s | [mp4](docs/examples/video/kettle-gemini.mp4), 34s |
-| **portrait** (from a still) | refused | [mp4](docs/examples/video/portrait-minimax.mp4), 246s | [mp4](docs/examples/video/portrait-grok.mp4), 19s | [mp4](docs/examples/video/portrait-gemini.mp4), 37s |
-| **text only** | [mp4](docs/examples/video/text-seedance.mp4), 109s | [mp4](docs/examples/video/text-minimax.mp4), 221s | [mp4](docs/examples/video/text-grok.mp4), 23s | [mp4](docs/examples/video/text-gemini.mp4), 32s |
+| | Veo 3.1 Lite | MiniMax H3 Max | FLUX.3 Video | Grok Imagine Video 1.5 | Gemini Omni Flash | MiniMax H3 | Seedance 2.0 Fast |
+|---|---|---|---|---|---|---|---|
+| **kettle** (from still) | [mp4](docs/examples/video/kettle-veo.mp4), 35s | [mp4](docs/examples/video/kettle-minimax-max.mp4), 14s | [mp4](docs/examples/video/kettle-flux.mp4), 71s | [mp4](docs/examples/video/kettle-grok.mp4), 23s | [mp4](docs/examples/video/kettle-gemini.mp4), 34s | [mp4](docs/examples/video/kettle-minimax.mp4), 229s | [mp4](docs/examples/video/kettle-seedance.mp4), 110s |
+| **portrait** (from still) | [mp4](docs/examples/video/portrait-veo.mp4), 34s | [mp4](docs/examples/video/portrait-minimax-max.mp4), 14s | [mp4](docs/examples/video/portrait-flux.mp4), 57s | [mp4](docs/examples/video/portrait-grok.mp4), 21s | [mp4](docs/examples/video/portrait-gemini.mp4), 37s | [mp4](docs/examples/video/portrait-minimax.mp4), 246s | refused |
+| **text only** | [mp4](docs/examples/video/text-veo.mp4), 28s | [mp4](docs/examples/video/text-minimax-max.mp4), 14s | [mp4](docs/examples/video/text-flux.mp4), 69s | [mp4](docs/examples/video/text-grok.mp4), 44s | [mp4](docs/examples/video/text-gemini.mp4), 32s | [mp4](docs/examples/video/text-minimax.mp4), 221s | [mp4](docs/examples/video/text-seedance.mp4), 109s |
 
-Grok was an order of magnitude faster on every one. Treat that with suspicion rather than as a benchmark: an earlier run of the identical three prompts timed out at 600 seconds on all three, and I cannot account for the difference.
+MiniMax H3 Max returned in 14s on all three prompts, the fastest and most consistent in the run. Veo 3.1 Lite took 28–35s and was the only newly added model to complete all three, including the photographic portrait that Seedance refuses. Grok Imagine Video 1.5 ran 21–44s. FLUX.3 Video was the slowest of the new set at 57–71s.
+
+Treat all of these as one sample rather than a benchmark. The Grok clips here are a second run of the identical three prompts, and text-to-video came back in 44s where the first run took 28s — the same model, the same prompt, the same afternoon. The older Seedance, MiniMax H3 and Gemini rows are from 31 July and 1 August 2026, and their clips were generated with `seedance-2.0-fast`, which the `seedance` alias no longer points at.
+
+I have not graded the motion quality of any of these clips — the times are measured, the picks are yours.
 
 Seedance refuses a photographic face as a source frame ("may contain real person"). That is its own moderation, not a bug here, and the tool reports it as a refusal with what to do instead: seed from an image you generated rather than a photograph.
 
 ### Rough edges
+
+**Veo 3.1 Lite enforces specific durations.** The gateway endpoint accepts `[4, 6, 8]` seconds; any other duration (such as 5s) fails with `Unsupported output video duration`. The server automatically clamps or selects the nearest valid duration (defaulting to 4s when 5s is requested).
 
 **Gemini Omni Flash is not a video model on the gateway.** It is typed `language`, the same trap as Gemini's image models: a multimodal LLM that emits video files rather than a video endpoint. The video API refuses it; `generateText` reaches it and the clip arrives on the response's files.
 
@@ -270,7 +289,9 @@ n:               3
 
 **Nobody agrees what format they're returning.** Gemini returns JPEG, Recraft returns WebP, and Arrow returns SVG source labelled `image/png`. The server sniffs the actual bytes and names the file accordingly rather than trusting the label, so you get `.jpg`, `.webp` and `.svg` where those are what arrived. Nothing for you to do; it's just why extensions vary.
 
-**Recraft goes through a different endpoint.** The gateway's own image-model route answers with an error for every Recraft model, so this uses its OpenAI-compatible endpoint instead, which serves them correctly. Checked 30 July 2026.
+**Recraft now works through the normal image route.** It used to need the gateway's OpenAI-compatible endpoint, because the gateway's own image-model route answered with an error for every Recraft model. Re-checked 4 September 2026: all four V4.1 variants generate correctly through the standard SDK image route, so that workaround is gone. The old route also clamped unsupported sizes to `auto`; on the standard route size handling is the SDK's, and I have not re-tested which sizes Recraft accepts.
+
+**Gemini's image models are language models.** Flash, Flash Lite and 3 Pro are all typed `language` on the gateway and the image API refuses them outright. The server reaches them with `generateText` and pulls the image off the response files.
 
 ## Getting a key
 
@@ -282,7 +303,7 @@ You need at least one. Any one is enough to start.
 
 **Or no key at all**, for one route: if you have xAI's `grok` CLI installed and signed in, `style: "grok-cli"` uses that session and bills your X Premium or SuperGrok subscription rather than any API balance. It reads the token from `~/.grok/auth.json`, never writes to it, and never refreshes it, because two programs writing one auth file is how a working login gets broken.
 
-**Vercel AI Gateway** ([vercel.com/docs/ai-gateway](https://vercel.com/docs/ai-gateway)) gives you everything from one key, and it's the only way to reach Recraft, Seedream, Grok Imagine and Arrow, none of which have a first-party key here. If you only get one key, get this one.
+**Vercel AI Gateway** ([vercel.com/docs/ai-gateway](https://vercel.com/docs/ai-gateway)) gives you everything from one key, and it's the only way to reach Recraft, Seedream, Grok Imagine, Muse and Arrow, none of which have a first-party key here. If you only get one key, get this one.
 
 Treat any of them like a password, because that's what they are. Don't paste one into a chat, don't commit one to a repo.
 
@@ -304,7 +325,7 @@ All optional except having at least one key. Set them alongside the key in the `
 |---|---|---|
 | `OPENAI_API_KEY` | | Your OpenAI key. Reaches GPT Image 2 directly |
 | `GEMINI_API_KEY` | | Your AI Studio key. `GOOGLE_API_KEY` works too, since Google's own tools read that one |
-| `AI_GATEWAY_API_KEY` | | Vercel AI Gateway. Reaches everything, and is the only route to Recraft, Seedream, Grok Imagine and Arrow |
+| `AI_GATEWAY_API_KEY` | | Vercel AI Gateway. Reaches everything, and is the only route to Recraft, Seedream, Grok Imagine, Muse and Arrow |
 | _(none)_ | | `style: "grok-cli"` needs no key. It uses the Grok CLI's signed-in session, read from `~/.grok/auth.json` |
 | `IMAGE_GEN_OUTPUT_DIR` | working directory | Where images are written. Point it at your project's image folder and the paths come back ready to use |
 | `IMAGE_GEN_DEFAULT_PROVIDER` | whichever key you set | Pins the fallback used when routing cannot run. Defaults to OpenAI when you have a gateway or OpenAI key, Google when Gemini is all you have |
