@@ -69,6 +69,8 @@ Without a gateway key the classifier cannot run, and the request falls back to w
 | `grok`, `imagine` | **Grok Imagine 2.0** (`spacexai/grok-imagine-image-2.0`) | held the count, the exclusion and the attribute binding | the gateway |
 | `grok-cli`, `subscription` | **Grok Imagine**, on your Grok CLI login | fastest here (~4s), and it costs no credit | the Grok CLI, signed in |
 | `muse`, `meta` | **Muse Image 1.0** (`meta/muse-image-1.0`) | fast Meta image generator | the gateway |
+| `flare` | **GPT Image 2.5 Flare** (`openai/gpt-image-2.5-flare`) | fast everyday generation, strong rule-following | the gateway |
+| `sunburst` | **GPT Image 2.5 Sunburst** (`openai/gpt-image-2.5-sunburst`) | precise editing, strong rule-following | the gateway |
 | `svg`, `arrow` | **Arrow 1.1** | real SVG, editable vector source | the gateway |
 
 "nanobanana" is in there because that's what people call Gemini's image model out loud. A server that only accepts the official string makes you look up a name you already know.
@@ -79,7 +81,7 @@ Set `svg: true` and you get vector source from Arrow 1.1: actual `<svg>` markup 
 
 After an SVG, the tool suggests offering you a raster version too, in a similar flat style, from one of the picture models. It won't generate that unasked; it's a second billed call.
 
-## Nine models, six hard prompts
+## Eleven models, six hard prompts
 
 One prompt per category, shown in full below each heading, the same text sent to every model, one generation each, nothing cherry-picked and nothing retried. The prompts are deliberately awkward: each one states a rule you can check by counting or looking, so you can grade the results yourself instead of taking my word for which is prettier.
 
@@ -90,7 +92,7 @@ One prompt per category, shown in full below each heading, the same text sent to
 > and zoom to check the claim about wobbling lines yourself. Clips play inline instead of
 > downloading. It is a plain file — clone the repo and open it, no server needed.
 
-The four-model rows were run 30 July 2026. Grok Imagine 2.0, Muse Image 1.0 and Gemini 3.1 Flash Lite were run on the same six prompts on 4 September 2026, when those models were added. These are single samples, not a benchmark. Re-run any of them and you may get a different answer.
+The four-model rows were run 30 July 2026. Grok Imagine 2.0, Muse Image 1.0 and Gemini 3.1 Flash Lite were run on the same six prompts on 4 September 2026, when those models were added, and GPT Image 2.5 Flare and GPT Image 2.5 Sunburst on 9 September 2026. These are single samples, not a benchmark. Re-run any of them and you may get a different answer.
 
 ### 1. Exact count and arrangement
 
@@ -106,7 +108,12 @@ The four-model rows were run 30 July 2026. Grok Imagine 2.0, Muse Image 1.0 and 
 | ![](docs/examples/counting-bytedance.jpg) | ![](docs/examples/counting-grok2.jpg) | ![](docs/examples/counting-muse.jpg) | ![](docs/examples/counting-googlelite.jpg) | ![](docs/examples/counting-quiver.svg) |
 | 7, upright one behind not in front, several touching | 7, correct layout, upright one overlapping the bolt behind | **7, correct layout, nothing touching** | 7, correct layout, upright one overlapping | 7, upright one centred, but a ring rather than rows |
 
-GPT Image 2, Gemini 3 Pro and Muse Image 1.0 are the clean passes; Muse placed all seven with the upright bolt at the front centre and nothing touching. Recraft produced by far the best photograph and got the count wrong, which is the trade in one image. Arrow counted correctly (it emits seven shapes, so the count is in the source) and ignored the layout. Grok Imagine 2.0 is a clear improvement on 1.0, whose result on this prompt — five bolts in a single row — is still in `docs/examples/counting-xai.jpg`.
+| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst |
+|---|---|
+| ![](docs/examples/counting-flare.jpg) | ![](docs/examples/counting-sunburst.jpg) |
+| **7, correct layout, nothing touching** | **7, correct layout, nothing touching** |
+
+GPT Image 2, Gemini 3 Pro, Muse Image 1.0, Flare and Sunburst are the clean passes; Muse placed all seven with the upright bolt at the front centre and nothing touching, and both 2.5 siblings did exactly the same. Recraft produced by far the best photograph and got the count wrong, which is the trade in one image. Arrow counted correctly (it emits seven shapes, so the count is in the source) and ignored the layout. Grok Imagine 2.0 is a clear improvement on 1.0, whose result on this prompt — five bolts in a single row — is still in `docs/examples/counting-xai.jpg`.
 
 ### 2. Absence
 
@@ -120,7 +127,11 @@ GPT Image 2, Gemini 3 Pro and Muse Image 1.0 are the clean passes; Muse placed a
 |---|---|---|---|---|
 | ![](docs/examples/absence-bytedance.jpg) | ![](docs/examples/absence-grok2.jpg) | ![](docs/examples/absence-muse.jpg) | ![](docs/examples/absence-googlelite.jpg) | ![](docs/examples/absence-quiver.svg) |
 
-Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. GPT Image 2 came back fully compliant: nobody there, nothing on the floor, no light under any door, one fitting. Seedream put two framed mirrors on the walls and two ceiling lights, and stamped "AI generated" across the corner. Grok Imagine 2.0 also came back fully compliant — empty carpet, closed doors, a single ceiling fitting and no light under any door.
+| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst |
+|---|---|
+| ![](docs/examples/absence-flare.jpg) | ![](docs/examples/absence-sunburst.jpg) |
+
+Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. GPT Image 2 came back fully compliant: nobody there, nothing on the floor, no light under any door, one fitting. Seedream put two framed mirrors on the walls and two ceiling lights, and stamped "AI generated" across the corner. Grok Imagine 2.0 also came back fully compliant — empty carpet, closed doors, a single ceiling fitting and no light under any door. Flare and Sunburst both joined the compliant set: empty corridors, closed doors, single fittings, nothing on the floor and nothing reflected.
 
 ### 3. Attribute binding against the obvious pairing
 
@@ -134,7 +145,11 @@ Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. GPT
 |---|---|---|---|---|
 | ![](docs/examples/binding-bytedance.jpg) | ![](docs/examples/binding-grok2.jpg) | ![](docs/examples/binding-muse.jpg) | ![](docs/examples/binding-googlelite.jpg) | ![](docs/examples/binding-quiver.svg) |
 
-Every colour is deliberately wrong for its object, so a yellow banana is a visible failure rather than a matter of taste. GPT Image 2 bound all five and made a decent fist of the materials. Grok Imagine 2.0 bound all five too and got the materials as well: a matte black banana, a glossy yellow wrench, a translucent green mug, a brushed copper apple and a speckled concrete fish, all separated cleanly on the backdrop.
+| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst |
+|---|---|
+| ![](docs/examples/binding-flare.jpg) | ![](docs/examples/binding-sunburst.jpg) |
+
+Every colour is deliberately wrong for its object, so a yellow banana is a visible failure rather than a matter of taste. GPT Image 2 bound all five and made a decent fist of the materials. Grok Imagine 2.0 bound all five too and got the materials as well: a matte black banana, a glossy yellow wrench, a translucent green mug, a brushed copper apple and a speckled concrete fish, all separated cleanly on the backdrop. Flare and Sunburst bound all five as well — Sunburst's mug even shows the wood grain through the green glass, and both kept the concrete body and glass fins of the fish apart instead of blending them.
 
 ### 4. Geometric constraint
 
@@ -147,6 +162,10 @@ Every colour is deliberately wrong for its object, so a yellow banana is a visib
 | Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
 |---|---|---|---|---|
 | ![](docs/examples/diagram-bytedance.jpg) | ![](docs/examples/diagram-grok2.jpg) | ![](docs/examples/diagram-muse.jpg) | ![](docs/examples/diagram-googlelite.jpg) | ![](docs/examples/diagram-quiver.svg) |
+
+| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst |
+|---|---|
+| ![](docs/examples/diagram-flare.jpg) | ![](docs/examples/diagram-sunburst.jpg) |
 
 This is the category the vector model exists for, and it wins it: exact geometry, uniform stroke, labelled boxes, and you can open the file and edit any of it. Recraft came second and labelled its boxes too, with uneven widths. GPT Image 2 drew clean unlabelled boxes of three different sizes. Zoom in on any of the raster ones and the "straight" lines wobble, because a sampler is hallucinating straightness pixel by pixel rather than drawing a line.
 
@@ -161,6 +180,10 @@ This is the category the vector model exists for, and it wins it: exact geometry
 | Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
 |---|---|---|---|---|
 | ![](docs/examples/physics-bytedance.jpg) | ![](docs/examples/physics-grok2.jpg) | ![](docs/examples/physics-muse.jpg) | ![](docs/examples/physics-googlelite.jpg) | ![](docs/examples/physics-quiver.svg) |
+
+| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst |
+|---|---|
+| ![](docs/examples/physics-flare.jpg) | ![](docs/examples/physics-sunburst.jpg) |
 
 Reflections are the reliable giveaway of a model compositing plausible patches rather than simulating a scene. Recraft's is the photograph you would actually ship, and its reflection is a mirror-flip of the kettle's side rather than the underside the brief asked for. Arrow, which cannot photograph anything, got the structure right: reflection present, shadow falling away from the window, light patch on the table.
 
@@ -178,20 +201,26 @@ Reflections are the reliable giveaway of a model compositing plausible patches r
 | ![](docs/examples/portrait-bytedance.jpg) | ![](docs/examples/portrait-grok2.jpg) | ![](docs/examples/portrait-muse.jpg) | ![](docs/examples/portrait-googlelite.jpg) | ![](docs/examples/portrait-quiver.svg) |
 | facing camera, hands side by side | faces left, shadow correct, hands side by side | **hands stacked, shadow correct**, near-profile | faces left, shadow correct, hands side by side | pose right, ~5 rings, flat |
 
-Four checkable things: which way she faces, whether one hand sits on the other, how many rings, and which side the shadow falls. Gemini 3.1 Flash lit her from the left and threw the shadow right, which is the one unambiguous miss in the whole run. Gemini 3 Pro, on the identical prompt, got it right, which is the clearest reason to reach for the slower sibling. Recraft produced the photograph you would ship and turned three-quarter into near-profile. Arrow, which cannot photograph anyone, followed the pose most closely of the six. Of the newer models, Muse Image 1.0 is the only one in the whole run to stack one hand on the other as the brief asked; it also lit and shadowed her correctly, but pushed three-quarter to near-profile. Grok Imagine 2.0 and Flash Lite both got the facing and the shadow right and left the hands side by side.
+| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst |
+|---|---|
+| ![](docs/examples/portrait-flare.jpg) | ![](docs/examples/portrait-sunburst.jpg) |
+| **faces left, hands stacked, five plain bands, shadow correct** | **faces left, hands stacked, five rings (two stone-set), shadow correct** |
+
+Four checkable things: which way she faces, whether one hand sits on the other, how many rings, and which side the shadow falls. Gemini 3.1 Flash lit her from the left and threw the shadow right, which is the one unambiguous miss in the whole run. Gemini 3 Pro, on the identical prompt, got it right, which is the clearest reason to reach for the slower sibling. Recraft produced the photograph you would ship and turned three-quarter into near-profile. Arrow, which cannot photograph anyone, followed the pose most closely of the six. Of the newer models, Muse Image 1.0 was the first in the whole run to stack one hand on the other as the brief asked; it also lit and shadowed her correctly, but pushed three-quarter to near-profile. Grok Imagine 2.0 and Flash Lite both got the facing and the shadow right and left the hands side by side. Flare and Sunburst are now the fullest passes on this prompt: three-quarter facing left, hands stacked, five rings each, shadow on the left wall — Flare's all plain bands, Sunburst's with two stone-set.
 
 ### What this suggests
 
 Nothing here is a benchmark, but the shape is consistent enough to route by:
 
-- **GPT Image 2** for briefs with rules in them. It was one of the models to pass the count outright and the only one to honour every "no" in the absence prompt.
+- **GPT Image 2** for briefs with rules in them. It was one of the models to pass the count outright and one of four to honour every "no" in the absence prompt, alongside Grok Imagine 2.0, Flare and Sunburst.
 - **Recraft V4.1 Pro** when it has to look like a photograph, and check the details yourself. `recraft-utility` and `recraft-v4.1` are the cheaper siblings at a sixth of the price; `recraft-utility-pro` matches Pro's price.
 - **Arrow 1.1** for anything diagrammatic, where it is not competing with the others so much as doing a different job.
 - **Gemini 3.1 Flash** as the cheap default, with the caveat that it is the one model observed to invert a stated light direction.
 - **Gemini 3 Pro Image** when Flash gets something wrong. Same key, same route, roughly twice the wait; it passed the count and fixed Flash's lighting miss.
 - **Gemini 3.1 Flash Lite Image** as the cheapest route here (about half Flash's per-image price). On these six prompts it held the count and got the portrait's lighting right, which Flash did not.
 - **Grok Imagine 2.0** is the biggest change since the last run: it passed the count, the absence prompt and the attribute-binding prompt. The Grok Imagine 1.0 results on the same three prompts are still in [`docs/examples/`](docs/examples/) under `*-xai.jpg` — five bolts in a single row, and a melted wrench.
-- **Muse Image 1.0** the cheapest model in the table at $0.01 an image, and the only one that stacked the hands as the portrait brief asked. It was also a clean pass on the count.
+- **Muse Image 1.0** the cheapest model in the table at $0.01 an image, and the first that stacked the hands as the portrait brief asked. It was also a clean pass on the count.
+- **GPT Image 2.5 Flare and Sunburst** the strongest obedience pair in the table: clean passes on the count, the absence prompt and the attribute binding, and the fullest passes on the portrait. OpenAI positions Flare for fast everyday generation and Sunburst for precise editing; both are gateway-only, and neither is on OpenAI's own API.
 - **Seedream 5.0 Pro** last on this evidence: slowest by a wide margin, and it watermarks.
 
 _These are single generations, and I inspected the newer models' counting, absence, binding and portrait results directly; the diagram and reflection rows are published unjudged for you to grade. Every file is in [`docs/examples/`](docs/examples/)._

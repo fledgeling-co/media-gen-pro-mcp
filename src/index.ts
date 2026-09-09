@@ -40,7 +40,8 @@ const server = new FastMCP({
     'site or document: point an `<img src>` at what it returns.\n\n' +
     'State-of-the-art models behind one tool. GPT Image 2 by default; say "gemini"/"nanobanana" (Gemini 3.1 Flash Image), ' +
     '"gemini-lite" (Gemini 3.1 Flash Lite Image), "photoreal" for Recraft V4.1 Pro (also "utility", "utility-pro", "recraft-v4.1"), ' +
-    '"seedream" (Seedream 5.0 Pro), "grok" (Grok Imagine 2.0), "muse" (Muse Image 1.0). Say "grok-cli" to use a signed-in Grok CLI ' +
+    '"seedream" (Seedream 5.0 Pro), "grok" (Grok Imagine 2.0), "muse" (Muse Image 1.0), "flare" (GPT Image 2.5 Flare), ' +
+    '"sunburst" (GPT Image 2.5 Sunburst). Say "grok-cli" to use a signed-in Grok CLI ' +
     'subscription instead of any API key, which costs no credit. Set `svg: true` for a ' +
     'REAL SVG from Arrow, which no raster model can produce. Reference images and extra text context are accepted and ' +
     'change the result.\n\n' +
@@ -66,7 +67,8 @@ server.addTool({
     'an existing style, keep a character or product consistent, or edit an image you already have. Defaults to OpenAI ' +
     'GPT Image 2; pass `style` as gemini/nanobanana (Gemini 3.1 Flash Image), gemini-lite (Gemini 3.1 Flash Lite Image), ' +
     'photoreal (Recraft V4.1 Pro), utility (Recraft V4.1 Utility), utility-pro (Recraft V4.1 Utility Pro), recraft-v4.1, ' +
-    'seedream (Seedream 5.0 Pro), grok (Grok Imagine 2.0), muse (Muse Image 1.0), or grok-cli (a ' +
+    'seedream (Seedream 5.0 Pro), grok (Grok Imagine 2.0), muse (Muse Image 1.0), flare (GPT Image 2.5 Flare), ' +
+    'sunburst (GPT Image 2.5 Sunburst), or grok-cli (a ' +
     'signed-in Grok CLI subscription, no API key and no credit). For a REAL editable SVG ' +
     'set `svg: true`, which routes to Arrow; the raster models can only imitate one. A billed call per image.',
   annotations: {

@@ -11,12 +11,16 @@ describe('suggesting a better model', () => {
   it('stays quiet when the caller already picked the right one', () => {
     expect(adviseFor('a flowchart with three boxes', 'quiver')).toBeUndefined();
     expect(adviseFor('exactly seven bolts', 'openai')).toBeUndefined();
+    expect(adviseFor('exactly seven bolts', 'flare')).toBeUndefined();
+    expect(adviseFor('exactly seven bolts', 'sunburst')).toBeUndefined();
+    expect(adviseFor('an empty room with no people', 'flare')).toBeUndefined();
+    expect(adviseFor('an empty room with no people', 'sunburst')).toBeUndefined();
     expect(adviseFor('a photorealistic portrait', 'recraft')).toBeUndefined();
   });
 
   it('names every model that passed the counting test, not just one', () => {
     const a = adviseFor('exactly seven brass bolts in a row', 'xai');
-    expect(a?.better).toEqual(['openai', 'googlepro', 'muse']);
+    expect(a?.better).toEqual(['openai', 'googlepro', 'muse', 'flare', 'sunburst']);
   });
 
   it('needs a number as well as the word, so "exactly right" is not a count', () => {

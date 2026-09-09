@@ -6,6 +6,17 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [0.5.0] - 2026-09-09
+
+### Added
+
+- **Two new image models.** `flare` (`openai/gpt-image-2.5-flare`) and `sunburst` (`openai/gpt-image-2.5-sunburst`). Both are gateway-only: OpenAI's own `/v1/models` lists gpt-image-1 through gpt-image-2 and neither 2.5 variant, checked 9 September 2026. Both answered `n: 2` in a single call, so they batch.
+- The README comparison covers both on the same six prompts, and the bench gallery carries all twelve new cells.
+
+### Measured, not read
+
+One generation per model per prompt on 2026-09-09, single samples rather than a benchmark. Both were clean passes on the counting prompt (seven bolts, correct layout, nothing touching), fully compliant on the absence prompt, bound all five attribute pairs, and stacked the portrait's hands with five rings each and the shadow on the correct side — the fullest passes on that prompt in the table. The diagram and reflection rows are published unjudged.
+
 ## [0.4.0] - 2026-09-04
 
 ### Added

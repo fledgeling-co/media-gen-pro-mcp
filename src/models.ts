@@ -22,6 +22,8 @@ import { GROK_CLI_MODEL, readGrokCliSession } from './grok-cli.js';
 
 export type Vendor =
   | 'openai'
+  | 'flare'
+  | 'sunburst'
   | 'google'
   | 'googlelite'
   | 'googlepro'
@@ -60,6 +62,12 @@ const ALIASES: Record<string, Vendor> = {
   'gpt-image': 'openai',
   'gpt-image-2': 'openai',
   dalle: 'openai',
+
+  flare: 'flare',
+  'gpt-image-2.5-flare': 'flare',
+
+  sunburst: 'sunburst',
+  'gpt-image-2.5-sunburst': 'sunburst',
 
   google: 'google',
   gemini: 'google',
@@ -162,6 +170,22 @@ const CATALOGUE: Record<
     direct: 'gpt-image-2',
     gateway: 'openai/gpt-image-2',
     label: 'GPT Image 2',
+    batches: true,
+    api: 'image',
+  },
+  // No `direct`: OpenAI's own /v1/models lists gpt-image-1 through gpt-image-2
+  // only, so the gateway is the only way in. Checked 9 September 2026, when a
+  // direct call for the sunburst id 403'd on organisation verification anyway.
+  // Both answered n=2 in a single call, so they batch like their sibling.
+  flare: {
+    gateway: 'openai/gpt-image-2.5-flare',
+    label: 'GPT Image 2.5 Flare',
+    batches: true,
+    api: 'image',
+  },
+  sunburst: {
+    gateway: 'openai/gpt-image-2.5-sunburst',
+    label: 'GPT Image 2.5 Sunburst',
     batches: true,
     api: 'image',
   },
@@ -276,6 +300,8 @@ export function supportsBatch(vendor: Vendor): boolean {
  */
 const NEAREST_REACHABLE: Readonly<Partial<Record<Vendor, readonly Vendor[]>>> = {
   openai: ['googlepro', 'google', 'googlelite'],
+  flare: ['openai', 'googlepro', 'google'],
+  sunburst: ['openai', 'googlepro', 'google'],
   recraft: ['googlepro', 'google', 'googlelite'],
   'recraft-utility': ['recraft', 'googlepro', 'google'],
   'recraft-utility-pro': ['recraft', 'googlepro', 'google'],

@@ -25,6 +25,8 @@ describe('picking a vendor', () => {
       expect(resolveVendor(s, 'openai')).toBe('google');
     for (const s of ['gemini-pro', 'geminipro', 'gemini-3-pro']) expect(resolveVendor(s, 'openai')).toBe('googlepro');
     for (const s of ['openai', 'gpt-image-2', 'dalle']) expect(resolveVendor(s, 'google')).toBe('openai');
+    for (const s of ['flare', 'gpt-image-2.5-flare', 'FLARE']) expect(resolveVendor(s, 'google')).toBe('flare');
+    for (const s of ['sunburst', 'gpt-image-2.5-sunburst']) expect(resolveVendor(s, 'google')).toBe('sunburst');
     for (const s of ['seedream', 'bytedance']) expect(resolveVendor(s, 'openai')).toBe('bytedance');
     for (const s of ['svg', 'arrow', 'quiver', 'quiverai']) expect(resolveVendor(s, 'openai')).toBe('quiver');
     for (const s of ['grok', 'xai', 'imagine']) expect(resolveVendor(s, 'openai')).toBe('xai');
@@ -49,6 +51,23 @@ describe('picking a vendor', () => {
     expect(chooseModel('recraft-utility-pro', g).modelId).toBe('recraft/recraft-v4.1-utility-pro');
     expect(chooseModel('recraft-v4.1', g).modelId).toBe('recraft/recraft-v4.1');
     expect(chooseModel('bytedance', g).modelId).toBe('bytedance/seedream-5.0-pro');
+    expect(chooseModel('flare', g).modelId).toBe('openai/gpt-image-2.5-flare');
+    expect(chooseModel('sunburst', g).modelId).toBe('openai/gpt-image-2.5-sunburst');
+  });
+
+  it('reaches Flare and Sunburst through the image api, gateway-only', () => {
+    // OpenAI's own /v1/models lists gpt-image-1 through gpt-image-2 only, so
+    // there is no direct id for either; both answered n=2 in a single call on
+    // 9 September 2026, so they batch like their GPT Image 2 sibling.
+    const g = with_({ gatewayKey: 'g' });
+    for (const v of ['flare', 'sunburst'] as const) {
+      const c = chooseModel(v, g);
+      expect(c.route).toBe('gateway');
+      expect(c.api).toBe('image');
+      expect(supportsBatch(v)).toBe(true);
+    }
+    expect(() => chooseModel('flare', base)).toThrow(/AI_GATEWAY_API_KEY/);
+    expect(() => chooseModel('sunburst', base)).toThrow(/AI_GATEWAY_API_KEY/);
   });
 
   it('reaches Recraft through the image api, the workaround having been retired', () => {

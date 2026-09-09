@@ -743,6 +743,8 @@ kbd {
 
 var MODELS = {
   openai:     { name: 'GPT Image 2',            vendor: 'OpenAI',    id: 'openai/gpt-image-2' },
+  flare:      { name: 'GPT Image 2.5 Flare',    vendor: 'OpenAI',    id: 'openai/gpt-image-2.5-flare' },
+  sunburst:   { name: 'GPT Image 2.5 Sunburst', vendor: 'OpenAI',    id: 'openai/gpt-image-2.5-sunburst' },
   googlepro:  { name: 'Gemini 3 Pro Image',     vendor: 'Google',    id: 'google/gemini-3-pro-image' },
   google:     { name: 'Gemini 3.1 Flash',       vendor: 'Google',    id: 'google/gemini-3.1-flash-image' },
   googlelite: { name: 'Gemini 3.1 Flash Lite',  vendor: 'Google',    id: 'google/gemini-3.1-flash-lite-image' },
@@ -777,7 +779,7 @@ var VIDEO_MODELS = {
                    rate: 'Token-priced — $5.60 per million tokens at 480p/720p', five: 'depends on tokens' }
 };
 
-var IMAGE_ORDER = ['openai','googlepro','google','googlelite','recraft','bytedance','grok2','muse','quiver','xai'];
+var IMAGE_ORDER = ['openai','flare','sunburst','googlepro','google','googlelite','recraft','bytedance','grok2','muse','quiver','xai'];
 var VIDEO_ORDER = ['veo','minimax-max','grok','gemini','flux','minimax','seedance'];
 
 /* v: 'pass' | 'part' | 'miss' | null (null = nobody graded it) */
@@ -789,6 +791,8 @@ var PROMPTS = [
     graded: 'Every cell graded — the count is countable.',
     verdicts: {
       openai:     ['pass', '7, correct layout, nothing touching.'],
+      flare:      ['pass', '7, correct layout, nothing touching.'],
+      sunburst:   ['pass', '7, correct layout, nothing touching.'],
       googlepro:  ['pass', '7, correct layout, nothing touching.'],
       google:     ['part', '7 and the layout is right, but one bolt touches its neighbour.'],
       googlelite: ['part', '7, correct layout; the upright one overlaps the bolt behind it.'],
@@ -804,9 +808,11 @@ var PROMPTS = [
     key: 'absence', kind: 'image', label: 'Absence',
     brief: 'An empty hotel corridor at 3am. No people, no reflections in any mirror, no light under any door, nothing on the floor. Bare carpet, closed doors, one ceiling light.',
     checks: ['No people', 'No mirrors, and no reflections', 'No light under any door', 'Nothing on the floor', 'Exactly one ceiling light'],
-    graded: 'Three cells graded. The rest are published unjudged.',
+    graded: 'Five cells graded. The rest are published unjudged.',
     verdicts: {
       openai:    ['pass', 'Fully compliant: nobody there, nothing on the floor, no light under any door, one fitting.'],
+      flare:     ['pass', 'Fully compliant — empty corridor, closed doors, one fitting, nothing reflected.'],
+      sunburst:  ['pass', 'Fully compliant — empty corridor, closed doors, one fitting, nothing reflected.'],
       grok2:     ['pass', 'Fully compliant — empty carpet, closed doors, a single ceiling fitting.'],
       bytedance: ['miss', 'Two framed mirrors, two ceiling lights, and "AI generated" stamped across the corner.']
     }
@@ -815,9 +821,11 @@ var PROMPTS = [
     key: 'binding', kind: 'image', label: 'Attribute binding',
     brief: 'Five objects in a row on a white studio backdrop: a matte black ceramic banana, a glossy yellow steel wrench, a translucent green wooden mug, a brushed copper cloth apple, a rough concrete glass fish.',
     checks: ['Banana is matte black', 'Wrench is glossy yellow', 'Mug is translucent green', 'Apple is brushed copper', 'Fish is rough concrete'],
-    graded: 'Two cells graded. Every colour is deliberately wrong for its object, so a yellow banana is a visible failure rather than a matter of taste.',
+    graded: 'Four cells graded. Every colour is deliberately wrong for its object, so a yellow banana is a visible failure rather than a matter of taste.',
     verdicts: {
       openai: ['pass', 'All five bound, and a decent fist of the materials.'],
+      flare:  ['pass', 'All five bound; concrete fish body kept apart from its glass fins.'],
+      sunburst: ['pass', 'All five bound — the green mug even shows wood grain through the glass.'],
       grok2:  ['pass', 'All five bound and the materials read correctly, cleanly separated on the backdrop.'],
       xai:    ['part', 'Bound all five, then melted the wrench and drew the fish as a wireframe.']
     }
@@ -850,6 +858,8 @@ var PROMPTS = [
     graded: 'Every cell graded — four checkable things, all of them visible.',
     verdicts: {
       openai:     ['part', 'Pose right, two or three rings.'],
+      flare:      ['pass', 'Faces left, hands stacked, five plain bands, shadow on the left wall.'],
+      sunburst:   ['pass', 'Faces left, hands stacked, five rings (two stone-set), shadow on the left wall.'],
       google:     ['miss', 'Lit from the left, shadow thrown right. The one unambiguous miss in the whole run.'],
       googlepro:  ['part', 'Shadow correct on the identical prompt Flash got wrong. Hands not stacked.'],
       googlelite: ['part', 'Faces left, shadow correct, hands side by side rather than stacked.'],
