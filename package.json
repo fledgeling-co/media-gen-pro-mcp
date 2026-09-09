@@ -1,7 +1,7 @@
 {
   "name": "media-gen-pro-mcp",
-  "version": "0.5.0",
-  "description": "Image and video generation as an MCP tool. GPT Image 2, Gemini, Recraft, Seedream, Grok, Arrow SVG, plus MiniMax and Seedance video; reference images and context supported; returns file paths, not megabytes of base64.",
+  "version": "0.6.0",
+  "description": "Image and video generation as an MCP tool. GPT Image 2.5 Flare and Sunburst, Gemini, Recraft, Seedream, Grok, Muse, Arrow SVG, plus MiniMax and Seedance video; reference images and context supported; returns file paths, not megabytes of base64.",
   "type": "module",
   "engines": {
     "node": ">=20.11"
@@ -28,7 +28,6 @@
   "dependencies": {
     "@ai-sdk/gateway": "^4.0.33",
     "@ai-sdk/google": "^4.0.29",
-    "@ai-sdk/openai": "^4.0.25",
     "ai": "^7.0.44",
     "fastmcp": "^4.0.0",
     "zod": "^4.0.0"

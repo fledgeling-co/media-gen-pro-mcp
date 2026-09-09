@@ -43,7 +43,7 @@ export const ROUTER_MODEL = 'google/gemini-3.1-flash-lite';
  * test rather than a comment.
  */
 export const CHOICES = [
-  'openai',
+  'flare',
   'gemini-pro',
   'gemini',
   'gemini-lite',
@@ -86,7 +86,7 @@ const SYSTEM = `You route an image-generation request to one model. Answer with 
 
 The models, and what a single controlled comparison actually showed about each:
 
-- openai (GPT Image 2): the best at obeying rules stated in the prompt. The only model to get an exact count AND the arrangement right, and the only one to honour every "no X" exclusion. Pick it when the prompt states a number, an exclusion, or a precise arrangement.
+- flare (GPT Image 2.5 Flare): the best at obeying rules stated in the prompt. A clean pass on the exact count AND the arrangement, and it honoured every "no X" exclusion. Pick it when the prompt states a number, an exclusion, or a precise arrangement.
 - gemini (Gemini 3.1 Flash Image): fast and capable, good with reference images. The sensible pick for an ordinary illustration with no hard constraints.
 - gemini-lite (Gemini 3.1 Flash Lite Image): the same family as gemini at about half the per-image price, and the cheapest Google route here. It held the exact count and got the portrait's stated light direction right. Pick it when cost matters and the brief is ordinary.
 - gemini-pro (Gemini 3 Pro Image): careful composition when high obedience is needed. It passed the exact-count test and got a stated light direction right that the flash model inverted.
@@ -98,7 +98,7 @@ The models, and what a single controlled comparison actually showed about each:
 - svg (Arrow 1.1): emits real vector source, not pixels. Pick it for a diagram, flowchart, icon, logo, chart layout, or anything that must be editable or scale losslessly. It cannot produce a photograph.
 
 Rules:
-- Prefer openai when the prompt contains an exact count, an explicit exclusion, or a precise spatial arrangement.
+- Prefer flare when the prompt contains an exact count, an explicit exclusion, or a precise spatial arrangement.
 - Prefer photoreal when the prompt asks for a photograph and states no exact count.
 - Prefer svg for anything diagrammatic, even if the prompt does not say "SVG".
 - When nothing in the prompt is precise, prefer gemini or gemini-lite for cost.

@@ -6,6 +6,18 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [0.6.0] - 2026-09-09
+
+### Removed
+
+- **GPT Image 2 is gone**, superseded by its 2.5 siblings. The `openai` vendor, its `gpt-image`, `gpt-image-2` and `dalle` aliases, the `openai/gpt-image-2` gateway id, the direct OpenAI route, and `OPENAI_API_KEY` are all removed: setting that key now does nothing, and asking for `style: "openai"` answers "unknown style" instead of silently billing another model. The comparison files stay in `docs/examples/`, and the bench keeps the old column marked superseded, as evidence.
+- **`@ai-sdk/openai` leaves with it.** Nothing else imported the package.
+
+### Changed
+
+- **The default is now GPT Image 2.5 Flare.** Unstyled requests and the classifier fallback land on `flare`; `IMAGE_GEN_DEFAULT_PROVIDER` accepts `flare` where it accepted `openai`. The classifier's rule model answers `flare` for prompts with counts, exclusions and precise arrangements, and the advice notes name the 2.5 models instead.
+- The README comparison drops the GPT Image 2 column from all six tables.
+
 ## [0.5.0] - 2026-09-09
 
 ### Added

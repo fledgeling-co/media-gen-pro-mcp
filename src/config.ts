@@ -42,13 +42,13 @@ const boolish = (fallback: boolean) =>
     });
 
 const EnvSchema = z.object({
-  OPENAI_API_KEY: z.string().trim().max(500).optional(),
   GEMINI_API_KEY: z.string().trim().max(500).optional(),
   /** Accepted as an alias because the Google SDKs read it and people have it set. */
   GOOGLE_API_KEY: z.string().trim().max(500).optional(),
   /**
-   * Vercel AI Gateway. One key reaches all three vendors, and it is the ONLY
-   * route to Seedream, which has no first-party key here.
+   * Vercel AI Gateway. One key reaches every vendor, and it is the ONLY route
+   * to the ones with no first-party key here: Seedream, Flare, Sunburst, the
+   * Recrafts, and Muse.
    */
   AI_GATEWAY_API_KEY: z.string().trim().max(500).optional(),
 
@@ -63,7 +63,7 @@ const EnvSchema = z.object({
   IMAGE_GEN_OUTPUT_DIR: z.string().trim().max(1000).optional(),
 
   /** Which vendor is used when the caller names no style. */
-  IMAGE_GEN_DEFAULT_PROVIDER: z.enum(['openai', 'google', 'bytedance']).optional(),
+  IMAGE_GEN_DEFAULT_PROVIDER: z.enum(['flare', 'google', 'bytedance']).optional(),
 
   /**
    * Style aliases this deployment may actually reach, comma-separated. Empty means no restriction.
@@ -112,11 +112,10 @@ const EnvSchema = z.object({
 });
 
 export interface Config {
-  readonly openaiKey: string;
   readonly googleKey: string;
   readonly gatewayKey: string;
   readonly outputDir: string;
-  readonly defaultProvider: 'openai' | 'google' | 'bytedance';
+  readonly defaultProvider: 'flare' | 'google' | 'bytedance';
   /** Vendors this deployment may reach. Empty array means "no restriction configured". */
   readonly allowedVendors: readonly Vendor[];
   readonly preferGateway: boolean;
@@ -127,7 +126,7 @@ export interface Config {
   readonly videoMaxPerHour: number;
 }
 
-export const DEFAULT_PROVIDER = 'openai' as const;
+export const DEFAULT_PROVIDER = 'flare' as const;
 
 /**
  * The vendor used when the caller names none and the router cannot run.
@@ -137,17 +136,12 @@ export const DEFAULT_PROVIDER = 'openai' as const;
  * request on a missing key, which reads as a broken install rather than as a
  * default nobody chose.
  *
- * The tie is broken toward OpenAI: with a gateway key everything is reachable,
- * and with both first-party keys either would work, so the one that was best at
- * following instructions in the published comparison wins.
+ * The tie is broken toward Flare: with a gateway key everything is reachable,
+ * so the model with the strongest obedience record in the published comparison
+ * wins.
  */
-export function inferDefaultProvider(
-  openaiKey: string,
-  googleKey: string,
-  gatewayKey: string,
-): 'openai' | 'google' | 'bytedance' {
-  if (gatewayKey !== '') return 'openai';
-  if (openaiKey !== '') return 'openai';
+export function inferDefaultProvider(googleKey: string, gatewayKey: string): 'flare' | 'google' | 'bytedance' {
+  if (gatewayKey !== '') return 'flare';
   if (googleKey !== '') return 'google';
   return DEFAULT_PROVIDER;
 }
@@ -184,15 +178,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const e = parsed.data;
   // `||` rather than `??`: a key present but empty is the common shape in a
   // committed .env file, and it must fall through to the alias.
-  const openaiKey = e.OPENAI_API_KEY || '';
   const googleKey = e.GEMINI_API_KEY || e.GOOGLE_API_KEY || '';
   const gatewayKey = e.AI_GATEWAY_API_KEY || '';
   return {
-    openaiKey,
     googleKey,
     gatewayKey,
     outputDir: e.IMAGE_GEN_OUTPUT_DIR || '',
-    defaultProvider: e.IMAGE_GEN_DEFAULT_PROVIDER || inferDefaultProvider(openaiKey, googleKey, gatewayKey),
+    defaultProvider: e.IMAGE_GEN_DEFAULT_PROVIDER || inferDefaultProvider(googleKey, gatewayKey),
     allowedVendors: parseAllowedVendors(e.IMAGE_GEN_ALLOWED_STYLES),
     preferGateway: e.IMAGE_GEN_PREFER_GATEWAY,
     maxPerHour: e.IMAGE_GEN_MAX_PER_HOUR,

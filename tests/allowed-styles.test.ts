@@ -42,7 +42,8 @@ describe('nearestReachableVendor', () => {
     // This is the case that cost a finished deck: the classifier correctly chose the
     // photorealism vendor and the gateway had no ZDR credential for it.
     expect(nearestReachableVendor('recraft', allowed)).toBe('googlepro');
-    expect(nearestReachableVendor('openai', allowed)).toBe('googlepro');
+    expect(nearestReachableVendor('flare', allowed)).toBe('googlepro');
+    expect(nearestReachableVendor('sunburst', allowed)).toBe('googlepro');
   });
 
   it('keeps a cheap request cheap', () => {

@@ -4,8 +4,8 @@ import { KNOWN_VIDEO_STYLES, chooseVideoModel, resolveVideoVendor } from '../src
 import type { Config } from '../src/config.js';
 
 const base: Config = {
-  openaiKey: '', googleKey: '', gatewayKey: '', outputDir: '',
-  defaultProvider: 'openai',
+  googleKey: '', gatewayKey: '', outputDir: '',
+  defaultProvider: 'flare',
   allowedVendors: [], preferGateway: false,
   maxPerHour: 60, maxPerCall: 4, timeoutMs: 180_000,
   videoTimeoutMs: 600_000, videoMaxPerHour: 20,

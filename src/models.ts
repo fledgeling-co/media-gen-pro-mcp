@@ -15,13 +15,11 @@
 
 import { createGateway } from '@ai-sdk/gateway';
 import { createGoogle } from '@ai-sdk/google';
-import { createOpenAI } from '@ai-sdk/openai';
 import type { ImageModel, LanguageModel } from 'ai';
 import type { Config } from './config.js';
 import { GROK_CLI_MODEL, readGrokCliSession } from './grok-cli.js';
 
 export type Vendor =
-  | 'openai'
   | 'flare'
   | 'sunburst'
   | 'google'
@@ -58,11 +56,6 @@ export interface ModelChoice {
  * look up a name they already know by a different one.
  */
 const ALIASES: Record<string, Vendor> = {
-  openai: 'openai',
-  'gpt-image': 'openai',
-  'gpt-image-2': 'openai',
-  dalle: 'openai',
-
   flare: 'flare',
   'gpt-image-2.5-flare': 'flare',
 
@@ -166,17 +159,11 @@ const CATALOGUE: Record<
     api: 'image' | 'language' | 'openai-compat' | 'grok-cli';
   }
 > = {
-  openai: {
-    direct: 'gpt-image-2',
-    gateway: 'openai/gpt-image-2',
-    label: 'GPT Image 2',
-    batches: true,
-    api: 'image',
-  },
   // No `direct`: OpenAI's own /v1/models lists gpt-image-1 through gpt-image-2
   // only, so the gateway is the only way in. Checked 9 September 2026, when a
   // direct call for the sunburst id 403'd on organisation verification anyway.
-  // Both answered n=2 in a single call, so they batch like their sibling.
+  // GPT Image 2 itself was removed in 0.6.0, superseded by these two siblings.
+  // Both answered n=2 in a single call, so they batch.
   flare: {
     gateway: 'openai/gpt-image-2.5-flare',
     label: 'GPT Image 2.5 Flare',
@@ -299,9 +286,8 @@ export function supportsBatch(vendor: Vendor): boolean {
  * vendor added later is reachable-or-substituted instead of fatal.
  */
 const NEAREST_REACHABLE: Readonly<Partial<Record<Vendor, readonly Vendor[]>>> = {
-  openai: ['googlepro', 'google', 'googlelite'],
-  flare: ['openai', 'googlepro', 'google'],
-  sunburst: ['openai', 'googlepro', 'google'],
+  flare: ['sunburst', 'googlepro', 'google'],
+  sunburst: ['flare', 'googlepro', 'google'],
   recraft: ['googlepro', 'google', 'googlelite'],
   'recraft-utility': ['recraft', 'googlepro', 'google'],
   'recraft-utility-pro': ['recraft', 'googlepro', 'google'],
@@ -309,8 +295,8 @@ const NEAREST_REACHABLE: Readonly<Partial<Record<Vendor, readonly Vendor[]>>> = 
   bytedance: ['googlepro', 'google', 'googlelite'],
   googlepro: ['googlepro', 'google', 'googlelite'],
   google: ['google', 'googlepro', 'googlelite'],
-  googlelite: ['google', 'googlepro', 'openai'],
-  muse: ['google', 'openai'],
+  googlelite: ['google', 'googlepro'],
+  muse: ['google', 'googlepro'],
   quiver: ['quiver'],
   xai: ['google', 'googlepro', 'googlelite'],
   xaicli: ['google', 'googlepro', 'googlelite'],
@@ -358,11 +344,7 @@ export function chooseModel(vendor: Vendor, config: Config): ModelChoice {
   }
 
   const directKey =
-    vendor === 'openai'
-      ? config.openaiKey
-      : vendor === 'google' || vendor === 'googlelite' || vendor === 'googlepro'
-        ? config.googleKey
-        : '';
+    vendor === 'google' || vendor === 'googlelite' || vendor === 'googlepro' ? config.googleKey : '';
   const canDirect = entry.direct !== undefined && directKey !== '';
   const canGateway = config.gatewayKey !== '';
 
@@ -376,9 +358,8 @@ export function chooseModel(vendor: Vendor, config: Config): ModelChoice {
   const canUseGateway = canGateway && entry.gateway !== undefined;
   const useGateway = canUseGateway && (config.preferGateway || !canDirect);
   if (!useGateway && !canDirect) {
-    const wanted = vendor === 'openai' ? 'OPENAI_API_KEY' : 'GEMINI_API_KEY';
     throw new RoutingError(
-      `No key for ${entry.label}. Set ${wanted} for the direct route, or AI_GATEWAY_API_KEY to reach it through the gateway.`,
+      `No key for ${entry.label}. Set GEMINI_API_KEY for the direct route, or AI_GATEWAY_API_KEY to reach it through the gateway.`,
     );
   }
 
@@ -399,9 +380,6 @@ export function imageModelFor(choice: ModelChoice, config: Config): ImageModel {
   if (choice.route === 'gateway') {
     return createGateway({ apiKey: config.gatewayKey }).imageModel(choice.modelId);
   }
-  if (choice.vendor === 'openai') {
-    return createOpenAI({ apiKey: config.openaiKey }).imageModel(choice.modelId);
-  }
   return createGoogle({ apiKey: config.googleKey }).image(choice.modelId);
 }
 
@@ -416,7 +394,8 @@ export function languageModelFor(choice: ModelChoice, config: Config): LanguageM
 export function availableRoutes(config: Config): { vendor: Vendor; route: Route; label: string }[] {
   const out: { vendor: Vendor; route: Route; label: string }[] = [];
   for (const vendor of [
-    'openai',
+    'flare',
+    'sunburst',
     'google',
     'googlelite',
     'googlepro',

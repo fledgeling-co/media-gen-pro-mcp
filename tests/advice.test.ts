@@ -3,14 +3,14 @@ import { adviseFor, warnAbout } from '../src/advice.js';
 
 describe('suggesting a better model', () => {
   it('points a diagram at the vector model', () => {
-    const a = adviseFor('a flowchart with three boxes', 'openai');
+    const a = adviseFor('a flowchart with three boxes', 'flare');
     expect(a?.better).toContain('quiver');
     expect(a?.note).toMatch(/svg: true/);
   });
 
   it('stays quiet when the caller already picked the right one', () => {
     expect(adviseFor('a flowchart with three boxes', 'quiver')).toBeUndefined();
-    expect(adviseFor('exactly seven bolts', 'openai')).toBeUndefined();
+    expect(adviseFor('exactly seven bolts', 'flare')).toBeUndefined();
     expect(adviseFor('exactly seven bolts', 'flare')).toBeUndefined();
     expect(adviseFor('exactly seven bolts', 'sunburst')).toBeUndefined();
     expect(adviseFor('an empty room with no people', 'flare')).toBeUndefined();
@@ -20,7 +20,7 @@ describe('suggesting a better model', () => {
 
   it('names every model that passed the counting test, not just one', () => {
     const a = adviseFor('exactly seven brass bolts in a row', 'xai');
-    expect(a?.better).toEqual(['openai', 'googlepro', 'muse', 'flare', 'sunburst']);
+    expect(a?.better).toEqual(['googlepro', 'muse', 'flare', 'sunburst']);
   });
 
   it('needs a number as well as the word, so "exactly right" is not a count', () => {
@@ -31,8 +31,8 @@ describe('suggesting a better model', () => {
     // `xai` is excluded from the advice now: Grok Imagine 2.0 honoured every
     // exclusion in the run, so advising it to switch would be advice to leave a
     // model that passed.
-    expect(adviseFor('an empty room with no people', 'bytedance')?.better).toContain('openai');
-    expect(adviseFor('a street scene without cars', 'google')?.better).toContain('openai');
+    expect(adviseFor('an empty room with no people', 'bytedance')?.better).toContain('flare');
+    expect(adviseFor('a street scene without cars', 'google')?.better).toContain('flare');
     expect(adviseFor('an empty room with no people', 'xai')).toBeUndefined();
   });
 

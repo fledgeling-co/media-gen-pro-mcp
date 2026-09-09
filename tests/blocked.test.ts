@@ -51,7 +51,7 @@ describe('what to suggest after a refusal', () => {
   });
 
   it('admits when it cannot tell what was wrong', () => {
-    const out = renderBlock('a quiet harbour at dusk', 'GPT Image 2', 'blocked by safety system');
+    const out = renderBlock('a quiet harbour at dusk', 'GPT Image 2.5 Flare', 'blocked by safety system');
     expect(out).toMatch(/may be about a detail rather than the whole idea/);
   });
 
@@ -66,7 +66,7 @@ describe('what to suggest after a refusal', () => {
 
 describe('sending exact-data work away from image models entirely', () => {
   it('names code, not another model, for a chart', () => {
-    const a = adviseFor('a bar chart of quarterly revenue', 'openai');
+    const a = adviseFor('a bar chart of quarterly revenue', 'flare');
     expect(a?.better).toEqual([]);
     expect(a?.note).toMatch(/HTML and CSS/);
   });
@@ -74,11 +74,11 @@ describe('sending exact-data work away from image models entirely', () => {
   it('does not steal flowchart from the vector model', () => {
     // "chart" is a substring of "flowchart"; a flowchart is a diagram and Arrow
     // is right for it.
-    expect(adviseFor('a flowchart with three boxes', 'openai')?.better).toContain('quiver');
+    expect(adviseFor('a flowchart with three boxes', 'flare')?.better).toContain('quiver');
   });
 
   it('points a recurring subject at referenceImages, but not once one is supplied', () => {
-    expect(adviseFor('the same character again, from behind', 'openai', 0)?.note).toMatch(/referenceImages/);
-    expect(adviseFor('the same character again, from behind', 'openai', 1)).toBeUndefined();
+    expect(adviseFor('the same character again, from behind', 'flare', 0)?.note).toMatch(/referenceImages/);
+    expect(adviseFor('the same character again, from behind', 'flare', 1)).toBeUndefined();
   });
 });

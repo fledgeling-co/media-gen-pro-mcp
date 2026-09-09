@@ -13,7 +13,7 @@ You need at least one API key. Setup takes about five minutes.
       "command": "npx",
       "args": ["-y", "media-gen-pro-mcp"],
       "env": {
-        "OPENAI_API_KEY": "paste-your-key-here",
+        "AI_GATEWAY_API_KEY": "paste-your-key-here",
         "IMAGE_GEN_OUTPUT_DIR": "/absolute/path/to/your/project/public/images"
       }
     }
@@ -45,7 +45,7 @@ One tool, several models, because the right one genuinely differs by job. **Name
 Routing costs one call on a flash-lite model, about a second, and the choice and its reason come back with the result:
 
 ```
-Generated 1 image(s) with **GPT Image 2** via the direct route.
+Generated 1 image(s) with **GPT Image 2.5 Flare** via the gateway route.
 
 _Model chosen from your prompt: the prompt requires an exact count of seven items
 in a specific spatial arrangement. Pass `style` to override._
@@ -57,7 +57,7 @@ Without a gateway key the classifier cannot run, and the request falls back to w
 
 | Say this | You get | Good for | Needs |
 |---|---|---|---|
-| nothing | **GPT Image 2** (OpenAI) | the general default, strong text rendering and rule-following | `OPENAI_API_KEY` or the gateway |
+| nothing | **GPT Image 2.5 Flare** (`openai/gpt-image-2.5-flare`) | the general default, strong rule-following | the gateway |
 | `gemini`, `nanobanana` | **Gemini 3.1 Flash Image** | fast, cheap, good with reference images | `GEMINI_API_KEY` or the gateway |
 | `gemini-lite`, `flash-lite` | **Gemini 3.1 Flash Lite Image** | lowest cost, ultra-fast generation | `GEMINI_API_KEY` or the gateway |
 | `gemini-pro`, `geminipro` | **Gemini 3 Pro Image** | the same route, slower and more obedient | `GEMINI_API_KEY` or the gateway |
@@ -81,7 +81,7 @@ Set `svg: true` and you get vector source from Arrow 1.1: actual `<svg>` markup 
 
 After an SVG, the tool suggests offering you a raster version too, in a similar flat style, from one of the picture models. It won't generate that unasked; it's a second billed call.
 
-## Eleven models, six hard prompts
+## Ten models, six hard prompts
 
 One prompt per category, shown in full below each heading, the same text sent to every model, one generation each, nothing cherry-picked and nothing retried. The prompts are deliberately awkward: each one states a rule you can check by counting or looking, so you can grade the results yourself instead of taking my word for which is prettier.
 
@@ -98,10 +98,10 @@ The four-model rows were run 30 July 2026. Grok Imagine 2.0, Muse Image 1.0 and 
 
 > Exactly seven identical brass hexagonal bolts on a plain grey surface, arranged as two rows of three with the seventh bolt standing upright on its end at the front centre. No bolt touches another.
 
-| GPT Image 2 | Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
-|---|---|---|---|
-| ![](docs/examples/counting-openai.jpg) | ![](docs/examples/counting-google.jpg) | ![](docs/examples/counting-googlepro.jpg) | ![](docs/examples/counting-recraft.jpg) |
-| **7, correct layout, nothing touching** | 7, correct layout, one bolt touching | **7, correct layout, nothing touching** | 6 |
+| Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
+|---|---|---|
+| ![](docs/examples/counting-google.jpg) | ![](docs/examples/counting-googlepro.jpg) | ![](docs/examples/counting-recraft.jpg) |
+| 7, correct layout, one bolt touching | **7, correct layout, nothing touching** | 6 |
 
 | Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
 |---|---|---|---|---|
@@ -113,15 +113,15 @@ The four-model rows were run 30 July 2026. Grok Imagine 2.0, Muse Image 1.0 and 
 | ![](docs/examples/counting-flare.jpg) | ![](docs/examples/counting-sunburst.jpg) |
 | **7, correct layout, nothing touching** | **7, correct layout, nothing touching** |
 
-GPT Image 2, Gemini 3 Pro, Muse Image 1.0, Flare and Sunburst are the clean passes; Muse placed all seven with the upright bolt at the front centre and nothing touching, and both 2.5 siblings did exactly the same. Recraft produced by far the best photograph and got the count wrong, which is the trade in one image. Arrow counted correctly (it emits seven shapes, so the count is in the source) and ignored the layout. Grok Imagine 2.0 is a clear improvement on 1.0, whose result on this prompt — five bolts in a single row — is still in `docs/examples/counting-xai.jpg`.
+Gemini 3 Pro, Muse Image 1.0, Flare and Sunburst are the clean passes; Muse placed all seven with the upright bolt at the front centre and nothing touching, and both 2.5 siblings did exactly the same. Recraft produced by far the best photograph and got the count wrong, which is the trade in one image. Arrow counted correctly (it emits seven shapes, so the count is in the source) and ignored the layout. Grok Imagine 2.0 is a clear improvement on 1.0, whose result on this prompt — five bolts in a single row — is still in `docs/examples/counting-xai.jpg`.
 
 ### 2. Absence
 
 > An empty hotel corridor at 3am. No people, no reflections in any mirror, no light under any door, nothing on the floor. Bare carpet, closed doors, one ceiling light.
 
-| GPT Image 2 | Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
-|---|---|---|---|
-| ![](docs/examples/absence-openai.jpg) | ![](docs/examples/absence-google.jpg) | ![](docs/examples/absence-googlepro.jpg) | ![](docs/examples/absence-recraft.jpg) |
+| Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
+|---|---|---|
+| ![](docs/examples/absence-google.jpg) | ![](docs/examples/absence-googlepro.jpg) | ![](docs/examples/absence-recraft.jpg) |
 
 | Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
 |---|---|---|---|---|
@@ -131,15 +131,15 @@ GPT Image 2, Gemini 3 Pro, Muse Image 1.0, Flare and Sunburst are the clean pass
 |---|---|
 | ![](docs/examples/absence-flare.jpg) | ![](docs/examples/absence-sunburst.jpg) |
 
-Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. GPT Image 2 came back fully compliant: nobody there, nothing on the floor, no light under any door, one fitting. Seedream put two framed mirrors on the walls and two ceiling lights, and stamped "AI generated" across the corner. Grok Imagine 2.0 also came back fully compliant — empty carpet, closed doors, a single ceiling fitting and no light under any door. Flare and Sunburst both joined the compliant set: empty corridors, closed doors, single fittings, nothing on the floor and nothing reflected.
+Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. Seedream put two framed mirrors on the walls and two ceiling lights, and stamped "AI generated" across the corner. Grok Imagine 2.0 also came back fully compliant — empty carpet, closed doors, a single ceiling fitting and no light under any door. Flare and Sunburst both joined the compliant set: empty corridors, closed doors, single fittings, nothing on the floor and nothing reflected.
 
 ### 3. Attribute binding against the obvious pairing
 
 > Five objects in a row on a white studio backdrop: a matte black ceramic banana, a glossy yellow steel wrench, a translucent green wooden mug, a brushed copper cloth apple, a rough concrete glass fish.
 
-| GPT Image 2 | Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
-|---|---|---|---|
-| ![](docs/examples/binding-openai.jpg) | ![](docs/examples/binding-google.jpg) | ![](docs/examples/binding-googlepro.jpg) | ![](docs/examples/binding-recraft.jpg) |
+| Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
+|---|---|---|
+| ![](docs/examples/binding-google.jpg) | ![](docs/examples/binding-googlepro.jpg) | ![](docs/examples/binding-recraft.jpg) |
 
 | Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
 |---|---|---|---|---|
@@ -149,15 +149,15 @@ Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. GPT
 |---|---|
 | ![](docs/examples/binding-flare.jpg) | ![](docs/examples/binding-sunburst.jpg) |
 
-Every colour is deliberately wrong for its object, so a yellow banana is a visible failure rather than a matter of taste. GPT Image 2 bound all five and made a decent fist of the materials. Grok Imagine 2.0 bound all five too and got the materials as well: a matte black banana, a glossy yellow wrench, a translucent green mug, a brushed copper apple and a speckled concrete fish, all separated cleanly on the backdrop. Flare and Sunburst bound all five as well — Sunburst's mug even shows the wood grain through the green glass, and both kept the concrete body and glass fins of the fish apart instead of blending them.
+Every colour is deliberately wrong for its object, so a yellow banana is a visible failure rather than a matter of taste. Grok Imagine 2.0 bound all five and got the materials as well: a matte black banana, a glossy yellow wrench, a translucent green mug, a brushed copper apple and a speckled concrete fish, all separated cleanly on the backdrop. Flare and Sunburst bound all five as well — Sunburst's mug even shows the wood grain through the green glass, and both kept the concrete body and glass fins of the fish apart instead of blending them.
 
 ### 4. Geometric constraint
 
 > A clean flowchart: three rectangular boxes in a horizontal row connected left to right by two straight arrows. Every line at exactly 0 or 90 degrees, uniform gaps between boxes, no crossing lines, thin uniform stroke weight, flat colour, no shading.
 
-| GPT Image 2 | Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
-|---|---|---|---|
-| ![](docs/examples/diagram-openai.jpg) | ![](docs/examples/diagram-google.jpg) | ![](docs/examples/diagram-googlepro.jpg) | ![](docs/examples/diagram-recraft.jpg) |
+| Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
+|---|---|---|
+| ![](docs/examples/diagram-google.jpg) | ![](docs/examples/diagram-googlepro.jpg) | ![](docs/examples/diagram-recraft.jpg) |
 
 | Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
 |---|---|---|---|---|
@@ -167,15 +167,15 @@ Every colour is deliberately wrong for its object, so a yellow banana is a visib
 |---|---|
 | ![](docs/examples/diagram-flare.jpg) | ![](docs/examples/diagram-sunburst.jpg) |
 
-This is the category the vector model exists for, and it wins it: exact geometry, uniform stroke, labelled boxes, and you can open the file and edit any of it. Recraft came second and labelled its boxes too, with uneven widths. GPT Image 2 drew clean unlabelled boxes of three different sizes. Zoom in on any of the raster ones and the "straight" lines wobble, because a sampler is hallucinating straightness pixel by pixel rather than drawing a line.
+This is the category the vector model exists for, and it wins it: exact geometry, uniform stroke, labelled boxes, and you can open the file and edit any of it. Recraft came second and labelled its boxes too, with uneven widths. Zoom in on any of the raster ones and the "straight" lines wobble, because a sampler is hallucinating straightness pixel by pixel rather than drawing a line.
 
 ### 5. Reflection and shadow
 
 > A chrome kettle on a mirrored tabletop beside a window at 4pm. The reflection in the tabletop shows the underside of the kettle, and its shadow falls away from the window across the table.
 
-| GPT Image 2 | Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
-|---|---|---|---|
-| ![](docs/examples/physics-openai.jpg) | ![](docs/examples/physics-google.jpg) | ![](docs/examples/physics-googlepro.jpg) | ![](docs/examples/physics-recraft.jpg) |
+| Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
+|---|---|---|
+| ![](docs/examples/physics-google.jpg) | ![](docs/examples/physics-googlepro.jpg) | ![](docs/examples/physics-recraft.jpg) |
 
 | Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
 |---|---|---|---|---|
@@ -191,10 +191,10 @@ Reflections are the reliable giveaway of a model compositing plausible patches r
 
 > A woman in her fifties sitting on a wooden stool against a bare plaster wall, three-quarter view facing left, wearing a plain charcoal roll-neck jumper. Her hands rest one on top of the other on her left knee, with exactly five thin silver rings between them. Single hard window light from the right, casting her shadow onto the wall to the left. Sharp focus on the eyes, shallow depth of field, 85mm.
 
-| GPT Image 2 | Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
-|---|---|---|---|
-| ![](docs/examples/portrait-openai.jpg) | ![](docs/examples/portrait-google.jpg) | ![](docs/examples/portrait-googlepro.jpg) | ![](docs/examples/portrait-recraft.jpg) |
-| pose right, 2-3 rings | **shadow on the wrong side** | shadow correct, hands not stacked | best photo, ~5 rings |
+| Gemini 3.1 Flash | Gemini 3 Pro | Recraft V4.1 Pro |
+|---|---|---|
+| ![](docs/examples/portrait-google.jpg) | ![](docs/examples/portrait-googlepro.jpg) | ![](docs/examples/portrait-recraft.jpg) |
+| **shadow on the wrong side** | shadow correct, hands not stacked | best photo, ~5 rings |
 
 | Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
 |---|---|---|---|---|
@@ -212,7 +212,7 @@ Four checkable things: which way she faces, whether one hand sits on the other, 
 
 Nothing here is a benchmark, but the shape is consistent enough to route by:
 
-- **GPT Image 2** for briefs with rules in them. It was one of the models to pass the count outright and one of four to honour every "no" in the absence prompt, alongside Grok Imagine 2.0, Flare and Sunburst.
+- **GPT Image 2.5 Flare** for briefs with rules in them, and the default when you name no style. A clean pass on the count and the arrangement, every "no" in the absence prompt honoured, all five bindings bound.
 - **Recraft V4.1 Pro** when it has to look like a photograph, and check the details yourself. `recraft-utility` and `recraft-v4.1` are the cheaper siblings at a sixth of the price; `recraft-utility-pro` matches Pro's price.
 - **Arrow 1.1** for anything diagrammatic, where it is not competing with the others so much as doing a different job.
 - **Gemini 3.1 Flash** as the cheap default, with the caveat that it is the one model observed to invert a stated light direction.
@@ -340,8 +340,6 @@ n:               3
 
 ## Rough edges, said plainly
 
-**GPT Image 2 needs project access your OpenAI account might not have.** Mine doesn't. The error is clear when it happens (`Project ... does not have access to model gpt-image-2`), but it's the default model, so if you hit it on your first try, that's why. Check your project's model permissions in the OpenAI dashboard, or just use `gemini` instead.
-
 **Gemini can't do more than one image per call.** Asking for three means three requests behind the scenes, fanned out in parallel. Worth knowing why three Gemini images take about as long as one and cost three times as much.
 
 **Nobody agrees what format they're returning.** Gemini returns JPEG, Recraft returns WebP, and Arrow returns SVG source labelled `image/png`. The server sniffs the actual bytes and names the file accordingly rather than trusting the label, so you get `.jpg`, `.webp` and `.svg` where those are what arrived. Nothing for you to do; it's just why extensions vary.
@@ -354,13 +352,11 @@ n:               3
 
 You need at least one. Any one is enough to start.
 
-**OpenAI** ([platform.openai.com/api-keys](https://platform.openai.com/api-keys)) gives you GPT Image 2, subject to the access caveat above.
-
 **Google AI Studio** ([aistudio.google.com/apikey](https://aistudio.google.com/apikey)) gives you Gemini 3.1 Flash Image. Sign in, click **Create API key**, copy it. This is the quickest one to get working.
 
 **Or no key at all**, for one route: if you have xAI's `grok` CLI installed and signed in, `style: "grok-cli"` uses that session and bills your X Premium or SuperGrok subscription rather than any API balance. It reads the token from `~/.grok/auth.json`, never writes to it, and never refreshes it, because two programs writing one auth file is how a working login gets broken.
 
-**Vercel AI Gateway** ([vercel.com/docs/ai-gateway](https://vercel.com/docs/ai-gateway)) gives you everything from one key, and it's the only way to reach Recraft, Seedream, Grok Imagine, Muse and Arrow, none of which have a first-party key here. If you only get one key, get this one.
+**Vercel AI Gateway** ([vercel.com/docs/ai-gateway](https://vercel.com/docs/ai-gateway)) gives you everything from one key, and it's the only way to reach Flare, Sunburst, Recraft, Seedream, Grok Imagine, Muse and Arrow, none of which have a first-party key here. If you only get one key, get this one.
 
 Treat any of them like a password, because that's what they are. Don't paste one into a chat, don't commit one to a repo.
 
@@ -368,11 +364,11 @@ Treat any of them like a password, because that's what they are. Don't paste one
 
 **Every image costs you.** Image models are billed per image and they're the expensive kind, meaningfully more than a text call. Prices move, so check each vendor's current pricing rather than trusting a number written here.
 
-**Set a budget before you start.** OpenAI, Google Cloud and Vercel all let you set a spending limit and an alert. It takes two minutes each and it's the difference between a surprise and a number you chose. If you only do one thing from this section, do that one.
+**Set a budget before you start.** Google Cloud and Vercel both let you set a spending limit and an alert. It takes two minutes each and it's the difference between a surprise and a number you chose. If you only do one thing from this section, do that one.
 
 This server ships with an hourly cap of 60 images, on by default, because an assistant stuck in a retry loop is exactly the thing that runs up a bill nobody agreed to. There's also a per-call cap of 4, so "generate some options" can't quietly become forty. Both are yours to raise, deliberately rather than by accident.
 
-> **No liability for spend.** This is free software provided as-is under the MIT licence. You are responsible for your own API usage and any charges OpenAI, Google or Vercel bill you, including charges caused by bugs, misconfiguration, runaway agents, or anything else. Neither Luke Rhodes nor Fledgeling is liable for your spending. Set a budget.
+> **No liability for spend.** This is free software provided as-is under the MIT licence. You are responsible for your own API usage and any charges Google or Vercel bill you, including charges caused by bugs, misconfiguration, runaway agents, or anything else. Neither Luke Rhodes nor Fledgeling is liable for your spending. Set a budget.
 
 ## Settings
 
@@ -380,12 +376,11 @@ All optional except having at least one key. Set them alongside the key in the `
 
 | Setting | Default | What it does |
 |---|---|---|
-| `OPENAI_API_KEY` | | Your OpenAI key. Reaches GPT Image 2 directly |
 | `GEMINI_API_KEY` | | Your AI Studio key. `GOOGLE_API_KEY` works too, since Google's own tools read that one |
-| `AI_GATEWAY_API_KEY` | | Vercel AI Gateway. Reaches everything, and is the only route to Recraft, Seedream, Grok Imagine, Muse and Arrow |
+| `AI_GATEWAY_API_KEY` | | Vercel AI Gateway. Reaches everything, and is the only route to Flare, Sunburst, Recraft, Seedream, Grok Imagine, Muse and Arrow |
 | _(none)_ | | `style: "grok-cli"` needs no key. It uses the Grok CLI's signed-in session, read from `~/.grok/auth.json` |
 | `IMAGE_GEN_OUTPUT_DIR` | working directory | Where images are written. Point it at your project's image folder and the paths come back ready to use |
-| `IMAGE_GEN_DEFAULT_PROVIDER` | whichever key you set | Pins the fallback used when routing cannot run. Defaults to OpenAI when you have a gateway or OpenAI key, Google when Gemini is all you have |
+| `IMAGE_GEN_DEFAULT_PROVIDER` | whichever key you set | Pins the fallback used when routing cannot run. Defaults to Flare when you have a gateway key, Google when Gemini is all you have |
 | `IMAGE_GEN_ALLOWED_STYLES` | unset (no restriction) | Style aliases this deployment can actually reach, comma-separated, e.g. `gemini-pro,gemini`. The classifier then chooses within the set, and a request it routes elsewhere is substituted by tier rather than refused. Set this wherever some vendors are unreachable — a Zero-Data-Retention gateway, a missing BYOK credential, a provider you have not enabled |
 | `IMAGE_GEN_PREFER_GATEWAY` | `false` | Route through the gateway even when a direct key exists. Turn on to put all the billing in one place |
 | `IMAGE_GEN_MAX_PER_HOUR` | `60` | Images per rolling hour. `0` removes the cap, knowing what that means for your bill |

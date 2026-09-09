@@ -4,8 +4,8 @@ import { CHOICES, route } from '../src/router.js';
 import { SVG_VENDOR, resolveVendor } from '../src/models.js';
 
 const base: Config = {
-  openaiKey: '', googleKey: '', gatewayKey: '', outputDir: '',
-  defaultProvider: 'openai',
+  googleKey: '', gatewayKey: '', outputDir: '',
+  defaultProvider: 'flare',
   allowedVendors: [], preferGateway: false,
   maxPerHour: 60, maxPerCall: 4, timeoutMs: 180_000,
   videoTimeoutMs: 1_500_000, videoMaxPerHour: 20,
@@ -28,25 +28,25 @@ describe('every answer the classifier may give reaches a real vendor', () => {
   });
 
   it('covers the models the README compares, not a subset of them', () => {
-    for (const choice of ['openai', 'gemini', 'gemini-lite', 'gemini-pro', 'photoreal', 'seedream', 'grok', 'muse', 'svg'])
+    for (const choice of ['flare', 'gemini', 'gemini-lite', 'gemini-pro', 'photoreal', 'seedream', 'grok', 'muse', 'svg'])
       expect(CHOICES).toContain(choice);
   });
 });
 
 describe('the default vendor follows the keys that exist', () => {
   it('picks the one the operator actually supplied', () => {
-    // A server holding only a Gemini key was defaulting to OpenAI and failing
-    // every unstyled request on a missing key, which reads as a broken install.
-    expect(inferDefaultProvider('', 'g', '')).toBe('google');
-    expect(inferDefaultProvider('o', '', '')).toBe('openai');
+    // A server holding only a Gemini key was defaulting to GPT Image 2 and
+    // failing every unstyled request on a missing key, which reads as a broken
+    // install.
+    expect(inferDefaultProvider('g', '')).toBe('google');
+    expect(inferDefaultProvider('', 'gw')).toBe('flare');
   });
 
-  it('breaks a tie toward openai', () => {
-    // With a gateway key everything is reachable and with both first-party keys
-    // either would work, so the model best at following instructions wins.
-    expect(inferDefaultProvider('o', 'g', '')).toBe('openai');
-    expect(inferDefaultProvider('', 'g', 'gw')).toBe('openai');
-    expect(inferDefaultProvider('', '', 'gw')).toBe('openai');
+  it('breaks a tie toward flare', () => {
+    // With a gateway key everything is reachable, so the model best at
+    // following instructions wins.
+    expect(inferDefaultProvider('g', 'gw')).toBe('flare');
+    expect(inferDefaultProvider('', '')).toBe('flare');
   });
 
   it('is overridable, and reads through loadConfig', () => {
@@ -65,7 +65,7 @@ describe('routing falls back rather than failing the generation', () => {
   it('reports a classifier failure instead of throwing', async () => {
     // A classifier that is down must not take the whole generation with it.
     const r = await route('a cat', { ...base, gatewayKey: 'not-a-real-key' }, 1);
-    expect(r.vendor).toBe('openai');
+    expect(r.vendor).toBe('flare');
     expect(r.fallback).toBeDefined();
   });
 });

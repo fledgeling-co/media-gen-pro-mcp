@@ -4,11 +4,10 @@ import { RateLimiter } from '../src/generate.js';
 import { KNOWN_STYLES, RoutingError, availableRoutes, chooseModel, resolveVendor, supportsBatch } from '../src/models.js';
 
 const base: Config = {
-  openaiKey: '',
   googleKey: '',
   gatewayKey: '',
   outputDir: '',
-  defaultProvider: 'openai',
+  defaultProvider: 'flare',
   allowedVendors: [],
   preferGateway: false,
   maxPerHour: 60,
@@ -22,20 +21,27 @@ const with_ = (o: Partial<Config>): Config => ({ ...base, ...o });
 describe('picking a vendor', () => {
   it('accepts the names people actually say', () => {
     for (const s of ['gemini', 'nanobanana', 'nano-banana', 'nano banana', 'google', 'GEMINI'])
-      expect(resolveVendor(s, 'openai')).toBe('google');
-    for (const s of ['gemini-pro', 'geminipro', 'gemini-3-pro']) expect(resolveVendor(s, 'openai')).toBe('googlepro');
-    for (const s of ['openai', 'gpt-image-2', 'dalle']) expect(resolveVendor(s, 'google')).toBe('openai');
+      expect(resolveVendor(s, 'flare')).toBe('google');
+    for (const s of ['gemini-pro', 'geminipro', 'gemini-3-pro']) expect(resolveVendor(s, 'flare')).toBe('googlepro');
     for (const s of ['flare', 'gpt-image-2.5-flare', 'FLARE']) expect(resolveVendor(s, 'google')).toBe('flare');
     for (const s of ['sunburst', 'gpt-image-2.5-sunburst']) expect(resolveVendor(s, 'google')).toBe('sunburst');
-    for (const s of ['seedream', 'bytedance']) expect(resolveVendor(s, 'openai')).toBe('bytedance');
-    for (const s of ['svg', 'arrow', 'quiver', 'quiverai']) expect(resolveVendor(s, 'openai')).toBe('quiver');
-    for (const s of ['grok', 'xai', 'imagine']) expect(resolveVendor(s, 'openai')).toBe('xai');
-    for (const s of ['recraft', 'photo', 'photoreal']) expect(resolveVendor(s, 'openai')).toBe('recraft');
-    for (const s of ['gemini-lite', 'flash-lite', 'geminilite']) expect(resolveVendor(s, 'openai')).toBe('googlelite');
-    for (const s of ['muse', 'meta', 'muse-image']) expect(resolveVendor(s, 'openai')).toBe('muse');
-    for (const s of ['utility', 'recraft-utility']) expect(resolveVendor(s, 'openai')).toBe('recraft-utility');
-    for (const s of ['utility-pro', 'recraft-utility-pro']) expect(resolveVendor(s, 'openai')).toBe('recraft-utility-pro');
-    expect(resolveVendor('recraft-v4.1', 'openai')).toBe('recraft-v4.1');
+    for (const s of ['seedream', 'bytedance']) expect(resolveVendor(s, 'flare')).toBe('bytedance');
+    for (const s of ['svg', 'arrow', 'quiver', 'quiverai']) expect(resolveVendor(s, 'flare')).toBe('quiver');
+    for (const s of ['grok', 'xai', 'imagine']) expect(resolveVendor(s, 'flare')).toBe('xai');
+    for (const s of ['recraft', 'photo', 'photoreal']) expect(resolveVendor(s, 'flare')).toBe('recraft');
+    for (const s of ['gemini-lite', 'flash-lite', 'geminilite']) expect(resolveVendor(s, 'flare')).toBe('googlelite');
+    for (const s of ['muse', 'meta', 'muse-image']) expect(resolveVendor(s, 'flare')).toBe('muse');
+    for (const s of ['utility', 'recraft-utility']) expect(resolveVendor(s, 'flare')).toBe('recraft-utility');
+    for (const s of ['utility-pro', 'recraft-utility-pro']) expect(resolveVendor(s, 'flare')).toBe('recraft-utility-pro');
+    expect(resolveVendor('recraft-v4.1', 'flare')).toBe('recraft-v4.1');
+  });
+
+  it('no longer knows GPT Image 2, which 0.6.0 removed', () => {
+    // A caller still asking for it must hear "unknown style", not silently
+    // bill a different model.
+    for (const s of ['openai', 'gpt-image', 'gpt-image-2', 'dalle']) {
+      expect(resolveVendor(s, 'flare')).toBeUndefined();
+    }
   });
 
   it('sends the current model id for each vendor', () => {
@@ -82,10 +88,10 @@ describe('picking a vendor', () => {
 
   it('falls back when no style is named, and refuses one it does not know', () => {
     expect(resolveVendor(undefined, 'google')).toBe('google');
-    expect(resolveVendor('  ', 'openai')).toBe('openai');
+    expect(resolveVendor('  ', 'flare')).toBe('flare');
     // undefined, not a silent fallback: a typo'd vendor must not quietly bill
     // the default one.
-    expect(resolveVendor('midjourney', 'openai')).toBeUndefined();
+    expect(resolveVendor('midjourney', 'flare')).toBeUndefined();
   });
 
   it('advertises every accepted spelling', () => {
@@ -96,15 +102,15 @@ describe('picking a vendor', () => {
 
 describe('routing to a key', () => {
   it('prefers the direct route when a first-party key exists', () => {
-    const c = chooseModel('openai', with_({ openaiKey: 'k', gatewayKey: 'g' }));
+    const c = chooseModel('google', with_({ googleKey: 'k', gatewayKey: 'g' }));
     expect(c.route).toBe('direct');
-    expect(c.modelId).toBe('gpt-image-2');
+    expect(c.modelId).toBe('gemini-3.1-flash-image');
   });
 
   it('uses the gateway when only the gateway key exists', () => {
-    const c = chooseModel('openai', with_({ gatewayKey: 'g' }));
+    const c = chooseModel('google', with_({ gatewayKey: 'g' }));
     expect(c.route).toBe('gateway');
-    expect(c.modelId).toBe('openai/gpt-image-2');
+    expect(c.modelId).toBe('google/gemini-3.1-flash-image');
   });
 
   it('reaches Gemini through the LANGUAGE api, on either route', () => {
@@ -117,7 +123,7 @@ describe('routing to a key', () => {
     expect(gw.api).toBe('language');
     expect(gw.modelId).toBe('google/gemini-3.1-flash-image');
     expect(chooseModel('google', with_({ googleKey: 'k' })).api).toBe('language');
-    expect(chooseModel('openai', with_({ openaiKey: 'k' })).api).toBe('image');
+    expect(chooseModel('flare', with_({ gatewayKey: 'g' })).api).toBe('image');
   });
 
   it('sends a DIFFERENT model id on each route for the same model', () => {
@@ -129,27 +135,26 @@ describe('routing to a key', () => {
   });
 
   it('honours preferGateway even when a direct key is present', () => {
-    expect(chooseModel('openai', with_({ openaiKey: 'k', gatewayKey: 'g', preferGateway: true })).route).toBe('gateway');
     expect(chooseModel('google', with_({ googleKey: 'k', gatewayKey: 'g', preferGateway: true })).route).toBe('gateway');
   });
 
   it('says which key is missing rather than failing at the vendor', () => {
-    expect(() => chooseModel('openai', base)).toThrow(RoutingError);
-    expect(() => chooseModel('openai', base)).toThrow(/OPENAI_API_KEY/);
+    expect(() => chooseModel('google', base)).toThrow(RoutingError);
     expect(() => chooseModel('google', base)).toThrow(/GEMINI_API_KEY/);
+    expect(() => chooseModel('flare', base)).toThrow(/AI_GATEWAY_API_KEY/);
   });
 
   it('routes a real SVG to the only model that writes vector source', () => {
     const c = chooseModel('quiver', with_({ gatewayKey: 'g' }));
     expect(c.modelId).toBe('quiverai/arrow-1.1');
     // Gateway-only, like Seedream: there is no first-party key to set.
-    expect(() => chooseModel('quiver', with_({ openaiKey: 'k' }))).toThrow(/only reachable through/);
+    expect(() => chooseModel('quiver', with_({ googleKey: 'k' }))).toThrow(/only reachable through/);
   });
 
   it('says Seedream has no first-party route at all', () => {
     // Not "set a key": there is no key to set. A message telling someone to get
     // a ByteDance key would send them somewhere that does not help.
-    expect(() => chooseModel('bytedance', with_({ openaiKey: 'k', googleKey: 'k' }))).toThrow(/only reachable through/);
+    expect(() => chooseModel('bytedance', with_({ googleKey: 'k' }))).toThrow(/only reachable through/);
     expect(chooseModel('bytedance', with_({ gatewayKey: 'g' })).route).toBe('gateway');
   });
 
@@ -162,7 +167,8 @@ describe('routing to a key', () => {
     expect(keyed(base)).toEqual([]);
     expect(keyed(with_({ googleKey: 'k' }))).toEqual(['google', 'googlelite', 'googlepro']);
     expect(keyed(with_({ gatewayKey: 'g' }))).toEqual([
-      'openai',
+      'flare',
+      'sunburst',
       'google',
       'googlelite',
       'googlepro',
@@ -185,7 +191,8 @@ describe('which vendors can return several images in one call', () => {
     // Established by calling it: `n: 2` is refused outright. Recorded here so a
     // request for several images fans out instead of failing.
     expect(supportsBatch('google')).toBe(false);
-    expect(supportsBatch('openai')).toBe(true);
+    expect(supportsBatch('flare')).toBe(true);
+    expect(supportsBatch('sunburst')).toBe(true);
     expect(supportsBatch('bytedance')).toBe(true);
   });
 });
@@ -231,9 +238,9 @@ describe('configuration', () => {
     expect(loadConfig({ IMAGE_GEN_PREFER_GATEWAY: 'yes' }).preferGateway).toBe(true);
   });
 
-  it('defaults to openai with a real hourly cap', () => {
+  it('defaults to flare with a real hourly cap', () => {
     const c = loadConfig({});
-    expect(c.defaultProvider).toBe('openai');
+    expect(c.defaultProvider).toBe('flare');
     expect(c.maxPerHour).toBe(60);
   });
 });

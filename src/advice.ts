@@ -96,7 +96,6 @@ export function adviseFor(prompt: string, vendor: Vendor, referenceCount?: numbe
 
   // Exact counts. Cardinality past about five is where samplers drift.
   if (
-    vendor !== 'openai' &&
     vendor !== 'googlepro' &&
     vendor !== 'muse' &&
     vendor !== 'flare' &&
@@ -106,17 +105,16 @@ export function adviseFor(prompt: string, vendor: Vendor, referenceCount?: numbe
   ) {
     return {
       signal: 'an exact count',
-      better: ['openai', 'googlepro', 'muse', 'flare', 'sunburst'],
+      better: ['googlepro', 'muse', 'flare', 'sunburst'],
       note:
-        'This prompt states an exact number. On the counting test in the README, GPT Image 2, Gemini 3 Pro Image, Muse Image 1.0, GPT Image 2.5 Flare and GPT Image 2.5 Sunburst got the count AND the arrangement right with nothing touching; Recraft drew six when asked for seven. ' +
-        'Try `style: "openai"`, `style: "gemini-pro"`, `style: "muse"`, `style: "flare"` or `style: "sunburst"` if the number matters.',
+        'This prompt states an exact number. On the counting test in the README, Gemini 3 Pro Image, Muse Image 1.0, GPT Image 2.5 Flare and GPT Image 2.5 Sunburst got the count AND the arrangement right with nothing touching; Recraft drew six when asked for seven. ' +
+        'Try `style: "gemini-pro"`, `style: "muse"`, `style: "flare"` or `style: "sunburst"` if the number matters.',
     };
   }
 
   // Negation. Text encoders have no NOT operator, so a forbidden noun tends to
   // summon itself.
   if (
-    vendor !== 'openai' &&
     vendor !== 'xai' &&
     vendor !== 'flare' &&
     vendor !== 'sunburst' &&
@@ -124,10 +122,10 @@ export function adviseFor(prompt: string, vendor: Vendor, referenceCount?: numbe
   ) {
     return {
       signal: 'things that must NOT appear',
-      better: ['openai', 'xai', 'flare', 'sunburst'],
+      better: ['xai', 'flare', 'sunburst'],
       note:
         'This prompt says what must NOT be in the image, which is the instruction models most often ignore: a forbidden object tends to summon itself. ' +
-        'GPT Image 2, Grok Imagine 2.0, GPT Image 2.5 Flare and GPT Image 2.5 Sunburst were the models to honour every exclusion in the README test, so `style: "openai"`, `style: "grok"`, `style: "flare"` or `style: "sunburst"` is the safer choice here.',
+        'Grok Imagine 2.0, GPT Image 2.5 Flare and GPT Image 2.5 Sunburst were the models to honour every exclusion in the README test, so `style: "grok"`, `style: "flare"` or `style: "sunburst"` is the safer choice here.',
     };
   }
 

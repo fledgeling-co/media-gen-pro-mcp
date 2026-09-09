@@ -38,7 +38,7 @@ const server = new FastMCP({
   instructions:
     'Generates images and writes them to disk, returning file paths rather than image bytes. Built for illustrating a ' +
     'site or document: point an `<img src>` at what it returns.\n\n' +
-    'State-of-the-art models behind one tool. GPT Image 2 by default; say "gemini"/"nanobanana" (Gemini 3.1 Flash Image), ' +
+    'State-of-the-art models behind one tool. GPT Image 2.5 Flare by default; say "gemini"/"nanobanana" (Gemini 3.1 Flash Image), ' +
     '"gemini-lite" (Gemini 3.1 Flash Lite Image), "photoreal" for Recraft V4.1 Pro (also "utility", "utility-pro", "recraft-v4.1"), ' +
     '"seedream" (Seedream 5.0 Pro), "grok" (Grok Imagine 2.0), "muse" (Muse Image 1.0), "flare" (GPT Image 2.5 Flare), ' +
     '"sunburst" (GPT Image 2.5 Sunburst). Say "grok-cli" to use a signed-in Grok CLI ' +
@@ -64,8 +64,8 @@ server.addTool({
   description:
     'Generate one or more images from a description and write them to disk, returning their paths. Optionally takes ' +
     'REFERENCE IMAGES (paths on this machine) and extra text context, both of which steer the result: use them to match ' +
-    'an existing style, keep a character or product consistent, or edit an image you already have. Defaults to OpenAI ' +
-    'GPT Image 2; pass `style` as gemini/nanobanana (Gemini 3.1 Flash Image), gemini-lite (Gemini 3.1 Flash Lite Image), ' +
+    'an existing style, keep a character or product consistent, or edit an image you already have. Defaults to ' +
+    'GPT Image 2.5 Flare; pass `style` as gemini/nanobanana (Gemini 3.1 Flash Image), gemini-lite (Gemini 3.1 Flash Lite Image), ' +
     'photoreal (Recraft V4.1 Pro), utility (Recraft V4.1 Utility), utility-pro (Recraft V4.1 Utility Pro), recraft-v4.1, ' +
     'seedream (Seedream 5.0 Pro), grok (Grok Imagine 2.0), muse (Muse Image 1.0), flare (GPT Image 2.5 Flare), ' +
     'sunburst (GPT Image 2.5 Sunburst), or grok-cli (a ' +
@@ -378,7 +378,7 @@ const routes = availableRoutes(config);
 process.stderr.write(
   `media-gen-pro-mcp ${VERSION} · ` +
     (routes.length === 0
-      ? 'NO KEYS — set OPENAI_API_KEY, GEMINI_API_KEY, or AI_GATEWAY_API_KEY'
+      ? 'NO KEYS — set GEMINI_API_KEY or AI_GATEWAY_API_KEY'
       : routes.map((r) => `${r.label} (${r.route})`).join(' · ')) +
     ` · cap: ${config.maxPerHour === 0 ? 'none' : `${String(config.maxPerHour)}/hour`}\n`,
 );
