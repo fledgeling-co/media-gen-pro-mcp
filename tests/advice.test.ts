@@ -5,11 +5,14 @@ describe('suggesting a better model', () => {
   it('points a diagram at the vector model', () => {
     const a = adviseFor('a flowchart with three boxes', 'flare');
     expect(a?.better).toContain('quiver');
+    expect(a?.better).toContain('quiver-telos');
     expect(a?.note).toMatch(/svg: true/);
+    expect(a?.note).toMatch(/Arrow 2/);
   });
 
   it('stays quiet when the caller already picked the right one', () => {
     expect(adviseFor('a flowchart with three boxes', 'quiver')).toBeUndefined();
+    expect(adviseFor('a flowchart with three boxes', 'quiver-telos')).toBeUndefined();
     expect(adviseFor('exactly seven bolts', 'flare')).toBeUndefined();
     expect(adviseFor('exactly seven bolts', 'flare')).toBeUndefined();
     expect(adviseFor('exactly seven bolts', 'sunburst')).toBeUndefined();
@@ -63,6 +66,7 @@ describe('warning about the model actually used', () => {
 
   it('tells the vector model it cannot photograph', () => {
     expect(warnAbout('a photorealistic kettle', 'quiver')).toMatch(/cannot produce a photograph/);
+    expect(warnAbout('a photorealistic kettle', 'quiver-telos')).toMatch(/cannot produce a photograph/);
     expect(warnAbout('a flat icon of a kettle', 'quiver')).toBeUndefined();
   });
 });

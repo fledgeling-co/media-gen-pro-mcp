@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="696" viewBox="0 0 1024 696">
+<!-- SVG created with Arrow, by QuiverAI (https://quiver.ai) -->
+  <defs>
+    <linearGradient id="background-gray" y2="1">
+      <stop stop-color="#9a9a9a" offset="0"/>
+      <stop stop-color="#969696" offset=".55"/>
+      <stop stop-color="#919191" offset="1"/>
+    </linearGradient>
+    <linearGradient id="shaft-top-gold" x1="150" x2="177" y1="69" y2="113" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e4b552" offset="0"/>
+      <stop stop-color="#d6a746" offset="1"/>
+    </linearGradient>
+    <linearGradient id="shaft-side-gold" x1="176" x2="199" y1="87" y2="137" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#b58a30" offset="0"/>
+      <stop stop-color="#b28a30" offset=".52"/>
+      <stop stop-color="#aa7f24" offset="1"/>
+    </linearGradient>
+    <linearGradient id="shaft-bottom-gold" x1="220" x2="227" y1="108" y2="137" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#916b1e" offset="0"/>
+      <stop stop-color="#7f5c15" offset="1"/>
+    </linearGradient>
+    <linearGradient id="head-front-gold" x1="47" x2="115" y1="93" y2="141" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#c49735" offset="0"/>
+      <stop stop-color="#ba8d2e" offset=".55"/>
+      <stop stop-color="#b98d2e" offset="1"/>
+    </linearGradient>
+    <linearGradient id="head-top-gold" x1="78" x2="103" y1="47" y2="90" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e9b953" offset="0"/>
+      <stop stop-color="#e7ba58" offset="1"/>
+    </linearGradient>
+    <linearGradient id="head-right-gold" x1="103" x2="147" y1="100" y2="118" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#997321" offset="0"/>
+      <stop stop-color="#987221" offset=".7"/>
+      <stop stop-color="#896419" offset="1"/>
+    </linearGradient>
+    <linearGradient id="head-lower-gold" x1="109" x2="138" y1="151" y2="172" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#916919" offset="0"/>
+      <stop stop-color="#805b12" offset="1"/>
+    </linearGradient>
+    <linearGradient id="upright-front-gold" x1="481" x2="519" y1="505" y2="507" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#b98d2d" offset="0"/>
+      <stop stop-color="#bd9131" offset=".5"/>
+      <stop stop-color="#b48829" offset="1"/>
+    </linearGradient>
+    <linearGradient id="upright-left-gold" x1="459" x2="483" y1="490" y2="490" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d3a23d" offset="0"/>
+      <stop stop-color="#c39734" offset="1"/>
+    </linearGradient>
+    <linearGradient id="upright-right-gold" x1="518" x2="541" y1="493" y2="493" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#866016" offset="0"/>
+      <stop stop-color="#7d5912" offset="1"/>
+    </linearGradient>
+    <linearGradient id="base-front-gold" x1="481" x2="514" y1="600" y2="653" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#957024" offset="0"/>
+      <stop stop-color="#876219" offset="1"/>
+    </linearGradient>
+    <linearGradient id="base-right-gold" x1="537" x2="568" y1="608" y2="616" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7d5913" offset="0"/>
+      <stop stop-color="#8d671b" offset="1"/>
+    </linearGradient>
+    <linearGradient id="base-top-gold" x1="462" x2="527" y1="559" y2="594" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e9b852" offset="0"/>
+      <stop stop-color="#dfad46" offset=".6"/>
+      <stop stop-color="#c4932f" offset="1"/>
+    </linearGradient>
+    <g id="horizontal-bolt">
+      <path id="cast-shadow" d="m61 151c11-3 29-1 48 0l166-47c17 0 35 7 46 14 12 8 6 14-7 19-29 10-98 25-147 37l6 6c-8 5-23 8-32 11-13 6-34-1-49-10l-28-15c-7-4-10-9-3-15z" fill="#555" opacity=".33"/>
+      <g id="bolt-shaft">
+        <path d="m134 78 141-34q14 3 21 14 9 11 8 33 0 16-15 26l-143 36-10-33z" fill="#82601b"/>
+        <path d="m136 78 139-34q12 4 19 13l2 5-149 38z" fill="url(#shaft-top-gold)"/>
+        <path d="m147 99 149-37q7 14 5 34l-145 35z" fill="url(#shaft-side-gold)"/>
+        <path d="m156 131 145-35q-1 12-13 19l-139 36z" fill="url(#shaft-bottom-gold)"/>
+        <path d="m142 94 152-35 2 3-149 39z" fill="#f5ce75" opacity=".69"/>
+        <path d="m139 99 7-2 10 32-6 19-9 2 6-20z" fill="#725011" opacity=".6"/>
+        <path d="m295 60q10 18 6 37" fill="none" opacity=".75" stroke="#71541d" stroke-width="2"/>
+        <path d="m152 149 135-34" fill="none" opacity=".65" stroke="#735216" stroke-width="1.5"/>
+      </g>
+      <g id="hexagonal-bolt-head">
+        <path d="m43 103 14-38 32-18 43 24 5 6 11 51 1 17-15 28-6 4-28 8-37-20-6-8z" fill="#a57b25"/>
+        <path d="m57 65 32-18 42 23 3 4-34 13z" fill="url(#head-top-gold)"/>
+        <path d="m43 103 14-38 42 23 14 59-14 36-34-19-8-9z" fill="url(#head-front-gold)"/>
+        <path d="m100 87 34-13 3 9 11 52-1 11-33 2z" fill="url(#head-right-gold)"/>
+        <path d="m114 147 33-4 1 5-14 25-5 3-30 8 3-11z" fill="url(#head-lower-gold)"/>
+        <path d="m59 64 40 23 14 58" fill="none" stroke="#ffe298" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"/>
+        <path d="m100 87 32-12" fill="none" opacity=".9" stroke="#efd081" stroke-width="1.1"/>
+        <path d="m58 156q1 6 8 10l33 18" fill="none" opacity=".65" stroke="#826824" stroke-width="1.4"/>
+        <path d="m136 78 12 57" fill="none" opacity=".4" stroke="#71541b" stroke-width="1.5"/>
+      </g>
+    </g>
+  </defs>
+  <g id="background">
+    <path d="M0 0H1024V696H0Z" fill="url(#background-gray)"/>
+  </g>
+  <g id="six-horizontal-gold-bolts">
+    <use id="upper-left-bolt" xlink:href="#horizontal-bolt"/>
+    <use id="upper-middle-bolt" transform="translate(325 4)" xlink:href="#horizontal-bolt"/>
+    <use id="upper-right-bolt" transform="translate(654 4)" xlink:href="#horizontal-bolt"/>
+    <use id="middle-left-bolt" transform="translate(0 192)" xlink:href="#horizontal-bolt"/>
+    <use id="middle-center-bolt" transform="translate(325 195)" xlink:href="#horizontal-bolt"/>
+    <use id="middle-right-bolt" transform="translate(654 195)" xlink:href="#horizontal-bolt"/>
+  </g>
+  <g id="standing-gold-bolt">
+    <path id="standing-bolt-shadow" d="m434 621c18-13 57-19 99-23 32-5 61-5 79 1 24 7 33 15 21 27-9 11-45 18-72 27h-79c-17-3-39-13-49-22z" fill="#535353" opacity=".33"/>
+    <g id="hexagonal-foot">
+      <path d="m434 577 20-19 26-12 44 1 26 14 16 14v47q-10 16-29 25l-59 3q-21-6-44-24z" fill="#a57922"/>
+      <path d="m434 577 20-19 27-12 42 1 26 14 15 14-28 24-62 2z" fill="url(#base-top-gold)"/>
+      <path d="m434 578 41 24v46q-23-8-40-22z" fill="#bb8e2d"/>
+      <path d="m436 580 36 21v44q-21-8-36-20z" fill="#c39634" opacity=".5"/>
+      <path d="m475 601q31-4 61-2l1 47q-16 5-59 2l-3-2z" fill="url(#base-front-gold)"/>
+      <path d="m537 598 28-21v44q-11 16-28 24z" fill="url(#base-right-gold)"/>
+      <path d="m436 577 39 23 59-2" fill="none" stroke="#ffe296" stroke-linejoin="round" stroke-width="2.3"/>
+      <path d="m475 602v44" fill="none" stroke="#e7bd66" stroke-width="1.5"/>
+      <path d="m480 649q30 2 56-2l18-12" fill="none" opacity=".8" stroke="#765719" stroke-width="1.7"/>
+      <path d="m537 601v43" fill="none" stroke="#a88129" stroke-width="1.2"/>
+    </g>
+    <path id="shaft-contact-shadow" d="m459 570 25 10 56-13 1 11-20 11-40 1-22-10z" fill="#846018" opacity=".55"/>
+    <g id="vertical-hexagonal-shaft">
+      <path d="m459 413 18-15q4-3 9-3h27q6 0 10 3l18 14v162l-22 12-37 2-23-14z" fill="#ab8027"/>
+      <path d="m459 414 22 14 1 158-23-12z" fill="url(#upright-left-gold)"/>
+      <path d="m481 428q18-3 37 0v156l-36 3z" fill="url(#upright-front-gold)"/>
+      <path d="m518 428 22-13v157l-22 12z" fill="url(#upright-right-gold)"/>
+      <path d="m460 413 17-14q3-3 9-3h27q6 0 10 3l15 12-21 14h-35z" fill="#ebba55"/>
+      <path d="m460 413 22 13 34 1 22-14-21 10h-34z" fill="#f4ca72"/>
+      <path d="m461 414 21 14h32" fill="none" stroke="#ffe29a" stroke-linecap="round" stroke-width="2.1"/>
+      <path d="m482 430v153" fill="none" opacity=".85" stroke="#e2b961" stroke-width="1.6"/>
+      <path d="m518 430v150" fill="none" stroke="#a57c26" stroke-width="1.2"/>
+      <path d="m540 416v156l-20 11" fill="none" opacity=".7" stroke="#795715" stroke-width="1.6"/>
+      <path d="m485 587 31-2" fill="none" stroke="#997121" stroke-width="1.2"/>
+    </g>
+  </g>
+</svg>

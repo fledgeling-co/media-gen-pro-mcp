@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { type Config, loadConfig } from '../src/config.js';
 import { RateLimiter } from '../src/generate.js';
-import { KNOWN_STYLES, RoutingError, availableRoutes, chooseModel, resolveVendor, supportsBatch } from '../src/models.js';
+import { KNOWN_STYLES, RoutingError, availableRoutes, chooseModel, isVectorVendor, resolveVendor, supportsBatch } from '../src/models.js';
 
 const base: Config = {
   googleKey: '',
@@ -26,7 +26,9 @@ describe('picking a vendor', () => {
     for (const s of ['flare', 'gpt-image-2.5-flare', 'FLARE']) expect(resolveVendor(s, 'google')).toBe('flare');
     for (const s of ['sunburst', 'gpt-image-2.5-sunburst']) expect(resolveVendor(s, 'google')).toBe('sunburst');
     for (const s of ['seedream', 'bytedance']) expect(resolveVendor(s, 'flare')).toBe('bytedance');
-    for (const s of ['svg', 'arrow', 'quiver', 'quiverai']) expect(resolveVendor(s, 'flare')).toBe('quiver');
+    for (const s of ['svg', 'arrow', 'arrow-2', 'arrow2', 'quiver', 'quiverai']) expect(resolveVendor(s, 'flare')).toBe('quiver');
+    for (const s of ['telos', 'arrow-telos', 'arrow-2-telos', 'svg-telos', 'svg-pro'])
+      expect(resolveVendor(s, 'flare')).toBe('quiver-telos');
     for (const s of ['grok', 'xai', 'imagine']) expect(resolveVendor(s, 'flare')).toBe('xai');
     for (const s of ['recraft', 'photo', 'photoreal']) expect(resolveVendor(s, 'flare')).toBe('recraft');
     for (const s of ['gemini-lite', 'flash-lite', 'geminilite']) expect(resolveVendor(s, 'flare')).toBe('googlelite');
@@ -144,11 +146,42 @@ describe('routing to a key', () => {
     expect(() => chooseModel('flare', base)).toThrow(/AI_GATEWAY_API_KEY/);
   });
 
-  it('routes a real SVG to the only model that writes vector source', () => {
+  it('routes a real SVG to the models that write vector source', () => {
     const c = chooseModel('quiver', with_({ gatewayKey: 'g' }));
-    expect(c.modelId).toBe('quiverai/arrow-1.1');
+    expect(c.modelId).toBe('quiverai/arrow-2');
+    expect(chooseModel('quiver-telos', with_({ gatewayKey: 'g' })).modelId).toBe('quiverai/arrow-2-telos');
     // Gateway-only, like Seedream: there is no first-party key to set.
     expect(() => chooseModel('quiver', with_({ googleKey: 'k' }))).toThrow(/only reachable through/);
+    expect(() => chooseModel('quiver-telos', with_({ googleKey: 'k' }))).toThrow(/only reachable through/);
+  });
+
+  it('reaches Arrow 2 as a LANGUAGE model, which is how it differs from Arrow 1.1', () => {
+    // Arrow 1.1 was an image model; Arrow 2 is not, and the gateway enforces it:
+    // POSTing arrow-2 to /v1/images/generations answers
+    // "Model 'quiverai/arrow-2' is a language model, not an image model."
+    // Verified against the live gateway on 21 September 2026. Typed `image`
+    // here, every SVG request would 400 before reaching the model at all, so
+    // this is the one field worth a test of its own.
+    for (const v of ['quiver', 'quiver-telos'] as const) {
+      const choice = chooseModel(v, with_({ gatewayKey: 'g' }));
+      expect(choice.api, `${v} must use the language route`).toBe('language');
+      // One SVG per call, so several means several calls.
+      expect(choice.batches, `${v} does not batch`).toBe(false);
+    }
+  });
+
+  it('knows both Arrow models write vectors and nothing else does', () => {
+    expect(isVectorVendor('quiver')).toBe(true);
+    expect(isVectorVendor('quiver-telos')).toBe(true);
+    for (const v of ['flare', 'sunburst', 'google', 'recraft', 'muse', 'xai'] as const)
+      expect(isVectorVendor(v), `${v} is raster`).toBe(false);
+  });
+
+  it('no longer knows Arrow 1.1, which 0.7.0 retired', () => {
+    // Sunset means gone, not hidden: a caller naming the old version must hear
+    // "unknown style" rather than quietly receiving a different model's output.
+    expect(resolveVendor('arrow-1.1', 'flare')).toBeUndefined();
+    expect(KNOWN_STYLES).not.toContain('arrow-1.1');
   });
 
   it('says Seedream has no first-party route at all', () => {
@@ -180,6 +213,7 @@ describe('routing to a key', () => {
       'muse',
       'xai',
       'quiver',
+      'quiver-telos',
     ]);
     // xaicli is absent from every list above: it authenticates from a signed-in
     // CLI rather than from any key, so no key configuration can enable it.

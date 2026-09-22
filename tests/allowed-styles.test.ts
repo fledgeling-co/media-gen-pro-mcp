@@ -61,7 +61,17 @@ describe('nearestReachableVendor', () => {
     expect(nearestReachableVendor('quiver', [])).toBe('quiver');
   });
 
-  it('degrades an unmapped vendor to something reachable rather than throwing', () => {
+  it('substitutes one Arrow for the other, because only a vector answers a vector request', () => {
+    // A deployment may allow one and not the other. Degrading to a raster model
+    // would answer a different question, so the family substitutes internally.
+    expect(nearestReachableVendor('quiver', ['quiver-telos'])).toBe('quiver-telos');
+    expect(nearestReachableVendor('quiver-telos', ['quiver'])).toBe('quiver');
+  });
+
+  it('degrades to something reachable rather than throwing when no sibling is allowed', () => {
+    // With neither Arrow permitted there is no vector answer to give, so the
+    // request falls to the first allowed vendor rather than failing outright.
     expect(nearestReachableVendor('quiver', allowed)).toBe('googlepro');
+    expect(nearestReachableVendor('quiver-telos', allowed)).toBe('googlepro');
   });
 });

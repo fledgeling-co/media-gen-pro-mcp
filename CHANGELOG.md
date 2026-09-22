@@ -6,6 +6,37 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [0.7.0] - 2026-09-22
+
+### Added
+
+- **Arrow 2 and Arrow 2 Telos.** `svg` now means `quiverai/arrow-2`, and the new `telos` style (`quiverai/arrow-2-telos`) reaches Quiver's refined tier. Quiver's own guidance decides between them: plain Arrow 2 when speed and cost per asset matter, Telos for harder briefs. `svg-pro` and `arrow-2-telos` alias to Telos; `arrow`, `arrow-2` and `svg` alias to Arrow 2.
+- The classifier can answer `svg-telos`, and `sunburst` — which 0.5.0 added to the registry but never to the enum, so the router could not select it for the six weeks since.
+
+### Removed
+
+- **Arrow 1.1 is gone.** `quiverai/arrow-1.1` and the bare `arrow-1.1` name no longer resolve, so `style: "arrow-1.1"` answers "unknown style" rather than billing a model the registry no longer documents. Its six comparison SVGs stay in `docs/examples/` and the bench keeps the column marked superseded, as evidence.
+
+### Changed
+
+- **`svg: true` now respects `style` and `IMAGE_GEN_ALLOWED_STYLES`.** It previously jumped straight to the one vector vendor, ignoring both. `style: "telos"` with `svg: true` is a coherent request — an SVG, the refined one — so only a *raster* style is overridden now. A deployment that allows one Arrow and not the other gets the one it allows, and the substitution is reported.
+- **Vector substitutes only for vector.** A restricted deployment degrades Arrow 2 to Telos or back, never to a picture model: a raster model cannot satisfy an SVG request at all, so degrading across the line answers a different question than the one asked.
+- The classifier's guidance now marks measured claims apart from vendor positioning. A line saying a model "held" or "missed" something comes from the published run; a line saying what a model is built for is the vendor's own account. Sunburst's edit precision, Muse's tool use and Grok's typography are all positioning, and are labelled as such rather than inheriting the authority of a measurement.
+- Advice for diagrams names both vector models, and the data-and-exact-text advice softens from "nothing here is the right tool" to "nothing here is *reliably* the right tool", because Meta claims Muse writes and runs code for accurate plots and QR codes. That claim is untested here and says so.
+- A new warning fires on `muse`: Meta embeds Content Seal, an invisible watermark it says survives cropping, compression, resizing and screenshotting. Nothing is visible on the picture, but the provenance signal travels with it.
+
+### Measured, not read
+
+- **Arrow 2 is a language model where Arrow 1.1 was an image model.** The gateway's own `/v1/models` types it `language`, and its images endpoint refuses it outright: `Model 'quiverai/arrow-2' is a language model, not an image model. Use the language generation API instead.` Routed as an image model — which is what continuity from 1.1 would have given it — every SVG request would have failed with a 400 before reaching Quiver. The server takes the text route and recovers SVG source from the answer, which is the right shape for a model that returns markup as text, and which a live call has now confirmed.
+- **Pricing moved from per-image to per-token with it.** Arrow 1.1 charged a flat $0.20 a generation. Arrow 2 is $4.00 per million input tokens and $20.00 per million output; Telos is $6.00 and $30.00. An Arrow 2 SVG now costs what its source is long.
+- **Arrow 2 answers, and the 503 was the wrong doorway.** The server calls the gateway through the AI SDK, which posts to `ai-gateway.vercel.sh/v4/ai/language-model`. On that route `quiverai/arrow-2` returns SVG source as text: one call came back in 32s with 262 characters containing `<svg`. The OpenAI-compatible endpoint, `/v1/chat/completions`, returns 503 for the same model at the same moment — one real provider attempt, `credentialType: system`, a populated `providerRequestId` — while `quiverai/arrow-1.1` and every other model on that endpoint answer normally. So the 503 is a defect in the compatibility shim's routing of this one model, not a Quiver outage and not a fault in the model. The server never calls that endpoint, so nothing here needed changing; a diagnosis run with `curl` against it was reading a transport the server does not use.
+- **Arrow 2 is slow, and agentic.** 32 seconds for a one-shape prompt, against a default `IMAGE_GEN_TIMEOUT_MS` of 180,000. Quiver describes the model as doing agentic refinement with tool calling, and the latency matches that rather than a single pass.
+- **The comparison run was blocked on the gateway balance, not on Quiver, and then ran.** For a stretch on 21 September every model on the account returned 402 `insufficient_funds` — "A positive credit balance is required for all requests, including BYOK" — Gemini included, so it was account-wide and unrelated to Arrow. It is also how we know the compatibility endpoint never disguised a credit error as the 503 above: it reports one as a clean 402.
+- **Twelve cells, eleven on the first attempt, about $2.60.** Six prompts against each Arrow model on 22 September 2026. Arrow 2 took 51–120 seconds a cell, Telos 47–238. `portrait-telos` returned a `GatewayTimeoutError` on its first attempt; the same prompt, sent again unchanged, returned 34,562 bytes 469 seconds later — the longest call in the run. All twelve files parse as well-formed XML and render with no broken images. Arrow 2 emits an 80×80 `viewBox`, Telos around 1024 wide.
+- **Both Arrow models pass the count and the absence prompt, and both miss the ring count.** Seven bolts each, two rows of three with the upright one at the front centre and nothing touching — the layout Arrow 1.1 flattened into a ring. Both corridors are compliant, with no strip of light under any door. On the portrait both got the facing, the stacked hands and the shadow, then drew six rings (Arrow 2) and seven (Telos) where the brief says five. In a vector file that is countable rather than arguable: `stroke="#BEB5B3"` appears exactly six times in Arrow 2's, in two groups of three across the fingers.
+- **Telos's refinement costs it the flat-colour brief.** On the flowchart Arrow 2 produced the cleanest geometry in the run — three boxes sharing one `y` and one `height`, gaps of 34.46 and 34.18 units, both connectors exactly horizontal, flat fills, stroke weights 4% apart. Telos matched that geometry, at gaps of 105.5 and 106, then filled its boxes from a `linearGradient` and added inner-edge highlight strokes on a prompt that asks for flat colour and no shading, with box and connector strokes a third apart. The trade reverses on the reflection prompt, where Telos drew both the reflected base and a shadow falling away from the window and Arrow 2 drew no cast shadow at all.
+- The README comparison and the bench now carry the run: eleven models across six prompts, Arrow 1.1's column dropped from the tables and kept in the bench marked superseded.
+
 ## [0.6.0] - 2026-09-09
 
 ### Removed

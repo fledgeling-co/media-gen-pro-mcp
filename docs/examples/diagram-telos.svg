@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="234" viewBox="0 0 1024 234">
+<!-- SVG created with Arrow, by QuiverAI (https://quiver.ai) -->
+  <defs>
+    <linearGradient id="blue-panel-fill" y2="1">
+      <stop stop-color="#77a3d5" offset="0"/>
+      <stop stop-color="#739fd2" offset=".5"/>
+      <stop stop-color="#76a2d4" offset="1"/>
+    </linearGradient>
+  </defs>
+  <g id="directional-connectors" fill="#283640" stroke="#283640">
+    <path id="first-connector-line" d="m286 117.5h81" fill="none" stroke-width="3"/>
+    <path id="first-arrowhead" d="m361 103.5 24 14-24 13.5 3-13.5z" stroke-linejoin="round" stroke-width=".7"/>
+    <path id="second-connector-line" d="m634 117.5h81" fill="none" stroke-width="3"/>
+    <path id="second-arrowhead" d="m709 103.5 24 14-24 13.5 3-13.5z" stroke-linejoin="round" stroke-width=".7"/>
+  </g>
+  <g id="three-blue-process-panels" fill="url(#blue-panel-fill)" stroke="#202e38" stroke-width="4">
+    <rect id="left-panel" x="45.5" y="45.5" width="240" height="143"/>
+    <rect id="middle-panel" x="391" y="45.5" width="242" height="143"/>
+    <rect id="right-panel" x="739" y="45.5" width="239.5" height="143"/>
+  </g>
+  <g id="subtle-inner-edge-highlights" fill="none" stroke="#aec8df" stroke-opacity=".55">
+    <path d="M48 187V48H283"/>
+    <path d="m393.5 187v-139h237"/>
+    <path d="M741.5 187V48H976"/>
+  </g>
+</svg>

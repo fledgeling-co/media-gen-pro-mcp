@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { type Config, inferDefaultProvider, loadConfig } from '../src/config.js';
 import { CHOICES, route } from '../src/router.js';
-import { SVG_VENDOR, resolveVendor } from '../src/models.js';
+import { SVG_VENDOR, isVectorVendor, resolveVendor } from '../src/models.js';
 
 const base: Config = {
   googleKey: '', gatewayKey: '', outputDir: '',
@@ -16,19 +16,35 @@ describe('every answer the classifier may give reaches a real vendor', () => {
     // `route` maps the classifier's answer through resolveVendor. A choice the
     // alias table does not know returns undefined and silently demotes every
     // request in that category to the configured default, which looks like the
-    // classifier being wrong rather than a name having drifted. "svg" is the one
-    // choice handled before the lookup, so it is checked against its own vendor.
-    for (const choice of CHOICES) {
-      if (choice === 'svg') {
-        expect(SVG_VENDOR).toBe('quiver');
-        continue;
-      }
+    // classifier being wrong rather than a name having drifted. Every choice
+    // now goes through the lookup, including the vector ones.
+    for (const choice of CHOICES)
       expect(resolveVendor(choice, 'google'), `classifier choice "${choice}"`).toBeDefined();
-    }
+  });
+
+  it('sends both vector choices to a vector model', () => {
+    // The `svg` flag on a decision is derived from the vendor that runs, so a
+    // vector choice resolving to a raster vendor would report svg: false and
+    // hand back pixels for a request that needed source.
+    expect(SVG_VENDOR).toBe('quiver');
+    expect(isVectorVendor(resolveVendor('svg', 'google')!)).toBe(true);
+    expect(isVectorVendor(resolveVendor('svg-telos', 'google')!)).toBe(true);
   });
 
   it('covers the models the README compares, not a subset of them', () => {
-    for (const choice of ['flare', 'gemini', 'gemini-lite', 'gemini-pro', 'photoreal', 'seedream', 'grok', 'muse', 'svg'])
+    for (const choice of [
+      'flare',
+      'sunburst',
+      'gemini',
+      'gemini-lite',
+      'gemini-pro',
+      'photoreal',
+      'seedream',
+      'grok',
+      'muse',
+      'svg',
+      'svg-telos',
+    ])
       expect(CHOICES).toContain(choice);
   });
 });

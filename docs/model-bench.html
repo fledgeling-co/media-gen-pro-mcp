@@ -752,7 +752,9 @@ var MODELS = {
   bytedance:  { name: 'Seedream 5.0 Pro',       vendor: 'ByteDance', id: 'bytedance/seedream-5.0-pro' },
   grok2:      { name: 'Grok Imagine 2.0',       vendor: 'xAI',       id: 'spacexai/grok-imagine-image-2.0' },
   muse:       { name: 'Muse Image 1.0',         vendor: 'Meta',      id: 'meta/muse-image-1.0' },
-  quiver:     { name: 'Arrow 1.1',              vendor: 'Quiver',    id: 'quiverai/arrow-1.1', kind: 'vector' },
+  quiver:     { name: 'Arrow 1.1',              vendor: 'Quiver',    id: 'quiverai/arrow-1.1', kind: 'vector', superseded: true },
+  quiver2:    { name: 'Arrow 2',                vendor: 'Quiver',    id: 'quiverai/arrow-2', kind: 'vector' },
+  telos:      { name: 'Arrow 2 Telos',          vendor: 'Quiver',    id: 'quiverai/arrow-2-telos', kind: 'vector' },
   xai:        { name: 'Grok Imagine 1.0',       vendor: 'xAI',       id: 'xai/grok-imagine-image', superseded: true }
 };
 
@@ -779,7 +781,7 @@ var VIDEO_MODELS = {
                    rate: 'Token-priced — $5.60 per million tokens at 480p/720p', five: 'depends on tokens' }
 };
 
-var IMAGE_ORDER = ['openai','flare','sunburst','googlepro','google','googlelite','recraft','bytedance','grok2','muse','quiver','xai'];
+var IMAGE_ORDER = ['openai','flare','sunburst','googlepro','google','googlelite','recraft','bytedance','grok2','muse','quiver2','telos','quiver','xai'];
 var VIDEO_ORDER = ['veo','minimax-max','grok','gemini','flux','minimax','seedance'];
 
 /* v: 'pass' | 'part' | 'miss' | null (null = nobody graded it) */
@@ -800,6 +802,8 @@ var PROMPTS = [
       bytedance:  ['part', '7, but the upright one sits behind rather than in front, and several touch.'],
       grok2:      ['part', '7, correct two-rows-of-three; the upright one overlaps the bolt behind.'],
       muse:       ['pass', '7, correct layout, nothing touching. The cleanest pass in the set.'],
+      quiver2:    ['pass', 'Seven bolts, two rows of three, the upright one at the front centre, nothing touching.'],
+      telos:      ['pass', 'Seven bolts, two rows of three, the upright one at the front centre, nothing touching.'],
       quiver:     ['part', 'Seven shapes, so the count is right in the source — but a ring, not rows.'],
       xai:        ['miss', 'Five, in a single row.']
     }
@@ -808,34 +812,40 @@ var PROMPTS = [
     key: 'absence', kind: 'image', label: 'Absence',
     brief: 'An empty hotel corridor at 3am. No people, no reflections in any mirror, no light under any door, nothing on the floor. Bare carpet, closed doors, one ceiling light.',
     checks: ['No people', 'No mirrors, and no reflections', 'No light under any door', 'Nothing on the floor', 'Exactly one ceiling light'],
-    graded: 'Five cells graded. The rest are published unjudged.',
+    graded: 'Seven cells graded. The rest are published unjudged.',
     verdicts: {
       openai:    ['pass', 'Fully compliant: nobody there, nothing on the floor, no light under any door, one fitting.'],
       flare:     ['pass', 'Fully compliant — empty corridor, closed doors, one fitting, nothing reflected.'],
       sunburst:  ['pass', 'Fully compliant — empty corridor, closed doors, one fitting, nothing reflected.'],
       grok2:     ['pass', 'Fully compliant — empty carpet, closed doors, a single ceiling fitting.'],
-      bytedance: ['miss', 'Two framed mirrors, two ceiling lights, and "AI generated" stamped across the corner.']
+      bytedance: ['miss', 'Two framed mirrors, two ceiling lights, and "AI generated" stamped across the corner.'],
+      quiver2:   ['pass', 'Fully compliant — closed doors with no strip of light beneath them, one fitting, bare floor.'],
+      telos:     ['pass', 'Fully compliant — closed doors with no strip of light beneath them, one fitting, bare floor.']
     }
   },
   {
     key: 'binding', kind: 'image', label: 'Attribute binding',
     brief: 'Five objects in a row on a white studio backdrop: a matte black ceramic banana, a glossy yellow steel wrench, a translucent green wooden mug, a brushed copper cloth apple, a rough concrete glass fish.',
     checks: ['Banana is matte black', 'Wrench is glossy yellow', 'Mug is translucent green', 'Apple is brushed copper', 'Fish is rough concrete'],
-    graded: 'Four cells graded. Every colour is deliberately wrong for its object, so a yellow banana is a visible failure rather than a matter of taste.',
+    graded: 'Six cells graded. Every colour is deliberately wrong for its object, so a yellow banana is a visible failure rather than a matter of taste.',
     verdicts: {
       openai: ['pass', 'All five bound, and a decent fist of the materials.'],
       flare:  ['pass', 'All five bound; concrete fish body kept apart from its glass fins.'],
       sunburst: ['pass', 'All five bound — the green mug even shows wood grain through the glass.'],
       grok2:  ['pass', 'All five bound and the materials read correctly, cleanly separated on the backdrop.'],
-      xai:    ['part', 'Bound all five, then melted the wrench and drew the fish as a wireframe.']
+      xai:    ['part', 'Bound all five, then melted the wrench and drew the fish as a wireframe.'],
+      quiver2: ['pass', 'All five bound; the apple reads as copper.'],
+      telos:  ['part', 'All five bound, but the apple reads orange rather than brushed copper.']
     }
   },
   {
     key: 'diagram', kind: 'image', label: 'Geometry',
     brief: 'A clean flowchart: three rectangular boxes in a horizontal row connected left to right by two straight arrows. Every line at exactly 0 or 90 degrees, uniform gaps between boxes, no crossing lines, thin uniform stroke weight, flat colour, no shading.',
     checks: ['Three boxes, one horizontal row', 'Two arrows, left to right', 'Every line at 0 or 90 degrees', 'Uniform gaps between boxes', 'Thin, uniform stroke weight', 'Flat colour, no shading'],
-    graded: 'Three cells graded. Zoom in on any raster result — the "straight" lines wobble, because a sampler hallucinates straightness pixel by pixel rather than drawing a line.',
+    graded: 'Five cells graded. Zoom in on any raster result — the "straight" lines wobble, because a sampler hallucinates straightness pixel by pixel rather than drawing a line.',
     verdicts: {
+      quiver2: ['pass', 'Boxes share one y and one height, gaps of 34.46 and 34.18, both connectors exactly horizontal, flat fill, strokes 4% apart.'],
+      telos:   ['part', 'Same geometry — gaps of 105.5 and 106 — then a linearGradient fill and inner-edge highlights on a brief that says flat colour, no shading.'],
       quiver:  ['pass', 'Exact geometry, uniform stroke, labelled boxes, and you can open the file and edit any of it.'],
       recraft: ['part', 'Second best, and it labelled its boxes — but the widths are uneven.'],
       openai:  ['part', 'Clean boxes, unlabelled, three different sizes.']
@@ -845,9 +855,11 @@ var PROMPTS = [
     key: 'physics', kind: 'image', label: 'Reflection',
     brief: 'A chrome kettle on a mirrored tabletop beside a window at 4pm. The reflection in the tabletop shows the underside of the kettle, and its shadow falls away from the window across the table.',
     checks: ['Reflection present in the tabletop', 'Reflection shows the UNDERSIDE, not the side', 'Shadow falls away from the window'],
-    graded: 'Two cells graded. Reflections are the reliable giveaway of a model compositing plausible patches rather than simulating a scene.',
+    graded: 'Four cells graded. Reflections are the reliable giveaway of a model compositing plausible patches rather than simulating a scene.',
     verdicts: {
       recraft: ['part', 'The photograph you would ship — and its reflection is a mirror-flip of the side, not the underside the brief asked for.'],
+      quiver2: ['part', 'Reflection present and showing the base — but no cast shadow on the table at all.'],
+      telos:   ['pass', 'Reflection shows the base of the kettle, and the shadow falls left, away from the window.'],
       quiver:  ['pass', 'Cannot photograph anything, and got the structure right: reflection present, shadow away from the window.']
     }
   },
@@ -866,7 +878,9 @@ var PROMPTS = [
       recraft:    ['part', 'The photograph you would ship, and it turned three-quarter into near-profile.'],
       bytedance:  ['miss', 'Facing camera, hands side by side.'],
       grok2:      ['part', 'Faces left, shadow correct, hands side by side.'],
-      muse:       ['pass', 'The only model in the run to stack one hand on the other. Lighting and shadow correct; pushed three-quarter to near-profile.'],
+      muse:       ['pass', 'The first model in the run to stack one hand on the other. Lighting and shadow correct; pushed three-quarter to near-profile.'],
+      quiver2:    ['part', 'Facing, stacked hands and shadow all correct; six rings where the brief says five.'],
+      telos:      ['part', 'Facing, stacked hands and shadow all correct; seven rings — three on the lower hand, four on the upper.'],
       quiver:     ['part', 'Cannot photograph anyone, and followed the pose most closely of the set.'],
       xai:        ['miss', 'Facing camera, hands side by side.']
     }
@@ -937,7 +951,7 @@ function slug() { var p = prompt(); return p.slug || p.key; }
 function assetFor(modelKey) {
   var p = prompt();
   if (p.kind === 'video') return 'examples/video/' + slug() + '-' + modelKey + '.mp4';
-  var ext = modelKey === 'quiver' ? '.svg' : '.jpg';
+  var ext = catalogue()[modelKey].kind === 'vector' ? '.svg' : '.jpg';
   return 'examples/' + p.key + '-' + modelKey + ext;
 }
 

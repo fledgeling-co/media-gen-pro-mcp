@@ -127,6 +127,23 @@ function extensionFor(mediaType: string, bytes: Uint8Array): string {
   return known[mediaType.toLowerCase()] ?? '.bin';
 }
 
+/**
+ * The SVG document inside a language model's answer, if there is one.
+ *
+ * Arrow 2 emits vector source as text, and a model asked for source tends to
+ * wrap it in a fenced block or introduce it with a sentence. Slicing from the
+ * first `<svg` to the last `</svg>` survives both without needing to know which
+ * one happened. Returns undefined rather than a guess when there is no document
+ * there, so the caller can still report a text-only answer as the failure it is.
+ */
+export function extractSvg(text: string): string | undefined {
+  const start = text.indexOf('<svg');
+  if (start === -1) return undefined;
+  const close = text.lastIndexOf('</svg>');
+  if (close === -1 || close < start) return undefined;
+  return text.slice(start, close + '</svg>'.length);
+}
+
 /** A filename that is stable for the same prompt and unique across calls. */
 function filenameFor(prompt: string, basename: string | undefined, index: number, ext: string): string {
   const stem =
@@ -191,14 +208,26 @@ export async function generate(
       abortSignal: controller.signal,
     });
     const files = r.files.filter((f) => f.mediaType.startsWith('image/'));
-    if (files.length === 0) {
-      // It answered in words instead of pictures. Saying so beats writing a
-      // zero-image success, which reads as the model refusing silently.
-      throw new GenerationError(
-        `${choice.label} returned no image, only text: ${r.text.slice(0, 300)}`,
-      );
+    if (files.length > 0) {
+      return files.map((f) => ({ uint8Array: f.uint8Array, mediaType: f.mediaType }));
     }
-    return files.map((f) => ({ uint8Array: f.uint8Array, mediaType: f.mediaType }));
+
+    // Arrow 2 is a language model that writes SVG SOURCE, so its answer can
+    // arrive as text rather than as a file, sometimes inside a fenced block.
+    // Treating that as "no image" would reject the one model here whose whole
+    // point is that its output is source you can read. A raster model that
+    // answers in words still fails below, which is the behaviour that matters:
+    // this recovers a real result, it does not paper over a refusal.
+    const markup = extractSvg(r.text);
+    if (markup !== undefined) {
+      return [{ uint8Array: new TextEncoder().encode(markup), mediaType: 'image/svg+xml' }];
+    }
+
+    // It answered in words instead of pictures. Saying so beats writing a
+    // zero-image success, which reads as the model refusing silently.
+    throw new GenerationError(
+      `${choice.label} returned no image, only text: ${r.text.slice(0, 300)}`,
+    );
   };
 
   /**

@@ -71,17 +71,24 @@ Without a gateway key the classifier cannot run, and the request falls back to w
 | `muse`, `meta` | **Muse Image 1.0** (`meta/muse-image-1.0`) | fast Meta image generator | the gateway |
 | `flare` | **GPT Image 2.5 Flare** (`openai/gpt-image-2.5-flare`) | fast everyday generation, strong rule-following | the gateway |
 | `sunburst` | **GPT Image 2.5 Sunburst** (`openai/gpt-image-2.5-sunburst`) | precise editing, strong rule-following | the gateway |
-| `svg`, `arrow` | **Arrow 1.1** | real SVG, editable vector source | the gateway |
+| `svg`, `arrow` | **Arrow 2** (`quiverai/arrow-2`) | real SVG, editable vector source; the fast, cheaper vector route | the gateway |
+| `telos`, `svg-telos` | **Arrow 2 Telos** (`quiverai/arrow-2-telos`) | the same vector output, more refined, for a harder brief | the gateway |
 
 "nanobanana" is in there because that's what people call Gemini's image model out loud. A server that only accepts the official string makes you look up a name you already know.
 
 ## Real SVGs
 
-Set `svg: true` and you get vector source from Arrow 1.1: actual `<svg>` markup built from shapes and geometry, which you can open, edit and scale. The raster models can't do this. Ask any of them for an SVG and you get a picture that looks like one, which is a different thing and useless if you wanted to change the colour of one path.
+Set `svg: true` and you get vector source from **Arrow 2**: actual `<svg>` markup built from shapes and geometry, which you can open, edit and scale. The raster models can't do this. Ask any of them for an SVG and you get a picture that looks like one, which is a different thing and useless if you wanted to change the colour of one path.
+
+There are two of them, and Quiver's own guidance is the guidance here: **Arrow 2** when speed and cost per asset are what matter, **Arrow 2 Telos** for a harder brief that benefits from more refinement — a dense diagram, a detailed illustration, a technical drawing, or a set of variants that has to hold one style. `svg: true` gives you Arrow 2; add `style: "telos"` alongside it to get Telos instead. Quiver says Arrow 2 uses fewer, more precise control points and respects spacing and alignment without exhaustive prompting; I have not measured either claim.
+
+Arrow 1.1 was retired here in 0.7.0. Asking for it by name now returns "unknown style" rather than quietly handing you something else, and its results are still in the bench, marked superseded.
+
+**Arrow 2 is priced per token, not per image.** Arrow 1.1 charged a flat $0.20 a generation; Arrow 2 bills $4.00 per million input tokens and $20.00 per million output tokens, and Telos $6.00 and $30.00. An SVG therefore costs roughly what its source is long, so a dense diagram genuinely costs more than a simple icon — which was not true before.
 
 After an SVG, the tool suggests offering you a raster version too, in a similar flat style, from one of the picture models. It won't generate that unasked; it's a second billed call.
 
-## Ten models, six hard prompts
+## Eleven models, six hard prompts
 
 One prompt per category, shown in full below each heading, the same text sent to every model, one generation each, nothing cherry-picked and nothing retried. The prompts are deliberately awkward: each one states a rule you can check by counting or looking, so you can grade the results yourself instead of taking my word for which is prettier.
 
@@ -92,7 +99,7 @@ One prompt per category, shown in full below each heading, the same text sent to
 > and zoom to check the claim about wobbling lines yourself. Clips play inline instead of
 > downloading. It is a plain file — clone the repo and open it, no server needed.
 
-The four-model rows were run 30 July 2026. Grok Imagine 2.0, Muse Image 1.0 and Gemini 3.1 Flash Lite were run on the same six prompts on 4 September 2026, when those models were added, and GPT Image 2.5 Flare and GPT Image 2.5 Sunburst on 9 September 2026. These are single samples, not a benchmark. Re-run any of them and you may get a different answer.
+The four-model rows were run 30 July 2026. Grok Imagine 2.0, Muse Image 1.0 and Gemini 3.1 Flash Lite were run on the same six prompts on 4 September 2026, when those models were added, GPT Image 2.5 Flare and GPT Image 2.5 Sunburst on 9 September 2026, and Arrow 2 and Arrow 2 Telos on 22 September 2026, replacing Arrow 1.1 — whose results are still in the bench, marked superseded. One cell was re-requested: `portrait-telos` returned a gateway timeout on its first attempt and the prompt was sent again unchanged; every other cell in the table is a first response. These are single samples, not a benchmark. Re-run any of them and you may get a different answer.
 
 ### 1. Exact count and arrangement
 
@@ -103,17 +110,17 @@ The four-model rows were run 30 July 2026. Grok Imagine 2.0, Muse Image 1.0 and 
 | ![](docs/examples/counting-google.jpg) | ![](docs/examples/counting-googlepro.jpg) | ![](docs/examples/counting-recraft.jpg) |
 | 7, correct layout, one bolt touching | **7, correct layout, nothing touching** | 6 |
 
-| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
-|---|---|---|---|---|
-| ![](docs/examples/counting-bytedance.jpg) | ![](docs/examples/counting-grok2.jpg) | ![](docs/examples/counting-muse.jpg) | ![](docs/examples/counting-googlelite.jpg) | ![](docs/examples/counting-quiver.svg) |
-| 7, upright one behind not in front, several touching | 7, correct layout, upright one overlapping the bolt behind | **7, correct layout, nothing touching** | 7, correct layout, upright one overlapping | 7, upright one centred, but a ring rather than rows |
+| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite |
+|---|---|---|---|
+| ![](docs/examples/counting-bytedance.jpg) | ![](docs/examples/counting-grok2.jpg) | ![](docs/examples/counting-muse.jpg) | ![](docs/examples/counting-googlelite.jpg) |
+| 7, upright one behind not in front, several touching | 7, correct layout, upright one overlapping the bolt behind | **7, correct layout, nothing touching** | 7, correct layout, upright one overlapping |
 
-| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst |
-|---|---|
-| ![](docs/examples/counting-flare.jpg) | ![](docs/examples/counting-sunburst.jpg) |
-| **7, correct layout, nothing touching** | **7, correct layout, nothing touching** |
+| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst | Arrow 2 (SVG) | Arrow 2 Telos (SVG) |
+|---|---|---|---|
+| ![](docs/examples/counting-flare.jpg) | ![](docs/examples/counting-sunburst.jpg) | ![](docs/examples/counting-quiver2.svg) | ![](docs/examples/counting-telos.svg) |
+| **7, correct layout, nothing touching** | **7, correct layout, nothing touching** | **7, correct layout, nothing touching** | **7, correct layout, nothing touching** |
 
-Gemini 3 Pro, Muse Image 1.0, Flare and Sunburst are the clean passes; Muse placed all seven with the upright bolt at the front centre and nothing touching, and both 2.5 siblings did exactly the same. Recraft produced by far the best photograph and got the count wrong, which is the trade in one image. Arrow counted correctly (it emits seven shapes, so the count is in the source) and ignored the layout. Grok Imagine 2.0 is a clear improvement on 1.0, whose result on this prompt — five bolts in a single row — is still in `docs/examples/counting-xai.jpg`.
+Gemini 3 Pro, Muse Image 1.0, Flare, Sunburst and both Arrow 2 models are the clean passes; Muse placed all seven with the upright bolt at the front centre and nothing touching, and both 2.5 siblings did exactly the same. Recraft produced by far the best photograph and got the count wrong, which is the trade in one image. Arrow 2 and Arrow 2 Telos each placed all seven as two rows of three with the upright bolt at the front centre, nothing touching — the layout Arrow 1.1 flattened into a ring. Grok Imagine 2.0 is a clear improvement on 1.0, whose result on this prompt — five bolts in a single row — is still in `docs/examples/counting-xai.jpg`.
 
 ### 2. Absence
 
@@ -123,15 +130,15 @@ Gemini 3 Pro, Muse Image 1.0, Flare and Sunburst are the clean passes; Muse plac
 |---|---|---|
 | ![](docs/examples/absence-google.jpg) | ![](docs/examples/absence-googlepro.jpg) | ![](docs/examples/absence-recraft.jpg) |
 
-| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
-|---|---|---|---|---|
-| ![](docs/examples/absence-bytedance.jpg) | ![](docs/examples/absence-grok2.jpg) | ![](docs/examples/absence-muse.jpg) | ![](docs/examples/absence-googlelite.jpg) | ![](docs/examples/absence-quiver.svg) |
+| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite |
+|---|---|---|---|
+| ![](docs/examples/absence-bytedance.jpg) | ![](docs/examples/absence-grok2.jpg) | ![](docs/examples/absence-muse.jpg) | ![](docs/examples/absence-googlelite.jpg) |
 
-| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst |
-|---|---|
-| ![](docs/examples/absence-flare.jpg) | ![](docs/examples/absence-sunburst.jpg) |
+| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst | Arrow 2 (SVG) | Arrow 2 Telos (SVG) |
+|---|---|---|---|
+| ![](docs/examples/absence-flare.jpg) | ![](docs/examples/absence-sunburst.jpg) | ![](docs/examples/absence-quiver2.svg) | ![](docs/examples/absence-telos.svg) |
 
-Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. Seedream put two framed mirrors on the walls and two ceiling lights, and stamped "AI generated" across the corner. Grok Imagine 2.0 also came back fully compliant — empty carpet, closed doors, a single ceiling fitting and no light under any door. Flare and Sunburst both joined the compliant set: empty corridors, closed doors, single fittings, nothing on the floor and nothing reflected.
+Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. Seedream put two framed mirrors on the walls and two ceiling lights, and stamped "AI generated" across the corner. Grok Imagine 2.0 also came back fully compliant — empty carpet, closed doors, a single ceiling fitting and no light under any door. Flare and Sunburst both joined the compliant set: empty corridors, closed doors, single fittings, nothing on the floor and nothing reflected. Arrow 2 and Telos are compliant too — zoom in on the door bases in either and there is no strip of light under them.
 
 ### 3. Attribute binding against the obvious pairing
 
@@ -141,15 +148,15 @@ Text encoders have no NOT operator, so "no mirrors" tends to summon mirrors. See
 |---|---|---|
 | ![](docs/examples/binding-google.jpg) | ![](docs/examples/binding-googlepro.jpg) | ![](docs/examples/binding-recraft.jpg) |
 
-| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
-|---|---|---|---|---|
-| ![](docs/examples/binding-bytedance.jpg) | ![](docs/examples/binding-grok2.jpg) | ![](docs/examples/binding-muse.jpg) | ![](docs/examples/binding-googlelite.jpg) | ![](docs/examples/binding-quiver.svg) |
+| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite |
+|---|---|---|---|
+| ![](docs/examples/binding-bytedance.jpg) | ![](docs/examples/binding-grok2.jpg) | ![](docs/examples/binding-muse.jpg) | ![](docs/examples/binding-googlelite.jpg) |
 
-| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst |
-|---|---|
-| ![](docs/examples/binding-flare.jpg) | ![](docs/examples/binding-sunburst.jpg) |
+| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst | Arrow 2 (SVG) | Arrow 2 Telos (SVG) |
+|---|---|---|---|
+| ![](docs/examples/binding-flare.jpg) | ![](docs/examples/binding-sunburst.jpg) | ![](docs/examples/binding-quiver2.svg) | ![](docs/examples/binding-telos.svg) |
 
-Every colour is deliberately wrong for its object, so a yellow banana is a visible failure rather than a matter of taste. Grok Imagine 2.0 bound all five and got the materials as well: a matte black banana, a glossy yellow wrench, a translucent green mug, a brushed copper apple and a speckled concrete fish, all separated cleanly on the backdrop. Flare and Sunburst bound all five as well — Sunburst's mug even shows the wood grain through the green glass, and both kept the concrete body and glass fins of the fish apart instead of blending them.
+Every colour is deliberately wrong for its object, so a yellow banana is a visible failure rather than a matter of taste. Grok Imagine 2.0 bound all five and got the materials as well: a matte black banana, a glossy yellow wrench, a translucent green mug, a brushed copper apple and a speckled concrete fish, all separated cleanly on the backdrop. Flare and Sunburst bound all five as well — Sunburst's mug even shows the wood grain through the green glass, and both kept the concrete body and glass fins of the fish apart instead of blending them. Arrow 2 and Telos bound all five as well, differing on one: Arrow 2's apple reads as copper, Telos's as orange.
 
 ### 4. Geometric constraint
 
@@ -159,15 +166,15 @@ Every colour is deliberately wrong for its object, so a yellow banana is a visib
 |---|---|---|
 | ![](docs/examples/diagram-google.jpg) | ![](docs/examples/diagram-googlepro.jpg) | ![](docs/examples/diagram-recraft.jpg) |
 
-| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
-|---|---|---|---|---|
-| ![](docs/examples/diagram-bytedance.jpg) | ![](docs/examples/diagram-grok2.jpg) | ![](docs/examples/diagram-muse.jpg) | ![](docs/examples/diagram-googlelite.jpg) | ![](docs/examples/diagram-quiver.svg) |
+| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite |
+|---|---|---|---|
+| ![](docs/examples/diagram-bytedance.jpg) | ![](docs/examples/diagram-grok2.jpg) | ![](docs/examples/diagram-muse.jpg) | ![](docs/examples/diagram-googlelite.jpg) |
 
-| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst |
-|---|---|
-| ![](docs/examples/diagram-flare.jpg) | ![](docs/examples/diagram-sunburst.jpg) |
+| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst | Arrow 2 (SVG) | Arrow 2 Telos (SVG) |
+|---|---|---|---|
+| ![](docs/examples/diagram-flare.jpg) | ![](docs/examples/diagram-sunburst.jpg) | ![](docs/examples/diagram-quiver2.svg) | ![](docs/examples/diagram-telos.svg) |
 
-This is the category the vector model exists for, and it wins it: exact geometry, uniform stroke, labelled boxes, and you can open the file and edit any of it. Recraft came second and labelled its boxes too, with uneven widths. Zoom in on any of the raster ones and the "straight" lines wobble, because a sampler is hallucinating straightness pixel by pixel rather than drawing a line.
+This is the category the vector models exist for, and Arrow 2 takes it: three boxes sharing one `y` and one `height`, gaps of 34.46 and 34.18 units, both connectors drawn as `<line>` elements with `y1` equal to `y2`, flat fills, stroke weights 4% apart. Telos is the more interesting result. It matched that geometry — gaps of 105.5 and 106 — and then broke the half of the brief Arrow 2 honoured, filling its boxes from a `linearGradient` and adding inner-edge highlight strokes on a prompt that asks for flat colour and no shading, with box and connector strokes a third apart. Recraft came second among the raster models and labelled its boxes, with uneven widths. Zoom in on any of the raster ones and the "straight" lines wobble, because a sampler is hallucinating straightness pixel by pixel rather than drawing a line.
 
 ### 5. Reflection and shadow
 
@@ -177,15 +184,15 @@ This is the category the vector model exists for, and it wins it: exact geometry
 |---|---|---|
 | ![](docs/examples/physics-google.jpg) | ![](docs/examples/physics-googlepro.jpg) | ![](docs/examples/physics-recraft.jpg) |
 
-| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
-|---|---|---|---|---|
-| ![](docs/examples/physics-bytedance.jpg) | ![](docs/examples/physics-grok2.jpg) | ![](docs/examples/physics-muse.jpg) | ![](docs/examples/physics-googlelite.jpg) | ![](docs/examples/physics-quiver.svg) |
+| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite |
+|---|---|---|---|
+| ![](docs/examples/physics-bytedance.jpg) | ![](docs/examples/physics-grok2.jpg) | ![](docs/examples/physics-muse.jpg) | ![](docs/examples/physics-googlelite.jpg) |
 
-| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst |
-|---|---|
-| ![](docs/examples/physics-flare.jpg) | ![](docs/examples/physics-sunburst.jpg) |
+| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst | Arrow 2 (SVG) | Arrow 2 Telos (SVG) |
+|---|---|---|---|
+| ![](docs/examples/physics-flare.jpg) | ![](docs/examples/physics-sunburst.jpg) | ![](docs/examples/physics-quiver2.svg) | ![](docs/examples/physics-telos.svg) |
 
-Reflections are the reliable giveaway of a model compositing plausible patches rather than simulating a scene. Recraft's is the photograph you would actually ship, and its reflection is a mirror-flip of the kettle's side rather than the underside the brief asked for. Arrow, which cannot photograph anything, got the structure right: reflection present, shadow falling away from the window, light patch on the table.
+Reflections are the reliable giveaway of a model compositing plausible patches rather than simulating a scene. Recraft's is the photograph you would actually ship, and its reflection is a mirror-flip of the kettle's side rather than the underside the brief asked for. Arrow 2 Telos got both checkable parts: a reflection showing the base of the kettle, and a shadow cast to the left, away from the window. Arrow 2 drew the reflection and no cast shadow at all.
 
 ### 6. A person, with the pose specified
 
@@ -196,17 +203,17 @@ Reflections are the reliable giveaway of a model compositing plausible patches r
 | ![](docs/examples/portrait-google.jpg) | ![](docs/examples/portrait-googlepro.jpg) | ![](docs/examples/portrait-recraft.jpg) |
 | **shadow on the wrong side** | shadow correct, hands not stacked | best photo, ~5 rings |
 
-| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite | Arrow 1.1 (SVG) |
-|---|---|---|---|---|
-| ![](docs/examples/portrait-bytedance.jpg) | ![](docs/examples/portrait-grok2.jpg) | ![](docs/examples/portrait-muse.jpg) | ![](docs/examples/portrait-googlelite.jpg) | ![](docs/examples/portrait-quiver.svg) |
-| facing camera, hands side by side | faces left, shadow correct, hands side by side | **hands stacked, shadow correct**, near-profile | faces left, shadow correct, hands side by side | pose right, ~5 rings, flat |
+| Seedream 5.0 Pro | Grok Imagine 2.0 | Muse Image 1.0 | Gemini 3.1 Flash Lite |
+|---|---|---|---|
+| ![](docs/examples/portrait-bytedance.jpg) | ![](docs/examples/portrait-grok2.jpg) | ![](docs/examples/portrait-muse.jpg) | ![](docs/examples/portrait-googlelite.jpg) |
+| facing camera, hands side by side | faces left, shadow correct, hands side by side | **hands stacked, shadow correct**, near-profile | faces left, shadow correct, hands side by side |
 
-| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst |
-|---|---|
-| ![](docs/examples/portrait-flare.jpg) | ![](docs/examples/portrait-sunburst.jpg) |
-| **faces left, hands stacked, five plain bands, shadow correct** | **faces left, hands stacked, five rings (two stone-set), shadow correct** |
+| GPT Image 2.5 Flare | GPT Image 2.5 Sunburst | Arrow 2 (SVG) | Arrow 2 Telos (SVG) |
+|---|---|---|---|
+| ![](docs/examples/portrait-flare.jpg) | ![](docs/examples/portrait-sunburst.jpg) | ![](docs/examples/portrait-quiver2.svg) | ![](docs/examples/portrait-telos.svg) |
+| **faces left, hands stacked, five plain bands, shadow correct** | **faces left, hands stacked, five rings (two stone-set), shadow correct** | faces left, hands stacked, shadow correct, six rings | faces left, hands stacked, shadow correct, seven rings |
 
-Four checkable things: which way she faces, whether one hand sits on the other, how many rings, and which side the shadow falls. Gemini 3.1 Flash lit her from the left and threw the shadow right, which is the one unambiguous miss in the whole run. Gemini 3 Pro, on the identical prompt, got it right, which is the clearest reason to reach for the slower sibling. Recraft produced the photograph you would ship and turned three-quarter into near-profile. Arrow, which cannot photograph anyone, followed the pose most closely of the six. Of the newer models, Muse Image 1.0 was the first in the whole run to stack one hand on the other as the brief asked; it also lit and shadowed her correctly, but pushed three-quarter to near-profile. Grok Imagine 2.0 and Flash Lite both got the facing and the shadow right and left the hands side by side. Flare and Sunburst are now the fullest passes on this prompt: three-quarter facing left, hands stacked, five rings each, shadow on the left wall — Flare's all plain bands, Sunburst's with two stone-set.
+Four checkable things: which way she faces, whether one hand sits on the other, how many rings, and which side the shadow falls. Gemini 3.1 Flash lit her from the left and threw the shadow right, which is the one unambiguous miss in the whole run. Gemini 3 Pro, on the identical prompt, got it right, which is the clearest reason to reach for the slower sibling. Recraft produced the photograph you would ship and turned three-quarter into near-profile. Arrow 2 and Telos both got the pose and the light — three-quarter facing left, hands stacked on the knee, shadow on the wall to the left — and both then missed the count, which in a vector file you can settle rather than squint at. Arrow 2 drew six rings: `stroke="#BEB5B3"` appears exactly six times, in two groups of three across the fingers. Telos drew seven, three on the lower hand and four on the upper, inside groups it helpfully named `lower-hand-rings` and `upper-hand-rings`. Of the newer models, Muse Image 1.0 was the first in the whole run to stack one hand on the other as the brief asked; it also lit and shadowed her correctly, but pushed three-quarter to near-profile. Grok Imagine 2.0 and Flash Lite both got the facing and the shadow right and left the hands side by side. Flare and Sunburst are now the fullest passes on this prompt: three-quarter facing left, hands stacked, five rings each, shadow on the left wall — Flare's all plain bands, Sunburst's with two stone-set.
 
 ### What this suggests
 
@@ -214,7 +221,7 @@ Nothing here is a benchmark, but the shape is consistent enough to route by:
 
 - **GPT Image 2.5 Flare** for briefs with rules in them, and the default when you name no style. A clean pass on the count and the arrangement, every "no" in the absence prompt honoured, all five bindings bound.
 - **Recraft V4.1 Pro** when it has to look like a photograph, and check the details yourself. `recraft-utility` and `recraft-v4.1` are the cheaper siblings at a sixth of the price; `recraft-utility-pro` matches Pro's price.
-- **Arrow 1.1** for anything diagrammatic, where it is not competing with the others so much as doing a different job.
+- **Arrow 2** for anything diagrammatic, and for any brief that asks for flat — it stays flat. On the flowchart it produced the cleanest geometry in the run. **Arrow 2 Telos** for a dense or illustrative piece where you want the extra rendering; on the same flowchart that instinct added a gradient the brief had ruled out, which is the trade in one image.
 - **Gemini 3.1 Flash** as the cheap default, with the caveat that it is the one model observed to invert a stated light direction.
 - **Gemini 3 Pro Image** when Flash gets something wrong. Same key, same route, roughly twice the wait; it passed the count and fixed Flash's lighting miss.
 - **Gemini 3.1 Flash Lite Image** as the cheapest route here (about half Flash's per-image price). On these six prompts it held the count and got the portrait's lighting right, which Flash did not.
@@ -223,7 +230,7 @@ Nothing here is a benchmark, but the shape is consistent enough to route by:
 - **GPT Image 2.5 Flare and Sunburst** the strongest obedience pair in the table: clean passes on the count, the absence prompt and the attribute binding, and the fullest passes on the portrait. OpenAI positions Flare for fast everyday generation and Sunburst for precise editing; both are gateway-only, and neither is on OpenAI's own API.
 - **Seedream 5.0 Pro** last on this evidence: slowest by a wide margin, and it watermarks.
 
-_These are single generations, and I inspected the newer models' counting, absence, binding and portrait results directly; the diagram and reflection rows are published unjudged for you to grade. Every file is in [`docs/examples/`](docs/examples/)._
+_These are single generations. I inspected all six prompts for Arrow 2 and Arrow 2 Telos, and the counting, absence, binding and portrait results for the newer raster models; the raster diagram and reflection rows are published unjudged for you to grade. Every file is in [`docs/examples/`](docs/examples/)._
 
 ## Video
 
@@ -342,7 +349,9 @@ n:               3
 
 **Gemini can't do more than one image per call.** Asking for three means three requests behind the scenes, fanned out in parallel. Worth knowing why three Gemini images take about as long as one and cost three times as much.
 
-**Nobody agrees what format they're returning.** Gemini returns JPEG, Recraft returns WebP, and Arrow returns SVG source labelled `image/png`. The server sniffs the actual bytes and names the file accordingly rather than trusting the label, so you get `.jpg`, `.webp` and `.svg` where those are what arrived. Nothing for you to do; it's just why extensions vary.
+**Nobody agrees what format they're returning.** Gemini returns JPEG, Recraft returns WebP, and Arrow 1.1 returned SVG source labelled `image/png`. The server sniffs the actual bytes and names the file accordingly rather than trusting the label, so you get `.jpg`, `.webp` and `.svg` where those are what arrived. Nothing for you to do; it's just why extensions vary.
+
+**Arrow 2 is a language model, where Arrow 1.1 was an image model.** This is the same shape as Gemini and the gateway enforces it: sending `quiverai/arrow-2` to the image endpoint answers *"Model 'quiverai/arrow-2' is a language model, not an image model."* So the server reaches both Arrow 2 models through the text API, and accepts the SVG whether it arrives as a file or as source in the response text, which is the form a language model tends to use. One SVG per call, so asking for three is three calls.
 
 **Recraft now works through the normal image route.** It used to need the gateway's OpenAI-compatible endpoint, because the gateway's own image-model route answered with an error for every Recraft model. Re-checked 4 September 2026: all four V4.1 variants generate correctly through the standard SDK image route, so that workaround is gone. The old route also clamped unsupported sizes to `auto`; on the standard route size handling is the SDK's, and I have not re-tested which sizes Recraft accepts.
 
@@ -377,7 +386,7 @@ All optional except having at least one key. Set them alongside the key in the `
 | Setting | Default | What it does |
 |---|---|---|
 | `GEMINI_API_KEY` | | Your AI Studio key. `GOOGLE_API_KEY` works too, since Google's own tools read that one |
-| `AI_GATEWAY_API_KEY` | | Vercel AI Gateway. Reaches everything, and is the only route to Flare, Sunburst, Recraft, Seedream, Grok Imagine, Muse and Arrow |
+| `AI_GATEWAY_API_KEY` | | Vercel AI Gateway. Reaches everything, and is the only route to Flare, Sunburst, Recraft, Seedream, Grok Imagine, Muse and both Arrow models |
 | _(none)_ | | `style: "grok-cli"` needs no key. It uses the Grok CLI's signed-in session, read from `~/.grok/auth.json` |
 | `IMAGE_GEN_OUTPUT_DIR` | working directory | Where images are written. Point it at your project's image folder and the paths come back ready to use |
 | `IMAGE_GEN_DEFAULT_PROVIDER` | whichever key you set | Pins the fallback used when routing cannot run. Defaults to Flare when you have a gateway key, Google when Gemini is all you have |

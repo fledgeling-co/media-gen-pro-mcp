@@ -1,0 +1,260 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024">
+<!-- SVG created with Arrow, by QuiverAI (https://quiver.ai) -->
+  <defs>
+    <linearGradient id="wall" y2="1">
+      <stop stop-color="#56697b" offset="0"/>
+      <stop stop-color="#798793" offset="1"/>
+    </linearGradient>
+    <linearGradient id="sunlightWall" y1="1">
+      <stop stop-color="#a0a5a6" stop-opacity="0" offset="0"/>
+      <stop stop-color="#c5b69f" offset="1"/>
+    </linearGradient>
+    <linearGradient id="counter" y1="1">
+      <stop stop-color="#697b8c" offset="0"/>
+      <stop stop-color="#87939b" offset=".55"/>
+      <stop stop-color="#b5b5ae" offset="1"/>
+    </linearGradient>
+    <linearGradient id="sky" x2=".4" y2="1">
+      <stop stop-color="#d0cfc6" offset="0"/>
+      <stop stop-color="#ffe3b5" offset=".46"/>
+      <stop stop-color="#f6d4a7" offset="1"/>
+    </linearGradient>
+    <radialGradient id="sunGlow">
+      <stop stop-color="#fff5cf" stop-opacity=".9" offset="0"/>
+      <stop stop-color="#ffe5b1" stop-opacity="0" offset="1"/>
+    </radialGradient>
+    <linearGradient id="water" x2="0" y2="1">
+      <stop stop-color="#a7b2b8" offset="0"/>
+      <stop stop-color="#dbd4c1" offset="1"/>
+    </linearGradient>
+    <linearGradient id="frame">
+      <stop stop-color="#8195a6" offset="0"/>
+      <stop stop-color="#657c91" offset="1"/>
+    </linearGradient>
+    <linearGradient id="sill" x2="0" y2="1">
+      <stop stop-color="#8497a5" offset="0"/>
+      <stop stop-color="#3f5368" offset="1"/>
+    </linearGradient>
+    <linearGradient id="reflectedWindow" y2=".3">
+      <stop stop-color="#a9acaa" offset="0"/>
+      <stop stop-color="#d0c7b8" offset=".5"/>
+      <stop stop-color="#ffe0ac" offset="1"/>
+    </linearGradient>
+    <linearGradient id="steel" y1=".3" y2=".4">
+      <stop stop-color="#273744" offset="0"/>
+      <stop stop-color="#a6b8c5" offset=".13"/>
+      <stop stop-color="#d1dbe0" offset=".25"/>
+      <stop stop-color="#657a8c" offset=".37"/>
+      <stop stop-color="#253341" offset=".49"/>
+      <stop stop-color="#768999" offset=".62"/>
+      <stop stop-color="#b1b6b3" offset=".75"/>
+      <stop stop-color="#ffe0aa" offset=".84"/>
+      <stop stop-color="#fff5cc" offset=".94"/>
+      <stop stop-color="#dfbc8e" offset="1"/>
+    </linearGradient>
+    <linearGradient id="bodyBase" y1=".5" y2=".45">
+      <stop stop-color="#4b5c6c" offset="0"/>
+      <stop stop-color="#9bacba" offset=".21"/>
+      <stop stop-color="#7b8fa1" offset=".48"/>
+      <stop stop-color="#9ca7ac" offset=".7"/>
+      <stop stop-color="#ffdfad" offset="1"/>
+    </linearGradient>
+    <linearGradient id="handleMetal" y1=".55" y2=".45">
+      <stop stop-color="#344758" offset="0"/>
+      <stop stop-color="#94a9b9" offset=".13"/>
+      <stop stop-color="#e4ded0" offset=".22"/>
+      <stop stop-color="#5c6a72" offset=".49"/>
+      <stop stop-color="#b3a99b" offset=".8"/>
+      <stop stop-color="#ffe1ae" offset="1"/>
+    </linearGradient>
+    <linearGradient id="handleFace" x2="0" y2="1">
+      <stop stop-color="#384855" offset="0"/>
+      <stop stop-color="#657681" offset=".5"/>
+      <stop stop-color="#253341" offset="1"/>
+    </linearGradient>
+    <linearGradient id="blackGrip" y2=".6">
+      <stop stop-color="#23313d" offset="0"/>
+      <stop stop-color="#4c5358" offset=".6"/>
+      <stop stop-color="#283642" offset="1"/>
+    </linearGradient>
+    <linearGradient id="spoutSteel" x2=".6" y1="1">
+      <stop stop-color="#1f2b35" offset="0"/>
+      <stop stop-color="#627785" offset=".24"/>
+      <stop stop-color="#d4d8d6" offset=".38"/>
+      <stop stop-color="#293746" offset=".49"/>
+      <stop stop-color="#6c7d87" offset=".65"/>
+      <stop stop-color="#fff1cd" offset=".76"/>
+      <stop stop-color="#ffdb9e" offset=".9"/>
+      <stop stop-color="#89959c" offset="1"/>
+    </linearGradient>
+    <linearGradient id="knob" y2=".4">
+      <stop stop-color="#101c28" offset="0"/>
+      <stop stop-color="#334350" offset=".48"/>
+      <stop stop-color="#43505b" offset=".85"/>
+      <stop stop-color="#ffe0a7" offset="1"/>
+    </linearGradient>
+    <clipPath id="bodyClip">
+      <path d="m535 391q21-26 76-27 65-2 105 27c37 34 63 107 62 194l2 11c-20 52-302 57-336 2-2-53 3-103 21-149q22-38 70-58z"/>
+    </clipPath>
+    <clipPath id="outdoorClip">
+      <path d="m828 0h196v384l-196-37z"/>
+    </clipPath>
+    <g id="kettle">
+      <g id="arched-handle">
+        <path d="m502 400c-16-38-25-69-12-106 9-32 30-59 60-74 52-29 109-26 149-7 32 15 48 47 46 87-1 34-11 67-23 93l-22-10c14-33 25-65 20-95-3-24-15-41-34-49-46-22-103-5-133 12-25 14-42 40-45 62-3 26 8 56 20 77z" fill="url(#handleMetal)"/>
+        <path d="m506 393c-11-30-21-59-12-90 6-23 20-47 43-63l11 12c-23 18-37 39-41 61-3 27 10 58 16 73z" fill="#8fa3b1"/>
+        <path d="m491 315 14 2c-2 21 8 49 16 69l-13 6c-11-27-22-53-17-77z" fill="url(#handleFace)"/>
+        <path d="m528 249c-23 23-32 49-27 81 2 20 11 43 17 56" fill="none" stroke="#c6d0d0" stroke-width="3"/>
+        <path d="m535 255c-22 22-31 45-28 70 2 22 12 47 19 64" fill="none" stroke="#ffe7bb" stroke-width="4"/>
+        <path d="m693 234c28 10 45 37 42 66-1 29-11 61-21 83l-12-4c12-34 23-60 18-91-3-23-12-36-30-42z" fill="#51616f"/>
+        <path d="m645 203c41-1 76 21 90 52 16 36 4 84-13 128" fill="none" stroke="#ffe7bd" stroke-width="4"/>
+        <path d="m524 236c41-35 96-40 135-33 19 3 35 9 46 19q5 7-6 18-7 10-18 4c-48-18-97-1-138 22q-5 1-4-8-1-12-16-15-6-1 1-7z" fill="url(#blackGrip)"/>
+        <path d="m535 242c44-31 90-39 126-32 19 3 30 7 42 14" fill="none" stroke="#7b7a74" stroke-width="6"/>
+        <path d="m524 241q15 4 15 18l-1 5" fill="none" stroke="#132330" stroke-width="4"/>
+        <path d="m702 366q11-3 18 8l-5 22-16-2z" fill="#8d9697" stroke="#cfbea0" stroke-width="2"/>
+        <ellipse transform="rotate(19 712 379)" cx="712" cy="379" rx="5" ry="8" fill="#5c6870"/>
+        <path d="m715 373-3 10" stroke="#e4d3ae" stroke-width="2"/>
+      </g>
+      <g id="rounded-kettle-body">
+        <path d="m535 391q21-26 76-27 65-2 105 27c37 34 63 107 62 194l2 11c-20 52-302 57-336 2-2-53 3-103 21-149q22-38 70-58z" fill="url(#bodyBase)"/>
+        <g clip-path="url(#bodyClip)">
+          <path d="m550 380c-44 36-71 86-77 157l5 80-34-17c-6-99 21-170 77-206z" fill="#34424e"/>
+          <path d="m568 379c-44 49-66 97-80 148-5 27-3 72-1 101l35 7c0-96 1-183 68-251z" fill="#bdcad3"/>
+          <path d="m583 389c-36 34-57 89-60 158v89l29 5c-4-108 13-187 56-251z" fill="#506275"/>
+          <path d="m596 391c-24 57-44 99-44 161l-1 87 43 3c-4-86-4-179 12-247z" fill="#2b3a49"/>
+          <path d="m610 389c-24 73-19 169-16 251l102-8c8-86-7-189-54-243z" fill="#7e90a0"/>
+          <path d="m643 384c39 47 61 132 54 250l78-25c2-88-16-179-69-221z" fill="#fff0c8"/>
+          <path d="m646 388c34 50 53 120 52 196l-1 51 10-4c2-99-12-182-52-242z" fill="#e8bc85"/>
+          <path d="m672 388c43 46 67 106 65 160v76l11-4-1-80c0-58-34-119-63-151z" fill="#8c9497"/>
+          <path d="m692 388c42 30 66 87 71 147v80l11-7c2-90-20-177-61-215z" fill="#fffbdc"/>
+          <path d="m690 489c30-12 50-30 57-48l4 9c-8 19-29 35-57 47z" fill="#999d99"/>
+          <path d="m739 444c22 33 35 65 20 89-19 31-62 52-101 67-67 27-177 4-214-12l1-81c26 28 126 60 179 66 50 9 108-18 129-49 11-17 0-55-14-80z" fill="#263746" opacity=".65"/>
+          <path d="m757 454c16 37 22 86 20 131" fill="none" stroke="#fff6d7" stroke-width="4"/>
+          <path d="m447 513v67" opacity=".6" stroke="#bbc6ca" stroke-width="3"/>
+        </g>
+        <path d="m445 582c-16 21 20 42 89 53 96 16 216 2 244-27q8-8 2-22" fill="none" stroke="#a9afab" stroke-width="4"/>
+        <path d="m445 591c17 24 110 43 175 43 73-1 141-14 159-36" fill="none" stroke="#ffe6bc" stroke-width="3"/>
+        <path d="m445 601c20 32 128 50 214 41 61-4 106-19 122-35v9c-29 29-129 39-193 35-74-3-131-19-145-36z" fill="#101b23"/>
+        <path d="m443 602c17 26 113 43 185 40 73-2 133-17 151-34" fill="none" stroke="#18232c" stroke-width="5"/>
+        <path d="m445 610c27 31 144 41 213 35 58-4 109-18 123-32" fill="none" stroke="#6d7c85" stroke-width="3"/>
+        <path d="m447 591c17 22 105 41 170 42 71 2 140-13 161-34" fill="none" stroke="#d6dfe0" stroke-width="2"/>
+      </g>
+      <g id="spout-and-whistle">
+        <path d="m513 388q16-4 34 11 3 7-10 18l-23 10-23-21z" fill="url(#steel)" stroke="#717c80" stroke-width="2"/>
+        <path d="m540 397-7 14m12-11-7 13" stroke="#f4d3a1" stroke-width="2"/>
+        <path d="m483 390c16 6 36 20 39 37 3 20-10 47-28 51-15 4-25-14-37-23l-25-20 17-42 21-4z" fill="#263846" stroke="#a4b1b7" stroke-width="3"/>
+        <path d="m453 399 56 21c11 9 1 37-13 50l-58-42z" fill="url(#spoutSteel)"/>
+        <path d="m446 430 52 36" stroke="#b4bfc4" stroke-width="5"/>
+        <path d="m463 401 49 25c2 7-1 18-5 24l-50-34z" fill="#fff0c9"/>
+        <path d="m466 402 48 24" fill="none" stroke="#ffe1aa" stroke-width="4"/>
+        <path d="m515 421c6 17-8 47-21 52" fill="none" stroke="#d9d9cd" stroke-width="3"/>
+        <path d="m438 395 13-33-13-17q-4-6 4-8l9 3 27 24q15 6 12 16l-12 21z" fill="#233340"/>
+        <path d="m451 341 32 26q12 7 4 17l-13-3-6 12-11-5 9-23-17-13z" fill="#888d8b" stroke="#dcc5a2" stroke-width="2"/>
+        <path d="m478 381q-5 10 0 20l23 15 16-3 5-20-11-11-14 3-6-13z" fill="url(#steel)"/>
+        <ellipse transform="rotate(23 485 377)" cx="485" cy="377" rx="6" ry="8" fill="#c4c9c5" stroke="#75818b" stroke-width="2"/>
+        <ellipse cx="486" cy="377" rx="2.5" ry="4" fill="#657684"/>
+        <path d="m500 375 9-2 12 13q6 9-5 18l-9-2q-9-3-10-13z" fill="#8f9fa6" stroke="#546775" stroke-width="2"/>
+        <ellipse transform="rotate(-19 506 387)" cx="506" cy="387" rx="5" ry="8" fill="#5a6e7b"/>
+        <path d="m505 380 3 9" stroke="#d6d8ce" stroke-width="2"/>
+        <ellipse transform="rotate(23 446 413)" cx="446" cy="413" rx="22" ry="32" fill="#172531"/>
+        <ellipse transform="rotate(23 441 411)" cx="441" cy="411" rx="18" ry="29" fill="#334856" stroke="#162733" stroke-width="2"/>
+        <ellipse transform="rotate(23 440 409)" cx="440" cy="409" rx="10" ry="16" fill="#8b9fac"/>
+        <ellipse transform="rotate(23 440 408)" cx="440" cy="408" rx="8" ry="14" fill="#31495b"/>
+        <ellipse transform="rotate(23 440 409)" cx="440" cy="409" rx="3.5" ry="6" fill="#0f2230"/>
+        <path d="m426 422c4 19 19 20 30 4" fill="none" stroke="#6a7c89" stroke-width="2"/>
+      </g>
+      <g id="lid-and-knob">
+        <path d="m536 374q13-15 72-20 52 1 80 15 12 7-2 12c-39 15-116 11-146-1z" fill="#253744" stroke="#d0c8b4" stroke-width="2"/>
+        <path d="m547 373c18-11 41-15 66-15 26 0 53 6 70 15-23 14-112 15-136 0z" fill="url(#steel)"/>
+        <path d="m561 375q19-12 40-14l-9 22-19-1z" fill="#9cb0be"/>
+        <path d="m611 361h14l19 23-36 1z" fill="#344654"/>
+        <path d="m635 361q28 5 42 13l-14 4z" fill="#fff1ca"/>
+        <path d="m538 373c-3 7 39 14 74 14 40 0 79-6 78-13" fill="none" stroke="#ffe5b4" stroke-width="2"/>
+        <path d="m596 358q10-7 7-13h20q-3 9 8 15 4 6-17 7-21-1-18-9z" fill="#162735"/>
+        <ellipse transform="rotate(-10 615 334)" cx="615" cy="334" rx="21" ry="21" fill="url(#knob)"/>
+        <path d="m620 315c9 2 17 11 16 21-9-1-16-10-16-21z" fill="#e6c79a"/>
+        <path d="m611 315c-16 3-21 19-11 31 6 7 18 10 27 2-16-3-19-19-16-33z" fill="#273946"/>
+        <path d="m623 316q11 6 12 15" fill="none" stroke="#ffe5b1" stroke-width="2"/>
+      </g>
+    </g>
+  </defs>
+  <g id="room">
+    <path id="back-wall" d="M0 0H788V421L0 478Z" fill="url(#wall)"/>
+    <path id="diagonal-sunbeam" d="m0 445 601-315 1 268z" fill="url(#sunlightWall)"/>
+    <path id="window-recess" d="m600 0h99v409l-98-11z" fill="url(#frame)"/>
+    <path d="m698 0h29v410l-28-7z" fill="#42586e"/>
+    <path d="m727 0h28v420l-28-9z" fill="#8a9eac"/>
+    <path d="m755 0h7v403l-7 16z" fill="#3a4d60"/>
+    <path id="countertop" d="M0 446L601 380L1024 480V1024H0Z" fill="url(#counter)"/>
+  </g>
+  <g id="view-through-window" clip-path="url(#outdoorClip)">
+    <path d="m828 0h196v388h-196z" fill="url(#sky)"/>
+    <ellipse cx="976" cy="144" rx="105" ry="122" fill="url(#sunGlow)"/>
+    <g id="wispy-clouds" fill="#ffe9c2">
+      <path d="m827 96 65-11-19 7-43 9 88-12 92-17 14-5v-3l-72 9-49 7 50-3-43 9-82 18z"/>
+      <path d="m828 110 90-7 80-9h26v-12l-95 14z"/>
+      <path d="m827 144 24-1 13-4 21 2 9-4 30 2 21-3-25 8 29 1-44 3-10 5-33-1-35 1z"/>
+      <path d="m828 166 19-3 35 2 17-8 45-3 27 3 37-5-30 8-57 6-23 9-30-2-41 6z"/>
+      <path d="m828 193 65-5 29-3 16-6 31 3 55-10v6l-32 6-8 6-70 1-34 4-52 3z"/>
+      <path d="m887 203 79-5 58 2v2z" opacity=".65"/>
+    </g>
+    <circle id="sun" cx="976" cy="142" r="21.5" fill="#fff9df"/>
+    <g id="distant-skyline" fill="#8a9aab">
+      <path d="m828 287v-51h9v-3h11v4h15v33h11v-18h12v-4h16v5h16v-20h3v-13h4v-8h3l1-20 2 19h2v11h3v11h3v40h6v-5h10v-14h23v13h14v-23h10v-3h7v4h8v33h7v19h-196z"/>
+      <path d="m828 268h10v6h6v-10h8v11h8v-6h11v-5h23v20h10v-6h12v6h11v-8h17v-6h10v6h15v-7h12v7h13v6h15v-15h15v32h-196z" fill="#7e90a2"/>
+      <path d="m828 291h196v7h-196z" fill="#708599"/>
+    </g>
+    <path id="river" d="m828 299h196v88l-196-39z" fill="url(#water)"/>
+    <path d="m829 301h195" stroke="#fbe0b3" stroke-width="3"/>
+    <g fill="#8c9eac" opacity=".35">
+      <path d="m830 306h32v8h12v-7h21v17h-9v10h-26v-16h-18v9h-12z"/>
+      <path d="m918 303h21l-2 31-9 17-6-21z"/>
+      <path d="m991 307h24v15h-7v10h-12z"/>
+    </g>
+    <path d="m956 303h37l6 21-9 18 7 31-48-2 6-29-8-17z" fill="#ffdfa8"/>
+    <path d="m967 303h15l-3 9 7 4-9 3 8 4-8 2 8 4-9 4 8 4-7 3 6 6-7 3 8 3-7 3 7 3-7 4 7 4-9 6-11-3 5-4-8-3 8-4-8-4 8-3-8-4 8-2-7-4 7-3-7-4 8-3-7-3 8-3-8-3 8-3-7-3 7-3-7-3z" fill="#fff6cf"/>
+    <g opacity=".6" stroke="#f6e4c6">
+      <path d="m829 313h127m-116 6h63m-75 7h106m-78 9h94m-106 8h82m-23 11h47m-16 6h70m-23-51h43m-29 11h29"/>
+    </g>
+    <path d="m995 348 22-5v-5h7v46l-29-6z" fill="#72879c"/>
+    <path d="m997 350 27 3" fill="none" stroke="#a2b0b9" stroke-width="2"/>
+  </g>
+  <g id="window-frame">
+    <path d="M762 0H788V357L756 388V0Z" fill="#4b6278"/>
+    <path d="m788 0h16v350l220 42v19l-236-45z" fill="#ffe4b4"/>
+    <path d="m802 0h7v347l215 40v7l-223-43z" fill="#5e7589"/>
+    <path d="m808 0h20v347l196 37v7l-216-43z" fill="#fff0c8"/>
+    <path d="m789 357 235 45v75l-268-86z" fill="url(#sill)"/>
+    <path d="m601 380 155 6 268 85v36l-298-88z" fill="#afbabd"/>
+    <path d="m726 405 298 72v31l-302-84z" fill="#ffe5b8"/>
+    <path d="m728 410 26 9v15l-27-8z" fill="#667c8e"/>
+    <path d="m764 419 23 6v18l-22-6z" fill="#627688"/>
+    <path d="m794 428 13 3v17l-13-3z" fill="#bac4c5"/>
+    <path d="m741 434 283 72v48l-261-83z" fill="#425a71"/>
+    <path d="m766 467 258 81v12l-259-83z" fill="#8c9eaa"/>
+  </g>
+  <g id="window-reflection">
+    <path d="m788 479 236 77v468h-241z" fill="url(#reflectedWindow)"/>
+    <path d="m601 650 123-10v384h-124z" fill="#8fa0ad" opacity=".52"/>
+    <path d="m724 632 29-8v400h-29z" fill="#93a5b2" opacity=".72"/>
+    <path d="m753 583 30-22v463h-30z" fill="#546e87" opacity=".6"/>
+    <path d="m788 482 13 4v538h-12z" fill="#e4d0ad"/>
+    <path d="m800 486 7 2v536h-7z" fill="#7e919d"/>
+    <path d="m808 490 20 6v528h-21z" fill="#ffe1ad"/>
+    <path d="m951 535 46 14v475h-47z" fill="#ffe0aa" opacity=".8"/>
+    <path d="m787 724 237 127v35l-237-132z" fill="#748593"/>
+    <path d="m807 729 217 113v9l-217-114z" fill="#eddbbe"/>
+  </g>
+  <g id="cast-shadow" fill="#354f69">
+    <path d="m447 533c-99-11-187-28-249-32-67-5-135 6-171 17-32 13 100 25 143 32 94 29 187 60 297 82l93-5 9-58z" opacity=".56"/>
+    <path d="m478 557c-77 1-184-9-242-16-32-4-65-6-92-3-26 3-49 7-12 19 102 36 232 63 333 78l71-13z" opacity=".46"/>
+    <path d="m119 524 90-12 86 21-59 1z" fill="#a1adb4" opacity=".52"/>
+  </g>
+  <g id="kettle-reflection" opacity=".58">
+    <use transform="translate(0 1101) scale(1 -.705)" xlink:href="#kettle"/>
+    <path d="m446 646c4 80 18 128 43 144 37 28 183 50 241 2 33-34 44-100 49-150-48 17-100 23-165 18-72 2-132-9-168-14z" fill="#8b9cab" opacity=".16"/>
+    <ellipse cx="614" cy="748" rx="68" ry="35" fill="#354757" opacity=".52" stroke="#a6b1b7" stroke-width="1.5"/>
+  </g>
+  <path id="contact-shadow" d="m443 622c45 28 118 39 197 36 65-1 118-17 140-34-29 28-101 41-173 38-72-1-135-14-164-34z" fill="#243b4e" opacity=".5"/>
+  <use id="polished-metal-kettle" xlink:href="#kettle"/>
+</svg>

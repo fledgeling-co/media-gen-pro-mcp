@@ -6,10 +6,10 @@
  * caller describes what it wants, optionally hands over reference images and
  * text context, and gets back file paths it can drop into an `<img src>`.
  *
- * Thirteen models behind one tool, because the right one differs by job and nobody
- * wants thirteen tools. GPT Image 2 is the default; Gemini answers to "gemini" or
- * "nanobanana", Recraft to "photoreal", and Arrow to "svg", which is the only
- * one here that writes real vector source rather than pixels.
+ * Fourteen models behind one tool, because the right one differs by job and nobody
+ * wants fourteen tools. GPT Image 2.5 Flare is the default; Gemini answers to
+ * "gemini" or "nanobanana", Recraft to "photoreal", and Arrow to "svg" and
+ * "telos", the only two here that write real vector source rather than pixels.
  */
 
 import { FastMCP } from 'fastmcp';
@@ -19,7 +19,7 @@ import { adviseFor, adviseForVideo, warnAbout } from './advice.js';
 import { isModerationBlock, renderBlock } from './blocked.js';
 import { route } from './router.js';
 import { GenerationError, RateLimiter, generate } from './generate.js';
-import { KNOWN_STYLES, RoutingError, SVG_VENDOR, availableRoutes, chooseModel, nearestReachableVendor, resolveVendor, type Vendor } from './models.js';
+import { KNOWN_STYLES, RoutingError, SVG_VENDOR, availableRoutes, chooseModel, isVectorVendor, nearestReachableVendor, resolveVendor, type Vendor } from './models.js';
 import {
   KNOWN_VIDEO_STYLES,
   chooseVideoModel,
@@ -43,7 +43,7 @@ const server = new FastMCP({
     '"seedream" (Seedream 5.0 Pro), "grok" (Grok Imagine 2.0), "muse" (Muse Image 1.0), "flare" (GPT Image 2.5 Flare), ' +
     '"sunburst" (GPT Image 2.5 Sunburst). Say "grok-cli" to use a signed-in Grok CLI ' +
     'subscription instead of any API key, which costs no credit. Set `svg: true` for a ' +
-    'REAL SVG from Arrow, which no raster model can produce. Reference images and extra text context are accepted and ' +
+    'REAL SVG from Arrow 2, or "telos" for Arrow 2 Telos on a harder vector brief; no raster model can produce either. Reference images and extra text context are accepted and ' +
     'change the result.\n\n' +
     'Leave `style` out and the server reads the prompt and picks the model, reporting the choice and why. Name one and it ' +
     'is obeyed exactly. Results also carry a note when a different model handled that kind of prompt better in the ' +
@@ -70,7 +70,8 @@ server.addTool({
     'seedream (Seedream 5.0 Pro), grok (Grok Imagine 2.0), muse (Muse Image 1.0), flare (GPT Image 2.5 Flare), ' +
     'sunburst (GPT Image 2.5 Sunburst), or grok-cli (a ' +
     'signed-in Grok CLI subscription, no API key and no credit). For a REAL editable SVG ' +
-    'set `svg: true`, which routes to Arrow; the raster models can only imitate one. A billed call per image.',
+    'set `svg: true`, which routes to Arrow 2, or pass `style: "telos"` for Arrow 2 Telos on a harder ' +
+    'vector brief; the raster models can only imitate one. A billed call per image.',
   annotations: {
     title: 'Generate images',
     readOnlyHint: false,
@@ -88,13 +89,13 @@ server.addTool({
       .max(40)
       .optional()
       .describe(
-        `Which model. OMIT IT unless the user named one: the server reads the prompt and picks, and reports what it chose. Naming one here overrides that and is obeyed exactly. Accepted: ${KNOWN_STYLES.join(', ')}. "seedream" and "svg"/"arrow" need the gateway key.`,
+        `Which model. OMIT IT unless the user named one: the server reads the prompt and picks, and reports what it chose. Naming one here overrides that and is obeyed exactly. Accepted: ${KNOWN_STYLES.join(', ')}. "seedream", "svg"/"arrow" and "telos" need the gateway key.`,
       ),
     svg: z
       .boolean()
       .optional()
       .describe(
-        'Generate a REAL SVG: vector source you can open, edit and scale, from Arrow 1.1. Set this whenever the user asked for an SVG, a logo, an icon, or a diagram. Overrides `style`. Note that the raster models cannot produce an SVG; they can only produce a picture that looks like one.',
+        'Generate a REAL SVG: vector source you can open, edit and scale, from Arrow 2. Set this whenever the user asked for an SVG, a logo, an icon, or a diagram. Overrides `style`, except that `style: "telos"` keeps Arrow 2 Telos, the more refined vector model, for a dense or complex piece. Note that the raster models cannot produce an SVG; they can only produce a picture that looks like one.',
       ),
     referenceImages: z
       .array(z.string().min(1).max(1000))
@@ -151,7 +152,17 @@ server.addTool({
     let routed;
     let substitutedFrom: Vendor | undefined;
     if (args.svg === true) {
-      vendor = SVG_VENDOR;
+      // `svg: true` picks the vector FAMILY, and a named vector model still
+      // chooses within it: `style: "telos"` with `svg: true` means "an SVG, the
+      // refined one", which is a coherent request rather than a contradiction.
+      // Any raster style is overridden, because that one IS a contradiction.
+      const named = args.style === undefined ? undefined : resolveVendor(args.style, SVG_VENDOR);
+      const wanted = named !== undefined && isVectorVendor(named) ? named : SVG_VENDOR;
+      // A deployment may allow one Arrow and not the other. Substituting inside
+      // the family keeps the answer vector source; without this the request
+      // failed on a restricted deployment rather than degrading to the sibling.
+      vendor = nearestReachableVendor(wanted, config.allowedVendors);
+      if (vendor !== wanted) substitutedFrom = wanted;
     } else if (args.style === undefined || args.style.trim() === '') {
       routed = await route(args.prompt, config);
       vendor = routed.vendor;

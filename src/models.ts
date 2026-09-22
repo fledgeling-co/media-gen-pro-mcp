@@ -27,6 +27,7 @@ export type Vendor =
   | 'googlepro'
   | 'bytedance'
   | 'quiver'
+  | 'quiver-telos'
   | 'xai'
   | 'xaicli'
   | 'recraft'
@@ -125,10 +126,22 @@ const ALIASES: Record<string, Vendor> = {
   'recraft-standard': 'recraft-v4.1',
   'recraft-base': 'recraft-v4.1',
 
+  // Arrow 2 is what `svg` now means. Arrow 1.1 was retired in 0.7.0; its
+  // aliases are deliberately NOT kept as a separate vendor, because a caller
+  // asking for "arrow" wants vector source, not a specific retired version.
   quiver: 'quiver',
   quiverai: 'quiver',
   arrow: 'quiver',
+  'arrow-2': 'quiver',
+  arrow2: 'quiver',
   svg: 'quiver',
+
+  telos: 'quiver-telos',
+  'arrow-telos': 'quiver-telos',
+  'arrow-2-telos': 'quiver-telos',
+  'quiver-telos': 'quiver-telos',
+  'svg-pro': 'quiver-telos',
+  'svg-telos': 'quiver-telos',
 };
 
 export function resolveVendor(style: string | undefined, fallback: Vendor): Vendor | undefined {
@@ -199,9 +212,6 @@ const CATALOGUE: Record<
     batches: true,
     api: 'image',
   },
-  // The odd one out, and the reason it is worth a vendor of its own: Arrow
-  // writes SVG source rather than pixels, so its output is editable geometry
-  // instead of an approximation of it. Gateway-only, like Seedream.
   // The slower, stronger sibling of `google`. Same language-model route.
   googlepro: {
     direct: 'gemini-3-pro-image-preview',
@@ -259,11 +269,33 @@ const CATALOGUE: Record<
     batches: true,
     api: 'image',
   },
+  // The odd ones out, and the reason they are worth vendors of their own:
+  // Arrow writes SVG source rather than pixels, so its output is editable
+  // geometry instead of an approximation of it. Gateway-only, like Seedream.
+  //
+  // **Arrow 2 is a LANGUAGE model where Arrow 1.1 was an image model.** This is
+  // the same trap as Gemini and it is not a detail: the gateway's own images
+  // endpoint refuses it outright with
+  // "Model 'quiverai/arrow-2' is a language model, not an image model."
+  // Verified against the live gateway on 21 September 2026. It also means the
+  // price is per token rather than per image, so an Arrow 2 SVG costs what its
+  // source is long rather than a flat rate.
   quiver: {
-    gateway: 'quiverai/arrow-1.1',
-    label: 'Arrow 1.1 (SVG)',
-    batches: true,
-    api: 'image',
+    gateway: 'quiverai/arrow-2',
+    label: 'Arrow 2 (SVG)',
+    // One SVG per call, so several means several calls.
+    batches: false,
+    api: 'language',
+  },
+  // Arrow's speed with a frontier model's refinement, in Quiver's own framing.
+  // The one to reach for on a hard brief: a complex composition, a dense
+  // diagram, a style that has to be held across variants. Costs about half
+  // again per token, so it is not the default.
+  'quiver-telos': {
+    gateway: 'quiverai/arrow-2-telos',
+    label: 'Arrow 2 Telos (SVG)',
+    batches: false,
+    api: 'language',
   },
 };
 
@@ -297,7 +329,11 @@ const NEAREST_REACHABLE: Readonly<Partial<Record<Vendor, readonly Vendor[]>>> = 
   google: ['google', 'googlepro', 'googlelite'],
   googlelite: ['google', 'googlepro'],
   muse: ['google', 'googlepro'],
-  quiver: ['quiver'],
+  // Vector substitutes only for vector: a raster model cannot satisfy an SVG
+  // request at all, so degrading Arrow to a picture model would answer a
+  // different question than the one asked.
+  quiver: ['quiver-telos'],
+  'quiver-telos': ['quiver'],
   xai: ['google', 'googlepro', 'googlelite'],
   xaicli: ['google', 'googlepro', 'googlelite'],
 };
@@ -312,7 +348,16 @@ export function nearestReachableVendor(
   return nearest.find((candidate) => allowed.includes(candidate)) ?? first;
 }
 
+/** The default SVG route: Arrow 2, the fast one. */
 export const SVG_VENDOR: Vendor = 'quiver';
+
+/** The SVG route for a hard brief: Arrow 2 Telos, slower and more refined. */
+export const SVG_VENDOR_REFINED: Vendor = 'quiver-telos';
+
+/** True for any vendor that emits vector source rather than pixels. */
+export function isVectorVendor(vendor: Vendor): boolean {
+  return vendor === SVG_VENDOR || vendor === SVG_VENDOR_REFINED;
+}
 
 export class RoutingError extends Error {
   constructor(message: string) {
@@ -408,6 +453,7 @@ export function availableRoutes(config: Config): { vendor: Vendor; route: Route;
     'xai',
     'xaicli',
     'quiver',
+    'quiver-telos',
   ] as const) {
     try {
       const c = chooseModel(vendor, config);

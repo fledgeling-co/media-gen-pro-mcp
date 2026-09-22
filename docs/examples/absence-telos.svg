@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<!-- SVG created with Arrow, by QuiverAI (https://quiver.ai) -->
+  <defs>
+    <linearGradient id="ceiling-shade" x1="512" x2="512" y2="450" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#171c2f" offset="0"/>
+      <stop stop-color="#181d30" offset=".65"/>
+      <stop stop-color="#111627" offset="1"/>
+    </linearGradient>
+    <linearGradient id="left-wall-shade" x2="478" y1="420" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22283f" offset="0"/>
+      <stop stop-color="#242a42" offset=".55"/>
+      <stop stop-color="#1c2238" offset="1"/>
+    </linearGradient>
+    <linearGradient id="right-wall-shade" x1="1024" x2="546" y1="420" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22283f" offset="0"/>
+      <stop stop-color="#242a42" offset=".55"/>
+      <stop stop-color="#1c2238" offset="1"/>
+    </linearGradient>
+    <linearGradient id="floor-shade" x1="512" x2="512" y1="517" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22283f" offset="0"/>
+      <stop stop-color="#242a42" offset=".5"/>
+      <stop stop-color="#20263c" offset="1"/>
+    </linearGradient>
+    <linearGradient id="floor-border-shade" x1="512" x2="512" y1="521" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#171d31" offset="0"/>
+      <stop stop-color="#101526" offset="1"/>
+    </linearGradient>
+    <linearGradient id="end-wall-shade" x1="476" x2="548" y1="444" y2="519" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0c1020" offset="0"/>
+      <stop stop-color="#0e1221" offset=".6"/>
+      <stop stop-color="#14192c" offset="1"/>
+    </linearGradient>
+    <linearGradient id="door-panel-shade" y2=".22">
+      <stop stop-color="#090d19" offset="0"/>
+      <stop stop-color="#0d111f" offset=".55"/>
+      <stop stop-color="#090d19" offset="1"/>
+    </linearGradient>
+    <linearGradient id="door-frame-shade">
+      <stop stop-color="#171d31" offset="0"/>
+      <stop stop-color="#151a2d" offset="1"/>
+    </linearGradient>
+    <radialGradient id="ceiling-light-halo">
+      <stop stop-color="#b5aa88" stop-opacity=".25" offset="0"/>
+      <stop stop-color="#ada389" stop-opacity=".15" offset=".24"/>
+      <stop stop-color="#9b947f" stop-opacity=".06" offset=".53"/>
+      <stop stop-color="#888271" stop-opacity="0" offset="1"/>
+    </radialGradient>
+    <radialGradient id="overall-vignette" cy=".48" r=".72">
+      <stop stop-color="#080d1c" stop-opacity="0" offset=".46"/>
+      <stop stop-color="#080d1c" stop-opacity=".17" offset="1"/>
+    </radialGradient>
+    <g id="near-door-left">
+      <path d="M31 81H37L179 202V731L36 831H31Z" fill="#101628"/>
+      <path d="M37 81L178 202V731L166 742V215L54 127V817L37 831Z" fill="url(#door-frame-shade)"/>
+      <path d="m54 127 112 88v526l-18 5-94 71z" fill="#070b17"/>
+      <path d="m54 156 91 67v526l-91 68z" fill="url(#door-panel-shade)"/>
+      <path d="m145 223 10-7v525l-10 8z" fill="#080c18"/>
+      <path d="m54 127 112 88-11 10-101-70z" fill="#050915"/>
+      <path d="m134.5 478.5 13 0.5v55.7l-13 2.1z" fill="#242a44"/>
+      <path d="m135 480h2v55.5l-2 0.5z" fill="#2c304b" opacity=".35"/>
+      <path d="m32 82v746" fill="none" stroke="#0d1324" stroke-width="2"/>
+      <path d="m177.5 204v525" fill="none" stroke="#2a3047" stroke-opacity=".25"/>
+    </g>
+    <g id="second-door-left">
+      <path d="m277 295 52 44v287l-50 36z" fill="#101628"/>
+      <path d="m280 298 48 41v287l-5 5v-285l-37-30v341l-6 4z" fill="#191f33"/>
+      <path d="m286 317 37 29v284l-37 26z" fill="#070b17"/>
+      <path d="m286 332 28 22v282l-28 20z" fill="url(#door-panel-shade)"/>
+      <path d="m314 353 6-5v284l-6 5z" fill="#090d19"/>
+      <path d="m308.6 487.7 5.5-0.2v30.5l-5.5 0.8z" fill="#262b43"/>
+      <path d="m278 297v363" stroke="#0c1222" stroke-width="1.5"/>
+    </g>
+    <g id="third-door-left">
+      <path d="m372 375 26 22v177l-25 20z" fill="#101628"/>
+      <path d="m374 377 24 20v177l-3 4v-176l-17-14v202l-4 3z" fill="#1b2136"/>
+      <path d="m378 389 16 13v177l-16 11z" fill="#080c18"/>
+      <path d="m379 398 11 9v175l-11 7z" fill="#0d1120"/>
+      <path d="m386.5 490.5 3.3-0.2v18.7l-3.3 0.7z" fill="#252b41"/>
+      <path d="m373 377v214" stroke="#0b1121"/>
+    </g>
+    <g id="fourth-door-left">
+      <path d="m423 419 14 12v116l-14 11z" fill="#101526"/>
+      <path d="m425 422 12 10v115l-2.5 2v-114l-7.5-7v126l-2 2z" fill="#1a2034"/>
+      <path d="m427 429 7.5 6v114l-7.5 5z" fill="#090d1a"/>
+      <path d="m428 434 4.5 4v112l-4.5 3z" fill="#0e1221"/>
+      <path d="m430.5 491.5h2v12l-2 0.5z" fill="#242a40"/>
+    </g>
+    <g id="fifth-door-left">
+      <path d="m451 443 8 7v79l-8 6z" fill="#111728"/>
+      <path d="m452.5 445 5.5 5v79l-1.5 1v-78l-2.5-3v83.5l-1.5 1.5z" fill="#1c2237"/>
+      <path d="m454 450 2.5 2v78l-2.5 2z" fill="#080d1a"/>
+      <path d="m455 491h1v9h-1z" fill="#20263b"/>
+    </g>
+    <g id="sixth-door-left">
+      <path d="m466 457 4 4v59l-4 3z" fill="#101627"/>
+      <path d="m467 459 2 2v59l-2 1.5z" fill="#090e1c"/>
+    </g>
+  </defs>
+  <g id="hallway-architecture">
+    <path id="ceiling" d="M0 0H1024L550 450H474Z" fill="url(#ceiling-shade)"/>
+    <path id="left-wall" d="M0 0H106L477 446V520L0 858Z" fill="url(#left-wall-shade)"/>
+    <path id="right-wall" d="m1024 0h-106l-371 446v74l477 338z" fill="url(#right-wall-shade)"/>
+    <path id="left-ceiling-recess" d="m105 0h52l320 444 3 6z" fill="#0e1324"/>
+    <path id="right-ceiling-recess" d="m919 0h-52l-320 444-3 6z" fill="#0e1324"/>
+    <path id="distant-end-wall" d="m477 444h70v76h-70z" fill="url(#end-wall-shade)"/>
+    <path id="end-wall-top-shadow" d="m477 444h70v5h-70z" fill="#0b0f1e" opacity=".6"/>
+    <path id="floor" d="M477 518H547L1024 843V1024H0V843Z" fill="url(#floor-shade)"/>
+    <path id="left-floor-edge" d="M477 518H483L0 1004V847Z" fill="url(#floor-border-shade)"/>
+    <path id="right-floor-edge" d="m547 518h-6l483 486v-157z" fill="url(#floor-border-shade)"/>
+    <path id="left-baseboard" d="M0 801L477 516V526L0 856Z" fill="#191f33"/>
+    <path id="right-baseboard" d="m1024 801-477-285v10l477 330z" fill="#191f33"/>
+    <path id="end-baseboard" d="m477 516h70v6h-70z" fill="#101627"/>
+  </g>
+  <g id="left-side-doors">
+    <use href="#sixth-door-left"/>
+    <use href="#fifth-door-left"/>
+    <use href="#fourth-door-left"/>
+    <use href="#third-door-left"/>
+    <use href="#second-door-left"/>
+    <use href="#near-door-left"/>
+  </g>
+  <g id="right-side-doors" transform="translate(1024) scale(-1 1)">
+    <use href="#sixth-door-left"/>
+    <use href="#fifth-door-left"/>
+    <use href="#fourth-door-left"/>
+    <use href="#third-door-left"/>
+    <use href="#second-door-left"/>
+    <use href="#near-door-left"/>
+  </g>
+  <g id="recessed-ceiling-light">
+    <ellipse id="diffuse-warm-glow" cx="512" cy="218" rx="155" ry="83" fill="url(#ceiling-light-halo)"/>
+    <ellipse id="outer-light-trim" cx="512" cy="218" rx="35.5" ry="12" fill="#a59c82" opacity=".17"/>
+    <ellipse id="inner-light-trim" cx="511.7" cy="218.5" rx="25" ry="8.3" fill="#a79b79" opacity=".3"/>
+    <ellipse id="illuminated-lens" cx="511.7" cy="218.2" rx="21.6" ry="7" fill="#ead7a8"/>
+    <path id="lens-highlight" d="m491 216.7c5-6 34-6.3 41.3 0.2-3.3-3.8-33.3-4.9-41.3-0.2z" fill="#fff0c7" opacity=".7"/>
+    <path id="lens-lower-edge" d="m491 219.7c8 6.1 33 5.8 41.2-0.2" fill="none" opacity=".7" stroke="#f2dfb4" stroke-width=".8"/>
+  </g>
+  <path id="subtle-corner-darkening" d="M0 0H1024V1024H0Z" fill="url(#overall-vignette)"/>
+</svg>

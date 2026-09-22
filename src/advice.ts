@@ -17,7 +17,7 @@
  * wrong suggestion is cheap while a wrong bill is not.
  */
 
-import type { Vendor } from './models.js';
+import { isVectorVendor, type Vendor } from './models.js';
 
 export interface Advice {
   /** What the prompt appears to need. */
@@ -57,9 +57,11 @@ export function adviseFor(prompt: string, vendor: Vendor, referenceCount?: numbe
       signal: 'exact text, real data, or a structure that must be correct',
       better: [],
       note:
-        'Nothing here is the right tool for this. Image models garble words, invent numbers, and draw bars that match no data, and re-prompting garbles it again. ' +
+        'Nothing here is reliably the right tool for this. Image models garble words, invent numbers, and draw bars that match no data, and re-prompting garbles it again. ' +
         'Build it in code instead: HTML and CSS give exact text, real values and a layout you control, and screenshot it. ' +
-        'Use this server for the parts where only the look matters.',
+        'Use this server for the parts where only the look matters. ' +
+        'The one hedge worth knowing: Meta says Muse Image 1.0 writes and runs code to produce accurate plots and QR codes, and searches the web to ground an image in current fact. ' +
+        'That is the vendor\'s claim, untested here, so `style: "muse"` is worth a try before you give up — but check the numbers against your own.',
     };
   }
 
@@ -82,15 +84,16 @@ export function adviseFor(prompt: string, vendor: Vendor, referenceCount?: numbe
   // that wobble under magnification because a sampler hallucinates straightness
   // pixel by pixel.
   if (
-    vendor !== 'quiver' &&
+    !isVectorVendor(vendor) &&
     has(p, 'flowchart', 'diagram', 'chart', 'schematic', 'wireframe', 'icon', 'logo', 'floor plan', 'org chart')
   ) {
     return {
       signal: 'a diagram, icon or logo',
-      better: ['quiver'],
+      better: ['quiver', 'quiver-telos'],
       note:
-        'This reads like a diagram. `svg: true` routes to Arrow 1.1, which emits real vector source: exact right angles, uniform stroke, and a file you can edit afterwards. ' +
-        'In the published comparison it was the only model to get the geometry exactly right, and the raster models\' "straight" lines wobble when you zoom in.',
+        'This reads like a diagram. `svg: true` routes to Arrow 2, which emits real vector source: exact right angles, uniform stroke, and a file you can edit afterwards. ' +
+        'In the published comparison the vector model was the only one to get the geometry exactly right, and the raster models\' "straight" lines wobble when you zoom in. ' +
+        'For a dense or complex one, `style: "telos"` takes Arrow 2 Telos, which Quiver positions for harder briefs.',
     };
   }
 
@@ -174,8 +177,20 @@ export function warnAbout(prompt: string, vendor: Vendor): string | undefined {
     );
   }
 
-  if (vendor === 'quiver' && has(p, 'photo', 'realistic', 'photograph')) {
+  if (isVectorVendor(vendor) && has(p, 'photo', 'realistic', 'photograph')) {
     return 'Arrow writes vector shapes, so it cannot produce a photograph. Expect a flat illustration; use `style: "photoreal"` if you wanted a photo.';
+  }
+
+  // An invisible watermark is not a defect, but it IS a fact about the file
+  // that someone publishing it should hear before they publish rather than
+  // after. Meta says Content Seal survives cropping, compression, resizing and
+  // screenshotting, which is the point of it and also the reason it cannot be
+  // removed by the usual means.
+  if (vendor === 'muse') {
+    return (
+      'Muse Image 1.0 embeds Content Seal, Meta\'s invisible watermark, which Meta says survives cropping, compression, resizing and screenshotting. ' +
+      'Nothing is visible on the picture, but the provenance signal travels with it.'
+    );
   }
 
   return undefined;

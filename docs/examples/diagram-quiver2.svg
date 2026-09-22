@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="330" height="57" fill="none" viewBox="0 0 330 57">
+<!-- SVG created with Arrow, by QuiverAI (https://quiver.ai) -->
+  <rect x="14.83" y="5.245" width="77.41" height="46.47" fill="#DCE0E6" stroke="#3C444F" stroke-width="1.557"/>
+  <rect x="126.7" y="5.245" width="76.92" height="46.47" fill="#DCE0E6" stroke="#3C444F" stroke-width="1.557"/>
+  <rect x="237.8" y="5.245" width="77.41" height="46.47" fill="#DCE0E6" stroke="#3C444F" stroke-width="1.557"/>
+  <line x1="92.55" x2="118.3" y1="28.82" y2="28.82" stroke="#3C444F" stroke-width="1.619"/>
+  <line x1="203.9" x2="229.7" y1="28.82" y2="28.82" stroke="#3C444F" stroke-width="1.619"/>
+  <path d="m126.1 28.73-8.63 5.18v-10.35l8.63 5.17z" fill="#3C444F"/>
+  <path d="m237.5 28.73-8.63 5.18v-10.35l8.63 5.17z" fill="#3C444F"/>
+</svg>
