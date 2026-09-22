@@ -456,14 +456,14 @@ th[aria-sort="ascending"] button.sort, th[aria-sort="descending"] button.sort { 
 <script type="application/json" id="report-data">
 {
  "project": "media-gen-pro-mcp",
- "updated": "2026-09-22T22:40:00+10:00",
+ "updated": "2026-09-22T23:05:00+10:00",
  "verdict": {
   "token": "done",
-  "number": "13 of 13",
+  "number": "14 of 14",
   "unit": "tasks finished",
-  "headline": "Arrow 2 and Telos are in, all twelve comparison pictures are drawn and graded, and nothing is committed yet.",
+  "headline": "Arrow 2 and Telos are in, all twelve comparison pictures are drawn and graded, and 0.7.0 is pushed.",
   "run_label": "0.7.0",
-  "head_sha": "ec426e3"
+  "head_sha": "b9fea99"
  },
  "tasks": [
   {
@@ -569,6 +569,14 @@ th[aria-sort="ascending"] button.sort, th[aria-sort="descending"] button.sort { 
    "stage": "ran and being checked",
    "outcome": "done",
    "note": "all six prompts graded for both models; 84 gallery cells all resolve"
+  },
+  {
+   "id": "T-14",
+   "title": "Release 0.7.0",
+   "origin": "planned",
+   "stage": "ran and being checked",
+   "outcome": "done",
+   "note": "committed, tagged v0.7.0 and pushed; npm stays at 0.4.0 as the last two releases did"
   }
  ],
  "gates": [
@@ -663,14 +671,7 @@ th[aria-sort="ascending"] button.sort, th[aria-sort="descending"] button.sort { 
    "state": "done"
   }
  ],
- "not_done": [
-  {
-   "action": "Commit 0.7.0 and push it",
-   "reason": "The work is finished and checked, but whether to release it now is your call, so nothing has been committed.",
-   "what_would_unblock": "Saying ship, or saying hold.",
-   "size": "a few minutes"
-  }
- ],
+ "not_done": [],
  "not_checked": [
   {
    "axis": "Do the tests catch a break",
@@ -696,13 +697,13 @@ th[aria-sort="ascending"] button.sort, th[aria-sort="descending"] button.sort { 
  "roadmap": [
   {
    "round": "Next",
-   "goal": "Commit and release 0.7.0",
+   "goal": "Grade the two picture-model rows still published unjudged",
    "tasks": [
-    "T-14"
+    "T-15"
    ],
    "tier": "S",
-   "status": "blocked",
-   "waits_on": "your call on whether to ship now",
+   "status": "not started",
+   "waits_on": "nothing",
    "estimate_min": [
     3,
     25
@@ -737,19 +738,12 @@ th[aria-sort="ascending"] button.sort, th[aria-sort="descending"] button.sort { 
    "contains": "What 0.7.0 changed and what was measured rather than read."
   }
  ],
- "needs_you": [
-  {
-   "ask": "Ship 0.7.0 now?",
-   "kind": "decision",
-   "waiting_since": "2026-09-21T00:38:00+10:00",
-   "one_line": "The reason to hold is gone — the pictures exist and the tables no longer compare a model that was removed."
-  }
- ],
+ "needs_you": [],
  "git": {
   "branch": "main",
   "commits_ahead": 0,
   "worktree_clean": false,
-  "pushed": false
+  "pushed": true
  }
 }
 </script>
