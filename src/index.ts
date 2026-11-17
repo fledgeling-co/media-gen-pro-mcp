@@ -15,7 +15,8 @@
 import { FastMCP } from 'fastmcp';
 import { z } from 'zod';
 import { loadConfig } from './config.js';
-import { adviseFor, adviseForVideo, warnAbout } from './advice.js';
+import { adviseFor, adviseForVideo, motionCraftNote, warnAbout } from './advice.js';
+import { recordMaterials, type MaterialEntry } from './materials.js';
 import { isModerationBlock, renderBlock } from './blocked.js';
 import { route } from './router.js';
 import { GenerationError, RateLimiter, generate } from './generate.js';
@@ -56,8 +57,30 @@ const server = new FastMCP({
     'multi-panel grids) should be built in code and screenshotted, not generated. Image models garble words and invent ' +
     'numbers, and re-prompting garbles them again.\n\n' +
     'Every image is a billed API call, and image models cost more than text ones. There is an hourly ceiling, because ' +
-    'an agent in a retry loop is the shape that runs up a bill nobody authorised.',
+    'an agent in a retry loop is the shape that runs up a bill nobody authorised.\n\n' +
+    'VIDEO: generate_video makes footage a camera could have shot: people, places, physical products, nature. A motion ' +
+    'graphic is the video form of the code-built image above, and the same rule holds: words on screen, a logo sting, a ' +
+    'chart or number that animates, a product or interface demo, a lower third or an explainer should be built with the ' +
+    'motion-craft skill (`motion-craft:motion-craft`) when the session has it. It renders the film from an HTML ' +
+    'composition on this machine through HyperFrames, keeps the text and screens exact, stays editable, and costs ' +
+    'nothing to render. The two combine: when a motion-craft film needs footage or a still that code cannot draw, ' +
+    'generate it here with `outputDir` set to the project\'s `materials/` folder, and each file is recorded with its ' +
+    'model and prompt in the project\'s materials.md, labelled synthetic.',
 });
+
+/**
+ * Record generated files in a motion-craft project's materials.md, and say so.
+ * The generation already happened and was billed, so a failure to write the list
+ * is reported in the result rather than thrown: the files are on disk either way.
+ */
+async function logMaterials(outputDir: string, entries: readonly MaterialEntry[]): Promise<string[]> {
+  try {
+    const list = await recordMaterials(outputDir, entries);
+    return list ? ['', `_Recorded in \`${list}\`, the motion-craft project's materials list, labelled synthetic._`] : [];
+  } catch (e: unknown) {
+    return ['', `**Could not record these in the motion-craft project's materials.md:** ${e instanceof Error ? e.message : String(e)}. Add them by hand so the film can trace them.`];
+  }
+}
 
 server.addTool({
   name: 'generate_image',
@@ -199,6 +222,7 @@ server.addTool({
     limiter.check(n);
 
     const prompt = args.context ? `${args.prompt}\n\nContext:\n${args.context}` : args.prompt;
+    const imageDir = args.outputDir || config.outputDir || process.cwd();
     let outcome;
     try {
       outcome = await generate(
@@ -209,7 +233,7 @@ server.addTool({
         ...(args.size ? { size: args.size as `${number}x${number}` } : {}),
         ...(args.aspectRatio ? { aspectRatio: args.aspectRatio as `${number}:${number}` } : {}),
         ...(args.seed !== undefined ? { seed: args.seed } : {}),
-        outputDir: args.outputDir || config.outputDir || process.cwd(),
+        outputDir: imageDir,
         ...(args.basename ? { basename: args.basename } : {}),
       },
         choice,
@@ -225,6 +249,16 @@ server.addTool({
 
     const left = limiter.remaining();
     const madeSvg = outcome.images.some((i) => i.mediaType === 'image/svg+xml');
+    const logged = await logMaterials(
+      imageDir,
+      outcome.images.map((i) => ({
+        path: i.path,
+        kind: i.mediaType === 'image/svg+xml' ? 'SVG' : 'image',
+        model: `${choice.label} via the ${choice.route} route`,
+        prompt,
+        ...(args.referenceImages?.length ? { details: [`${String(args.referenceImages.length)} reference image(s)`] } : {}),
+      })),
+    );
     return [
       // The substitution rides the FIRST line, not a note below it. Consumers log this text and
       // truncate: the caller that prompted this feature stores 200 characters of it, which is
@@ -283,6 +317,7 @@ server.addTool({
       ...(outcome.warnings.length > 0
         ? ['', '**The provider ignored something you asked for:**', ...outcome.warnings.map((w) => `- ${w}`)]
         : []),
+      ...logged,
       ...(Number.isFinite(left) ? ['', `_${String(left)} image(s) left this hour._`] : []),
     ].join('\n');
   },
@@ -294,7 +329,7 @@ server.addTool({
   description:
     'Generate a short video from a description, optionally starting from an image you already have, and write it to disk. ' +
     'Image-to-video is the stronger path: pass `sourceImage` and the still becomes the first frame, which is how you keep a ' +
-    'character or product consistent. Models: seedance (Seedance 2.0, default), seedance-mini, minimax (H3), minimax-max (H3 Max), wan (Wan 3.0), wan-prime (Wan 3.0 Prime), flux (FLUX.3 Video), grok (Grok Imagine Video 1.5), gemini (Gemini Omni Flash), or veo (Veo 3.1 Lite). A billed call per video, and MUCH more expensive and slower than an image; expect tens of seconds to minutes.',
+    'character or product consistent. Use it for footage a camera could have shot. A motion graphic (words on screen, a logo sting, an animated chart, a product or interface demo, an explainer) is better built from code with the motion-craft skill (`motion-craft:motion-craft`) when the session has it, because video models invent the text and screens they show. Writing into a motion-craft project\'s `materials/` folder records each clip in its materials.md. Models: seedance (Seedance 2.0, default), seedance-mini, minimax (H3), minimax-max (H3 Max), wan (Wan 3.0), wan-prime (Wan 3.0 Prime), flux (FLUX.3 Video), grok (Grok Imagine Video 1.5), gemini (Gemini Omni Flash), or veo (Veo 3.1 Lite). A billed call per video, and MUCH more expensive and slower than an image; expect tens of seconds to minutes.',
   annotations: {
     title: 'Generate video',
     readOnlyHint: false,
@@ -346,6 +381,8 @@ server.addTool({
     const choice = chooseVideoModel(vendor, config);
     const n = args.n ?? 1;
     videoLimiter.check(n);
+    const videoDir = args.outputDir || config.outputDir || process.cwd();
+    const seconds = args.durationSeconds ?? 5;
 
     let out;
     try {
@@ -354,9 +391,9 @@ server.addTool({
           prompt: args.prompt,
           ...(args.sourceImage ? { sourceImage: args.sourceImage } : {}),
           n,
-          durationSeconds: args.durationSeconds ?? 5,
+          durationSeconds: seconds,
           ...(args.aspectRatio ? { aspectRatio: args.aspectRatio as `${number}:${number}` } : {}),
-          outputDir: args.outputDir || config.outputDir || process.cwd(),
+          outputDir: videoDir,
           ...(args.basename ? { basename: args.basename } : {}),
         },
         choice,
@@ -369,6 +406,21 @@ server.addTool({
     }
 
     const left = videoLimiter.remaining();
+    const logged = await logMaterials(
+      videoDir,
+      out.videos.map((v) => ({
+        path: v.path,
+        kind: 'video',
+        model: choice.label,
+        prompt: args.prompt,
+        details: [
+          `${String(seconds)} s`,
+          ...(args.aspectRatio && !args.sourceImage ? [args.aspectRatio] : []),
+          ...(args.sourceImage ? [`first frame from \`${args.sourceImage}\``] : []),
+        ],
+      })),
+    );
+    const motion = motionCraftNote(args.prompt);
     return [
       `Generated ${String(out.videos.length)} video(s) with **${choice.label}**${args.sourceImage ? ', starting from your image' : ''}.`,
       '',
@@ -376,10 +428,14 @@ server.addTool({
       ...(out.warnings.length > 0
         ? ['', '**The provider ignored something you asked for:**', ...out.warnings.map((w) => `- ${w}`)]
         : []),
+      // A motion graphic outranks the prompt-craft tip: better wording does not stop a
+      // video model inventing the text and screens, so it is said first and as a warning.
+      ...(motion ? ['', '> [!WARNING]', `> **Tell the user this if it is relevant.** ${motion}`] : []),
       ...(() => {
         const a = adviseForVideo(args.prompt, Boolean(args.sourceImage));
         return a ? ['', '> [!TIP]', `> **Tell the user this if it is relevant.** ${a}`] : [];
       })(),
+      ...logged,
       ...(Number.isFinite(left) ? ['', `_${String(left)} video(s) left this hour._`] : []),
     ].join('\n');
   },

@@ -255,6 +255,18 @@ _These are single generations. I inspected all six prompts for Arrow 2 and Arrow
 
 Pass `sourceImage` and the still becomes the first frame. That is the strongest lever here and the only way to keep a subject consistent across clips: generate a still with `generate_image`, then animate it.
 
+### Motion graphics belong to motion-craft
+
+`generate_video` makes footage a camera could have shot. Ask it for words on screen, a logo sting or an app's interface and it invents them. The image models garble text the same way, which is why this README says to build those in code.
+
+The video version of that is [motion-craft](https://github.com/fledgeling-co/fledgeling-plugins/tree/main/plugins/motion-craft), a Claude Code skill (`motion-craft:motion-craft`). It renders the film from HTML on your own machine through HyperFrames. The text is exact, the interface is real, and it costs nothing to render.
+
+The server's instructions now send those requests there. If a prompt still reads like one, the result warns you and says why. It's advice, not a refusal; the clip still gets made. The check is keyword matching, so it's free and it can misfire.
+
+The two also combine. Point `outputDir` at a motion-craft project's `materials/` folder and each file is logged in its `materials.md` with its model and prompt, labelled synthetic.
+
+Note: a project is recognised by a `materials/` folder beside `BRIEF.md`, `SPEC.md`, `STORYLINES.md`, `timeline.json` or `hyperframes.json`.
+
 ### The same three prompts, models compared
 
 Clips seeded from the stills in the comparison above, and one from text alone. 4–5 seconds each, one generation, nothing retried. **The clips below are links; [`docs/model-bench.html`](docs/model-bench.html) plays them inline, side by side, with the cost and the elapsed time on each.**

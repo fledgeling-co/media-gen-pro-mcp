@@ -237,3 +237,41 @@ export function adviseForVideo(prompt: string, hasSourceImage: boolean): string 
 
   return undefined;
 }
+
+/**
+ * A video request that is really a motion graphic.
+ *
+ * Video models invent the words, numbers and interface they are asked to show,
+ * for the same reason image models do, and re-prompting invents them again. A
+ * motion graphic built from code keeps the text exact and the screens real, and
+ * the motion-craft skill builds exactly that: an HTML composition rendered
+ * locally through HyperFrames. So this names the trait that gave the request
+ * away and points at the skill.
+ *
+ * Advice, never a reroute, like every other note here: the clip was made with
+ * what the caller asked for. Matched on the prompt's own words, because a
+ * classifier call on every generation would cost money to produce a suggestion.
+ */
+const MOTION_GRAPHIC_TRAITS: readonly (readonly [string, RegExp])[] = [
+  ['words on screen', /\b(kinetic (type|typography)|animated (text|type|title|titles|words|headline)|text animation|title (card|sequence)|lower[- ]thirds?|subtitles|on[- ]screen (text|captions?|words)|headline (appears|animates|types)|(text|words|letters) (type|types|typing) out|typewriter text)\b/],
+  ['a logo animation', /\b(logo (animation|reveal|sting|intro|outro|build|animates)|animated logo|wordmark|intro sting|brand sting)\b/],
+  ['a chart or numbers that animate', /\b((bar|line|pie|area|animated) (chart|graph)|(chart|graph) (animates|builds|grows|rises|appears)|data (viz|visuali[sz]ation|story)|infographic|numbers? (rise|rises|climb|climbs|tick|ticks|count|counts)|count(s|ing)? up to|kpis?)\b/],
+  ['a product or interface demo', /\b(ui|user interface|(app|software|product) (interface|screen|demo|walkthrough)|screen ?(recording|cast)|screencast|(analytics|admin|sales|saas|product) dashboard|dashboard (ui|screen|view)|cursor (clicks|moves|hovers)|web ?page|website (demo|scroll|tour)|saas)\b/],
+  ['an explainer or motion graphic', /\b(explainer|motion graphics?|(animated|labell?ed|technical) diagram|diagram (animates|builds)|flow ?chart|slide ?(deck|show)|presentation slides)\b/],
+];
+
+export function motionGraphicTrait(prompt: string): string | undefined {
+  const p = prompt.toLowerCase();
+  return MOTION_GRAPHIC_TRAITS.find(([, re]) => re.test(p))?.[0];
+}
+
+export function motionCraftNote(prompt: string): string | undefined {
+  const trait = motionGraphicTrait(prompt);
+  if (!trait) return undefined;
+  return (
+    `This reads as a motion graphic (${trait}), and a video model invents the words, numbers and screens it is asked to show. ` +
+    'If the session has the motion-craft skill, `motion-craft:motion-craft` builds this from code instead: an HTML composition rendered on this machine through HyperFrames, ' +
+    'with the exact text, the real interface and real numbers, editable after render and free to make. ' +
+    'Keep generate_video for what code cannot draw, such as real-world footage, people, places and physical products; motion-craft can place those clips inside its film.'
+  );
+}
