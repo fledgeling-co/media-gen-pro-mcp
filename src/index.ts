@@ -7,7 +7,7 @@
  * text context, and gets back file paths it can drop into an `<img src>`.
  *
  * Fourteen models behind one tool, because the right one differs by job and nobody
- * wants fourteen tools. GPT Image 2.5 Flare is the default; Gemini answers to
+ * wants fourteen tools. GPT Image 2.6 Flare is the default; Gemini answers to
  * "gemini" or "nanobanana", Recraft to "photoreal", and Arrow to "svg" and
  * "telos", the only two here that write real vector source rather than pixels.
  */
@@ -38,10 +38,10 @@ const server = new FastMCP({
   instructions:
     'Generates images and writes them to disk, returning file paths rather than image bytes. Built for illustrating a ' +
     'site or document: point an `<img src>` at what it returns.\n\n' +
-    'State-of-the-art models behind one tool. GPT Image 2.5 Flare by default; say "gemini"/"nanobanana" (Gemini 3.1 Flash Image), ' +
+    'State-of-the-art models behind one tool. GPT Image 2.6 Flare by default; say "gemini"/"nanobanana" (Gemini 3.1 Flash Image), ' +
     '"gemini-lite" (Gemini 3.1 Flash Lite Image), "photoreal" for Recraft V4.1 Pro (also "utility", "utility-pro", "recraft-v4.1"), ' +
-    '"seedream" (Seedream 5.0 Pro), "grok" (Grok Imagine 2.0), "muse" (Muse Image 1.0), "flare" (GPT Image 2.5 Flare), ' +
-    '"sunburst" (GPT Image 2.5 Sunburst). Say "grok-cli" to use a signed-in Grok CLI ' +
+    '"seedream" (Seedream 5.0 Pro), "grok" (Grok Imagine 2.0), "muse" (Muse Image 1.0), "flare" (GPT Image 2.6 Flare), ' +
+    '"sunburst" (GPT Image 2.6 Sunburst). Say "grok-cli" to use a signed-in Grok CLI ' +
     'subscription instead of any API key, which costs no credit. Set `svg: true` for a ' +
     'REAL SVG from Arrow 2, or "telos" for Arrow 2 Telos on a harder vector brief; no raster model can produce either. Reference images and extra text context are accepted and ' +
     'change the result.\n\n' +
@@ -65,10 +65,10 @@ server.addTool({
     'Generate one or more images from a description and write them to disk, returning their paths. Optionally takes ' +
     'REFERENCE IMAGES (paths on this machine) and extra text context, both of which steer the result: use them to match ' +
     'an existing style, keep a character or product consistent, or edit an image you already have. Defaults to ' +
-    'GPT Image 2.5 Flare; pass `style` as gemini/nanobanana (Gemini 3.1 Flash Image), gemini-lite (Gemini 3.1 Flash Lite Image), ' +
+    'GPT Image 2.6 Flare; pass `style` as gemini/nanobanana (Gemini 3.1 Flash Image), gemini-lite (Gemini 3.1 Flash Lite Image), ' +
     'photoreal (Recraft V4.1 Pro), utility (Recraft V4.1 Utility), utility-pro (Recraft V4.1 Utility Pro), recraft-v4.1, ' +
-    'seedream (Seedream 5.0 Pro), grok (Grok Imagine 2.0), muse (Muse Image 1.0), flare (GPT Image 2.5 Flare), ' +
-    'sunburst (GPT Image 2.5 Sunburst), or grok-cli (a ' +
+    'seedream (Seedream 5.0 Pro), grok (Grok Imagine 2.0), muse (Muse Image 1.0), flare (GPT Image 2.6 Flare), ' +
+    'sunburst (GPT Image 2.6 Sunburst), or grok-cli (a ' +
     'signed-in Grok CLI subscription, no API key and no credit). For a REAL editable SVG ' +
     'set `svg: true`, which routes to Arrow 2, or pass `style: "telos"` for Arrow 2 Telos on a harder ' +
     'vector brief; the raster models can only imitate one. A billed call per image.',

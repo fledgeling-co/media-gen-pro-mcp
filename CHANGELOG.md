@@ -6,6 +6,16 @@ Where a fact was learned by calling an API rather than reading its documentation
 
 This project follows [semantic versioning](https://semver.org/). Until 1.0 the minor number carries breaking changes.
 
+## [Unreleased]
+
+### Changed
+
+- **`flare` and `sunburst` now mean GPT Image 2.6.** They route to `openai/gpt-image-2.6-flare` and `openai/gpt-image-2.6-sunburst`, which the gateway's `/v1/models` listed on 7 November 2026. `gpt-image-2.6` aliases to Flare. Flare stays the default.
+
+### Removed
+
+- The `gpt-image-2.5-flare` and `gpt-image-2.5-sunburst` names no longer resolve, so asking for 2.5 answers "unknown style" rather than billing 2.6 under the old name. The README bench and the advice text still describe 2.5, because that is the model they measured; 2.6 has not been benched here.
+
 ## [0.7.0] - 2026-09-22
 
 ### Added

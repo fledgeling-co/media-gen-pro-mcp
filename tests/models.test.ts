@@ -23,8 +23,8 @@ describe('picking a vendor', () => {
     for (const s of ['gemini', 'nanobanana', 'nano-banana', 'nano banana', 'google', 'GEMINI'])
       expect(resolveVendor(s, 'flare')).toBe('google');
     for (const s of ['gemini-pro', 'geminipro', 'gemini-3-pro']) expect(resolveVendor(s, 'flare')).toBe('googlepro');
-    for (const s of ['flare', 'gpt-image-2.5-flare', 'FLARE']) expect(resolveVendor(s, 'google')).toBe('flare');
-    for (const s of ['sunburst', 'gpt-image-2.5-sunburst']) expect(resolveVendor(s, 'google')).toBe('sunburst');
+    for (const s of ['flare', 'gpt-image-2.6', 'gpt-image-2.6-flare', 'FLARE']) expect(resolveVendor(s, 'google')).toBe('flare');
+    for (const s of ['sunburst', 'gpt-image-2.6-sunburst']) expect(resolveVendor(s, 'google')).toBe('sunburst');
     for (const s of ['seedream', 'bytedance']) expect(resolveVendor(s, 'flare')).toBe('bytedance');
     for (const s of ['svg', 'arrow', 'arrow-2', 'arrow2', 'quiver', 'quiverai']) expect(resolveVendor(s, 'flare')).toBe('quiver');
     for (const s of ['telos', 'arrow-telos', 'arrow-2-telos', 'svg-telos', 'svg-pro'])
@@ -59,8 +59,8 @@ describe('picking a vendor', () => {
     expect(chooseModel('recraft-utility-pro', g).modelId).toBe('recraft/recraft-v4.1-utility-pro');
     expect(chooseModel('recraft-v4.1', g).modelId).toBe('recraft/recraft-v4.1');
     expect(chooseModel('bytedance', g).modelId).toBe('bytedance/seedream-5.0-pro');
-    expect(chooseModel('flare', g).modelId).toBe('openai/gpt-image-2.5-flare');
-    expect(chooseModel('sunburst', g).modelId).toBe('openai/gpt-image-2.5-sunburst');
+    expect(chooseModel('flare', g).modelId).toBe('openai/gpt-image-2.6-flare');
+    expect(chooseModel('sunburst', g).modelId).toBe('openai/gpt-image-2.6-sunburst');
   });
 
   it('reaches Flare and Sunburst through the image api, gateway-only', () => {

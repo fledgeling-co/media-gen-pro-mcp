@@ -51,7 +51,7 @@ describe('what to suggest after a refusal', () => {
   });
 
   it('admits when it cannot tell what was wrong', () => {
-    const out = renderBlock('a quiet harbour at dusk', 'GPT Image 2.5 Flare', 'blocked by safety system');
+    const out = renderBlock('a quiet harbour at dusk', 'GPT Image 2.6 Flare', 'blocked by safety system');
     expect(out).toMatch(/may be about a detail rather than the whole idea/);
   });
 

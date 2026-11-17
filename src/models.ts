@@ -58,10 +58,11 @@ export interface ModelChoice {
  */
 const ALIASES: Record<string, Vendor> = {
   flare: 'flare',
-  'gpt-image-2.5-flare': 'flare',
+  'gpt-image-2.6': 'flare',
+  'gpt-image-2.6-flare': 'flare',
 
   sunburst: 'sunburst',
-  'gpt-image-2.5-sunburst': 'sunburst',
+  'gpt-image-2.6-sunburst': 'sunburst',
 
   google: 'google',
   gemini: 'google',
@@ -176,16 +177,18 @@ const CATALOGUE: Record<
   // only, so the gateway is the only way in. Checked 9 September 2026, when a
   // direct call for the sunburst id 403'd on organisation verification anyway.
   // GPT Image 2 itself was removed in 0.6.0, superseded by these two siblings.
+  // Moved from 2.5 to 2.6 on 7 November 2026, when the gateway's /v1/models
+  // listed openai/gpt-image-2.6-flare and openai/gpt-image-2.6-sunburst.
   // Both answered n=2 in a single call, so they batch.
   flare: {
-    gateway: 'openai/gpt-image-2.5-flare',
-    label: 'GPT Image 2.5 Flare',
+    gateway: 'openai/gpt-image-2.6-flare',
+    label: 'GPT Image 2.6 Flare',
     batches: true,
     api: 'image',
   },
   sunburst: {
-    gateway: 'openai/gpt-image-2.5-sunburst',
-    label: 'GPT Image 2.5 Sunburst',
+    gateway: 'openai/gpt-image-2.6-sunburst',
+    label: 'GPT Image 2.6 Sunburst',
     batches: true,
     api: 'image',
   },
